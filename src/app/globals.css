@@ -1,7 +1,19 @@
 @import "tailwindcss";
 
+/* Dark mode piloté par la classe `.dark` (next-themes), pas par prefers-color-scheme.
+   Requis en Tailwind v4 pour que les utilitaires `dark:` suivent le toggle de thème. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Plugin animate (animate-in/out des overlays shadcn : dialog, sheet, popover, tooltip…).
+   Tailwind v4 ne lit AUCUN tailwind.config.* : plugins et keyframes vivent ici. */
+@plugin "tailwindcss-animate";
+
 /* ──────────────────────────────────────────────
-   Design System — Violet Corporate SaaS
+   Design System — thème neutre, à personnaliser par projet
+   Source unique des tokens (Tailwind v4 CSS-first). Les valeurs de marque sont
+   regroupées dans le bloc « THÈME PROJET » en tête de :root et de .dark.
+   Mode d'emploi : docs/design/system.md, section « Personnaliser le thème ».
+   La police vient de next/font (variable --font-sans posée sur <html>, layout.tsx).
    ────────────────────────────────────────────── */
 
 @theme inline {
@@ -9,6 +21,7 @@
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-dark: var(--primary-dark);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -44,108 +57,147 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
 }
 
 /* ── Light Theme ── */
 :root {
-  --background: oklch(0.99 0.003 285);
-  --foreground: oklch(0.17 0.02 285);
+  /* ═══ THÈME PROJET — à personnaliser à la story de setup ═══════════════════
+     Seules les valeurs de ce bloc portent l'identité du produit. Après toute
+     modification, re-mesurer le contraste AA des paires texte/fond dans les
+     DEUX thèmes (accessibility-patterns.md, section « Couleurs & Contraste »). */
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  /* Texte d'accent (liens, spinner, radio) : = primary tant que primary passe AA
+     en texte fin sur fond clair ; sinon une variante plus sombre de la marque. */
+  --primary-dark: oklch(0.205 0 0);
+  /* Anneau de focus : = primary, pour se distinguer de la bordure `--input` (gris) au focus.
+     ≥ 3:1 contre le fond ; si la marque est trop claire, prendre primary-dark. */
+  --ring: var(--primary);
+  --sidebar-ring: oklch(0.556 0 0);
+  --radius: 0.625rem;
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  /* ═══ fin du THÈME PROJET ═════════════════════════════════════════════════ */
 
-  --primary: oklch(0.42 0.2 285);
-  --primary-foreground: oklch(0.98 0.005 285);
-
-  --secondary: oklch(0.94 0.02 285);
-  --secondary-foreground: oklch(0.25 0.05 285);
-
-  --muted: oklch(0.95 0.01 285);
-  --muted-foreground: oklch(0.5 0.02 285);
-
-  --accent: oklch(0.92 0.04 285);
-  --accent-foreground: oklch(0.25 0.05 285);
-
-  --destructive: oklch(0.55 0.2 25);
-  --destructive-foreground: oklch(0.98 0.005 25);
-
-  --success: oklch(0.55 0.18 155);
-  --success-foreground: oklch(0.98 0.005 155);
-
-  --warning: oklch(0.7 0.16 75);
-  --warning-foreground: oklch(0.25 0.05 75);
+  /* Neutres et couleurs sémantiques (palette neutral shadcn, contraste AA mesuré) :
+     communs à tous les projets, à ne retoucher que pour teinter les neutres. */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
 
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.17 0.02 285);
+  --card-foreground: oklch(0.145 0 0);
 
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.17 0.02 285);
+  --popover-foreground: oklch(0.145 0 0);
 
-  --border: oklch(0.9 0.01 285);
-  --input: oklch(0.88 0.015 285);
-  --ring: oklch(0.42 0.2 285);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
 
-  --radius: 0.625rem;
+  --muted: oklch(0.97 0 0);
+  /* 0.51 et non 0.556 (valeur shadcn) : 0.556 sur --muted tombe à 4.34:1, sous AA. */
+  --muted-foreground: oklch(0.51 0 0);
 
-  --sidebar: oklch(0.97 0.01 285);
-  --sidebar-foreground: oklch(0.3 0.03 285);
-  --sidebar-accent: oklch(0.92 0.04 285);
-  --sidebar-accent-foreground: oklch(0.25 0.05 285);
-  --sidebar-border: oklch(0.9 0.01 285);
-  --sidebar-ring: oklch(0.42 0.2 285);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
 
-  --chart-1: oklch(0.42 0.2 285);
-  --chart-2: oklch(0.55 0.18 285);
-  --chart-3: oklch(0.65 0.15 285);
-  --chart-4: oklch(0.55 0.18 200);
-  --chart-5: oklch(0.6 0.16 155);
+  /* Texte blanc pur : 0.985 sur ce rouge ne laisse que 4.56:1, sans marge au survol (/90). */
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(1 0 0);
+
+  --success: oklch(0.527 0.154 150.069);
+  --success-foreground: oklch(1 0 0);
+
+  --warning: oklch(0.769 0.188 70.08);
+  --warning-foreground: oklch(0.205 0 0);
+
+  /* --border reste décoratif ; --input délimite un champ (élément d'interface) : ≥ 3:1
+     contre --background et --card (accessibility-patterns.md, « Couleurs & Contraste »). */
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.64 0 0);
+
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
 }
 
 /* ── Dark Theme ── */
 .dark {
-  --background: oklch(0.14 0.015 285);
-  --foreground: oklch(0.93 0.01 285);
+  /* ═══ THÈME PROJET — à personnaliser à la story de setup ═══════════════════ */
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  /* Sur fond sombre, le texte d'accent est la variante CLAIRE de la marque. */
+  --primary-dark: oklch(0.922 0 0);
+  --ring: var(--primary);
+  --sidebar-ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  /* ═══ fin du THÈME PROJET ═════════════════════════════════════════════════ */
 
-  --primary: oklch(0.6 0.2 285);
-  --primary-foreground: oklch(0.13 0.02 285);
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
 
-  --secondary: oklch(0.22 0.03 285);
-  --secondary-foreground: oklch(0.9 0.01 285);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
 
-  --muted: oklch(0.2 0.02 285);
-  --muted-foreground: oklch(0.6 0.02 285);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
 
-  --accent: oklch(0.25 0.05 285);
-  --accent-foreground: oklch(0.9 0.01 285);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
 
-  --destructive: oklch(0.55 0.2 25);
-  --destructive-foreground: oklch(0.98 0.005 25);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
 
-  --success: oklch(0.55 0.18 155);
-  --success-foreground: oklch(0.98 0.005 155);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
 
-  --warning: oklch(0.7 0.16 75);
-  --warning-foreground: oklch(0.25 0.05 75);
+  /* Rouge clair + texte sombre : un rouge assez foncé pour porter du texte blanc
+     échoue AA en texte sur les fonds sombres (messages d'erreur, item « Supprimer »). */
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.145 0 0);
 
-  --card: oklch(0.18 0.02 285);
-  --card-foreground: oklch(0.93 0.01 285);
+  --success: oklch(0.792 0.209 151.711);
+  --success-foreground: oklch(0.145 0 0);
 
-  --popover: oklch(0.18 0.02 285);
-  --popover-foreground: oklch(0.93 0.01 285);
+  --warning: oklch(0.769 0.188 70.08);
+  --warning-foreground: oklch(0.205 0 0);
 
-  --border: oklch(0.26 0.03 285);
-  --input: oklch(0.26 0.03 285);
-  --ring: oklch(0.6 0.2 285);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(0.53 0 0);
 
-  --sidebar: oklch(0.16 0.02 285);
-  --sidebar-foreground: oklch(0.85 0.01 285);
-  --sidebar-accent: oklch(0.22 0.04 285);
-  --sidebar-accent-foreground: oklch(0.9 0.01 285);
-  --sidebar-border: oklch(0.26 0.03 285);
-  --sidebar-ring: oklch(0.6 0.2 285);
-
-  --chart-1: oklch(0.6 0.2 285);
-  --chart-2: oklch(0.7 0.18 285);
-  --chart-3: oklch(0.75 0.12 285);
-  --chart-4: oklch(0.6 0.18 200);
-  --chart-5: oklch(0.65 0.16 155);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
 }
 
 /* ── Base ── */

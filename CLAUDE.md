@@ -4,8 +4,13 @@
 <!-- À REMPLIR : nom du projet, description en 1 ligne -->
 
 Stack : Next.js 15 (App Router) · TypeScript strict · Tailwind · Shadcn/ui.
-Base de données et auth optionnelles via `.method/starters/supabase-auth/`.
-Canal MCP optionnel (Claude, ChatGPT) via `.method/starters/mcp/` ; ses règles sont dans le tag `mcp`.
+Canal MCP **installé par défaut** (Claude, ChatGPT) : `src/mcp/`, endpoint `/api/mcp`, widgets dans
+`widgets/` ; mode d'emploi `src/mcp/README.md`, règles dans le tag `mcp`. Un produit sans serveur
+MCP est un écart, décidé au cadrage.
+IA : **zéro IA serveur par défaut** — les opérations intelligentes passent par le modèle de l'host
+(`prepare → modèle → save validé`, `mcp-patterns.md` § 4 bis). Un appel LLM serveur se décide par ADR.
+Base de données et auth optionnelles via `.method/starters/supabase-auth/`. Supabase Cloud par
+défaut ; option souveraine self-hosted (Scaleway ou autre) par ADR, tag `selfhost`.
 
 ## Style de réponse
 
@@ -216,13 +221,14 @@ exclus du reçu de vérification : les éditer n'invalide pas des checks déjà 
 
 ## Invariants techniques
 
-Le détail vit dans les conventions routées ; ces quatre points s'appliquent partout et ne se
+Le détail vit dans les conventions routées ; ces cinq points s'appliquent partout et ne se
 déduisent d'aucun chemin de fichier.
 
 1. **Server Components par défaut.** `"use client"` seulement pour state, effets ou event handlers, et poussé le plus bas possible dans l'arbre.
 2. **Server Actions pour les mutations.** Pas de Route Handler sauf webhook ou cron. Chaque action : auth → Zod → exécution → revalidation → `{data}` ou `{error}`.
 3. **Un schema Zod = une source de vérité**, partagé entre le formulaire et l'action.
 4. **RLS activée sur toute table**, sans exception non documentée par un ADR. Auth revérifiée dans chaque Server Action — le middleware ne suffit pas.
+5. **Parité web ↔ MCP par services partagés.** Toute capacité métier = une fonction dans `src/lib/services/`, appelée par le canal web (Server Action pour une mutation, Server Component pour une lecture) ET par le tool MCP, adaptateurs fins. Jamais de logique métier dans un tool ni dans une action.
 
 Route groups : un groupe (`(dashboard)`) avec un `layout.tsx` doit avoir au moins un `page.tsx`,
 et **deux `page.tsx` ne doivent jamais résoudre le même chemin** une fois les segments `(...)`
@@ -230,8 +236,10 @@ retirés — Next ne le signale pas, il en choisit un en silence.
 
 ## Design system
 
-Violet corporate, dark mode class-based (next-themes), Inter. Tokens dans `src/app/globals.css`,
-documentation dans `docs/design/system.md`, preview sur la route `/design-system`.
+Thème **neutre, à personnaliser par projet** : bloc « THÈME PROJET » de `src/app/globals.css`
+(story de setup). Tailwind v4 CSS-first (pas de `tailwind.config.ts`), dark mode class-based
+(next-themes), icônes Phosphor. Documentation dans `docs/design/system.md`, preview sur la route
+`/design-system`.
 
 - **Réutiliser avant de créer** : `.method/conventions/component-registry.md` puis `src/components/ui/`.
 - **Classes sémantiques uniquement** (`bg-primary`, `text-muted-foreground`, `border-border`). Aucune couleur Tailwind numérotée (`bg-emerald-500`) dans `src/`.

@@ -39,7 +39,7 @@ déduits des globs — c'est le seul moyen d'activer les tags marqués **non rou
 | `a11y` | `accessibility-patterns.md` | `src/components/**/*.tsx`, `src/app/**/*.tsx`, `src/app/globals.css` | WCAG, ARIA, clavier, focus, contraste |
 | `performance` | `performance-patterns.md` | `next.config.ts`, `src/app/**/loading.tsx`, `src/app/**/page.tsx`, `src/components/**/*chart*.tsx`, `src/components/**/*editor*.tsx` | Code splitting, Web Vitals, images, fonts |
 | `typescript` | `typescript-patterns.md` | `src/types/**`, `tsconfig.json` | Utility types, unions, branded types, type guards |
-| `registry` | `component-registry.md` | `src/components/**`, `src/hooks/**`, `src/lib/utils/**`, `src/lib/actions/**`, `src/lib/schemas/**`, `src/types/**` | Registry DRY — vérifier avant de créer |
+| `registry` | `component-registry.md` | `src/components/**`, `src/hooks/**`, `src/lib/utils/**`, `src/lib/actions/**`, `src/lib/schemas/**`, `src/lib/services/**`, `src/types/**` | Registry DRY — vérifier avant de créer |
 | `stack` | `tech-stack.md` | `package.json`, `pnpm-lock.yaml`, `tsconfig.json`, `next.config.ts` | Versions exactes, pins et leurs raisons |
 | `seo` | `seo-patterns.md` | `src/app/layout.tsx`, `src/app/**/page.tsx`, `src/app/**/sitemap.ts`, `src/app/**/robots.ts`, `src/app/**/opengraph-image.*` | Metadata API, Open Graph, sitemap, JSON-LD |
 | `monitoring` | `monitoring-patterns.md` | `instrumentation.ts`, `src/instrumentation.ts`, `sentry.*.config.ts`, `src/app/**/error.tsx`, `src/app/**/global-error.tsx`, `src/app/api/health/**` | Error tracking, analytics, health checks, logs |
@@ -48,7 +48,8 @@ déduits des globs — c'est le seul moyen d'activer les tags marqués **non rou
 | `datetime` | `datetime-patterns.md` | `src/lib/utils/*date*.ts`, `src/lib/utils/*format*.ts`, `src/lib/utils/*currency*.ts` | Dates, timezones, formatage, devises |
 | `i18n` | `i18n-patterns.md` | `messages/**`, `src/i18n/**`, `src/middleware.ts` | Traductions, pluriels, locale, RTL |
 | `flags` | `feature-flags-patterns.md` | `src/lib/flags/**`, `src/lib/*flag*.ts` | Feature flags, A/B testing, rollouts |
-| `mcp` | `mcp-patterns.md` | `src/mcp/**`, `src/app/api/[transport]/**`, `src/app/.well-known/**`, `widgets/**` | Tools MCP, AX et découverte par les hosts, résultats, widgets dual-host, OAuth, transport, golden queries |
+| `mcp` | `mcp-patterns.md` | `src/mcp/**`, `src/app/api/[transport]/**`, `src/app/.well-known/**`, `src/lib/services/**`, `widgets/**`, `scripts/smoke-mcp.mjs` | Tools MCP, parité par services partagés, AX et découverte par les hosts, résultats, widgets dual-host, OAuth, transport, golden queries |
+| `selfhost` | `deployment-scaleway.md` | `.github/workflows/supabase-migrations.yml`, `src/mcp/auth.ts`, `src/mcp/config.ts`, `.env.example` | Supabase self-hosted souverain (Scaleway ou autre) : socle, OAuth 2.1 sur GoTrue, adaptations |
 
 ### Tags non routables par chemin
 
@@ -61,7 +62,7 @@ explicitement** — via le champ `Conventions` de la story, ou en l'annonçant.
 
 ### Capacités non installées
 
-Ces tags décrivent des domaines dont **aucune dépendance n'est installée dans le template**.
+Ces tags décrivent des domaines **absents du template** : dépendance non installée, ou option d'hébergement non retenue.
 
 **Un tag de ce tableau ne s'active pas tant que sa capacité n'est pas installée**, même si un
 glob matche. Sans cette règle, `supabase` — routé sur `src/lib/actions/**` — chargeait 300 lignes
@@ -76,7 +77,7 @@ La condition d'activation est dans la colonne de droite : elle se vérifie en un
 | `i18n` | `next-intl` ou équivalent | dépendance dans `package.json` |
 | `flags` | librairie de feature flags | dépendance dans `package.json` |
 | `monitoring` | Sentry ou provider d'analytics | dépendance dans `package.json` |
-| `mcp` | starter `mcp` installé | `mcp-handler` dans `package.json` |
+| `selfhost` | ADR d'hébergement Supabase self-hosted | `grep -ril "self-hosted" docs/decisions/` |
 
 **Dès que la capacité est installée, retirer le tag de ce tableau** : il redevient soumis à la
 vérification des globs, et un chemin devenu faux échouera au lieu de passer inaperçu.

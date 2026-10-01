@@ -1,14 +1,14 @@
 {
-  "name": "dev-framework-template",
+  "name": "app-mcp-template",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "prepare": "git config core.hooksPath .githooks || true",
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "pnpm widgets:build && next build",
     "start": "next start",
     "lint": "eslint . --max-warnings 0",
-    "type-check": "tsc --noEmit",
+    "type-check": "tsc --noEmit && tsc --noEmit -p widgets/tsconfig.json",
     "check:framework": "node scripts/check-framework.mjs",
     "audit:lh": "npx --yes @lhci/cli@0.15.x autorun",
     "verify": "pnpm check:framework && pnpm type-check && pnpm lint && pnpm test && node scripts/verify-receipt.mjs write",
@@ -16,6 +16,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "widgets:build": "node widgets/build.mjs",
+    "mcp:inspect": "npx @modelcontextprotocol/inspector",
+    "mcp:smoke": "node scripts/smoke-mcp.mjs",
     "db:types": "echo 'Configurer Supabase d abord — voir CLAUDE.md' && exit 1",
     "db:migrate": "echo 'Configurer Supabase d abord — voir CLAUDE.md' && exit 1",
     "db:push": "echo 'Configurer Supabase d abord — voir CLAUDE.md' && exit 1",
@@ -23,6 +26,8 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3",
+    "@modelcontextprotocol/sdk": "1.26.0",
+    "@phosphor-icons/react": "^2.1.10",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-avatar": "^1.1.11",
@@ -46,7 +51,9 @@
     "clsx": "^2",
     "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
+    "jose": "^6.2.12",
     "lucide-react": "^1.7.0",
+    "mcp-handler": "1.1.0",
     "motion": "^13.0.0",
     "next": "^15",
     "next-themes": "^0.4.6",
@@ -60,6 +67,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@modelcontextprotocol/ext-apps": "1.7.4",
     "@playwright/test": "^1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6",
@@ -76,6 +84,8 @@
     "tailwindcss": "^4",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "~5.8.3",
+    "vite": "^7.3.1",
+    "vite-plugin-singlefile": "^2.3.3",
     "vitest": "^3"
   },
   "packageManager": "pnpm@12.4.1"

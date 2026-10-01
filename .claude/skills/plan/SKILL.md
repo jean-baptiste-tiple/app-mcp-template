@@ -98,10 +98,10 @@ Trois situations, toutes valides :
 
 - **Maquettes fournies** → vérifier qu'un fichier existe pour chaque écran du PRD, signaler les
   manquants, mettre à jour `docs/design/screens/_index.md` et `components/_index.md`
-- **Pas de maquettes, design system à personnaliser** → questions ciblées (couleur primaire,
-  secondaire, font, style) → mettre à jour `docs/design/system.md`. Les fichiers de code
-  (`globals.css`, `tailwind.config.ts`) seront modifiés par `dev` à la story de setup
-- **Pas de maquettes, design system par défaut** → ne rien faire, le dire, passer à la suite
+- **Pas de maquettes, thème à personnaliser** → questions ciblées (couleur primaire,
+  secondaire, font, style) → mettre à jour `docs/design/system.md`. Le code (bloc « THÈME
+  PROJET » de `globals.css`, police de `layout.tsx`) sera modifié par `dev` à la story de setup
+- **Pas de maquettes, thème neutre gardé** → ne rien faire, le dire, passer à la suite
 
 L'absence de maquette n'est jamais un blocage : les stories portent alors une description
 textuelle ou `N/A`.
@@ -121,7 +121,7 @@ Ordonner par dépendance et priorité. Une story = un déploiement possible. Tai
 En Évolution : **uniquement les nouveaux** epics et stories.
 → Mettre à jour `docs/epics/_index.md`
 
-### Starters — identification, jamais installation
+### Starters et canal MCP — identification, jamais installation
 
 Le projet a-t-il besoin d'une base de données et/ou d'authentification ?
 
@@ -132,13 +132,29 @@ ne pas copier les pages auth du starter).
 
 **Non** → le template fonctionne sans base de données. Ne rien prévoir.
 
-Le produit expose-t-il un serveur MCP (Claude ou ChatGPT comme interface) ?
+Le canal MCP (Claude, ChatGPT) est **installé par défaut** dans `src/mcp/` : le produit est
+MCP-first sauf décision contraire.
 
-**Oui** → lire `.method/starters/mcp/README.md` et `.method/conventions/mcp-patterns.md` ; passer
+**Cas par défaut** → lire `src/mcp/README.md` et `.method/conventions/mcp-patterns.md` ; passer
 `.method/checklists/mcp-design.md` pendant le brief et le PRD (phrases réelles des utilisateurs, une
 fiche par outil, golden queries créées depuis `.method/templates/mcp-golden-queries.tmpl.md`) ;
-figer par ADR l'auth, le transport et l'absence d'IA serveur (mcp-patterns §4 bis, §6, §7) ; la
-story « Setup technique » installe le starter.
+remplir la section « Canal MCP » de `docs/architecture.md` ; figer par ADR l'auth, le transport et
+l'absence d'IA serveur (mcp-patterns §4 bis, §6, §7). La story « Setup technique » remplace le
+domaine démo et active l'auth avec `supabase-auth`.
+
+**Aucun serveur MCP** → le poser via `AskUserQuestion` (c'est un écart au défaut), écrire `N/A`
+dans la section « Canal MCP » et prévoir le retrait du canal dans la story de setup.
+
+### Hébergement Supabase — Cloud ou souverain
+
+Si le projet a une base de données, demander où elle vit, via `AskUserQuestion` :
+
+- **Supabase Cloud** (défaut) → `.method/conventions/deployment-patterns.md`, rien à prévoir.
+- **Self-hosted souverain** (Scaleway ou autre hébergeur, données en France, hors Supabase Cloud)
+  → lire `.method/conventions/deployment-scaleway.md` ; choisir l'option A (Supabase sur
+  Instance, app sur Vercel) ou B (tout chez l'hébergeur) ; figer le choix par ADR dans
+  `docs/decisions/` (cet ADR active le tag `selfhost`) ; ajouter à la story de setup les 5
+  réglages OAuth bloquants et la checklist de validation de ce fichier.
 
 ## Gate de sortie
 

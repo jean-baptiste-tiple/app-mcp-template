@@ -10,6 +10,25 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-10-01] — Fusion avec mcp-template : app-mcp-template (MCP par défaut, thème neutre, option souveraine)
+
+**Quoi :**
+- **Canal MCP installé dans le code** (ex-starter `.method/starters/mcp/`, supprimé) : `/api/mcp` (stateless), tool démo `get_status` câblé schéma → service → tool, widget dual-host buildé en single-file (`pnpm build` enchaîne `widgets:build`), metadata RFC 9728 + rewrites, test `InMemoryTransport`, smoke HTTP, mode d'emploi `src/mcp/README.md`. Auth OAuth désactivée tant que `supabase-auth` n'est pas installé ; **en production, `/api/mcp` répond 401** tant qu'elle l'est (`MCP_ALLOW_ANONYMOUS=true` pour le smoke local uniquement). Page d'onboarding `/connect` (URL à copier, guide par host). Schémas Zod au nommage de coding-standards, scripts lancés par `process.execPath` (Windows), widgets inclus dans `pnpm type-check`.
+- **Thème neutre à personnaliser** : structure UI de mcp-template portée (Tailwind v4 CSS-first, `tailwind.config.ts` mort supprimé, Phosphor, sidebar + menu mobile en Sheet, `/design-system` en sections, `error.tsx`, `loading.tsx`, AppLogo, CopyButton) ; valeurs de marque regroupées dans le bloc « THÈME PROJET » de `globals.css` ; contraste AA mesuré (texte 4.5:1, `--input` et `--ring` ≥ 3:1) ; lien d'évitement sur le `<main>` de chaque layout.
+- **Méthode** : invariant 5 « parité web ↔ MCP par services partagés » dans `CLAUDE.md` ; `plan` traite MCP comme défaut et pose le choix d'hébergement Supabase Cloud / self-hosted ; `audit` gagne les lots UI/UX et AX (ex-`/tm-audit`) ; section « Canal MCP » au template d'architecture ; versions MCP figées dans `tech-stack.md`.
+- **Option souveraine** : `deployment-scaleway.md` (repris de mcp-template, PR #1) — Supabase self-hosted sur Scaleway ou autre, 5 réglages OAuth 2.1 bloquants pour le canal MCP, checklist curl — routé par le nouveau tag `selfhost`, activé par ADR.
+- Starter `supabase-auth` : redirections vers `/` (et non `/dashboard`, 404), icônes Phosphor, `<main id="main-content">`, README aligné sur « un layout n'est jamais une frontière d'autorisation ». Template renommé `app-mcp-template`.
+
+**Pourquoi :** tous les projets sont désormais MCP-first ; les deux templates divergeaient et chaque correctif se reportait à la main. mcp-template est archivé.
+
+**Écarté :**
+- Garder MCP en starter copié à la story de setup — ni buildé ni testé tant qu'il n'est pas installé, il pouvait pourrir en silence.
+- Garder `/api/mcp` anonyme avec un simple avertissement — écarté par l'utilisateur (premier vrai tool public si l'auth est oubliée).
+- Un starter `supabase-selfhosted/` avec compose et kong.yml à copier — ils suivent le compose officiel, qu'on dupliquerait ; une convention suffit.
+- Porter tel quel le design mint Tiple — choix utilisateur : thème neutre, la marque se pose par projet.
+
+**Fichiers :** `src/mcp/**`, `src/app/api/[transport]/route.ts`, `src/app/.well-known/oauth-protected-resource/route.ts`, `src/lib/schemas/status.ts`, `src/lib/services/status-service.ts`, `widgets/**`, `scripts/smoke-mcp.mjs`, `src/app/(dashboard)/connect/page.tsx`, `src/app/{globals.css,layout.tsx,error.tsx,loading.tsx,icon.svg}`, `src/app/(dashboard)/**`, `src/app/design-system/**`, `src/components/{logo,copy-button,sidebar-nav,mobile-nav,nav-items,theme-toggle}.tsx`, `src/components/ui/{button,dialog,radio-group,sheet,spinner}.tsx`, `tests/**`, `package.json`, `tsconfig.json`, `next.config.ts`, `components.json`, `.env.example`, `tailwind.config.ts` (supprimé), `.method/starters/mcp/` (supprimé), `.method/starters/supabase-auth/**`, `.method/conventions/{_index,mcp-patterns,tech-stack,deployment-patterns,deployment-scaleway,accessibility-patterns,component-registry}.md`, `.method/templates/architecture.tmpl.md`, `.claude/skills/{plan,audit}/SKILL.md`, `CLAUDE.md`, `README.md`, `docs/design/system.md`, `docs/migration-v2*.md`, `docs/changelog.md`
+
 ## [2026-09-23] — Gate git : le reçu du dépôt visé ; `.gitattributes` en LF
 
 **Quoi :** le gate (`.claude/hooks/enforce-git-gate.mjs`) juge un commit sur le reçu du dépôt que la commande vise — `cd <dir> &&` en tête ou `git -C <dir>`, chemins Git Bash `/c/…` compris — et non plus toujours sur celui du checkout de la session ; `scripts/verify-receipt.mjs` prend la racine en paramètre. `.gitattributes` force LF sur `*.mjs`, `*.sh` et `.githooks/*`. Ligne « Worktree » dans CLAUDE.md.

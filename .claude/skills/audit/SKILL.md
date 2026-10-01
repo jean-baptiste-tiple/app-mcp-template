@@ -32,6 +32,7 @@ d'autre peut vérifier ligne par ligne sans faire confiance à l'auditeur.
    l'effort fourni.
 5. **Lire les fichiers en entier.** Un fragment correct dans un fichier incohérent reste un problème.
 6. **Lecture seule.** Aucun fichier modifié, aucun fix appliqué, aucun commit. L'audit constate.
+   Seule exception : captures et rapport du lot UI/UX, écrits sous `docs/review/`.
 
 ## Étape 1 — Contraintes du projet
 
@@ -79,6 +80,37 @@ lecture « en entier » devient une fiction. Découper par **frontière techniqu
 Chaque lot est **indépendant** : il refait le routing des conventions et produit son propre
 rapport. Un lot peut être confié à un agent séparé. Ne jamais supposer qu'un autre lot a déjà
 vérifié quelque chose.
+
+### Lots qui exercent le produit : UI/UX et AX
+
+À chaque jalon (fin de vague, avant livraison), deux lots s'ajoutent aux lots de code. Ils ne
+lisent pas seulement le code : ils **l'exercent**. Même barème, mêmes non-négociables.
+
+**UI/UX (web + widgets).**
+1. Captures réelles : build avec env factice, un script Node unique qui lance `next start`,
+   attend le ready, capture via Playwright chaque page en clair ET sombre, desktop ET mobile
+   390 px, puis tue le serveur. Widgets MCP : ouvrir les bundles buildés en `file://` avec le
+   `structuredContent` RÉEL du tool qui les déclare, plus l'état sans données. Captures dans
+   `docs/review/screens/`.
+2. Grille notée 1-5 (justification ≤ 3 lignes) : hiérarchie · états loading/empty/error ·
+   feedback < 400 ms · cohérence tokens et dark · microcopy · a11y. Widgets en plus :
+   glanceable (aperçu + 2-3 actions), lisible à 400 px, poids.
+3. Parcours critiques déroulés sur pièces : impasses, boutons morts, liens cassés.
+   Rapport dans `docs/review/ux-report.md`, findings classés QUICK WIN (≤ 1 h) ou CHANTIER.
+
+**AX (canal MCP).** Se mettre à la place du modèle, qui ne voit QUE les métadonnées.
+1. Pour chaque golden query de `docs/mcp-golden-queries.md`, lire uniquement
+   name/title/description/inputSchema/annotations et les `instructions` serveur, puis prédire
+   honnêtement le routage (tools, ordre, arguments). Erreur ou hésitation = finding qui nomme LE
+   champ fautif et la révision prête à coller (un champ à la fois).
+2. Contrats : format « Use this when… / Do not use for… », `.describe()` partout, graphe
+   `next_actions` fermé, erreurs actionnables, annotations honnêtes, dual-host
+   (`mcp-patterns.md` § 3 à § 5).
+3. Anti-sur-déclenchement : les golden queries négatives sont-elles protégées ?
+   Sortie : tableau routage prédit / attendu avec le taux, puis les findings.
+
+Les corrections suivent la règle de fin d'audit : décidées par gravité avec l'utilisateur, faites
+par `dev`, puis golden queries rejouées sur les deux hosts si une métadonnée a changé.
 
 ## Étape 3 — Routing des conventions
 

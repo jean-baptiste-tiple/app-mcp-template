@@ -94,7 +94,25 @@ erDiagram
 | Action | Input (Zod) | Output | Description |
 |--------|-------------|--------|-------------|
 
-## 6. Auth & Sécurité
+## 6. Canal MCP
+
+<!-- Installé par défaut (src/mcp/). Si le produit n'expose AUCUN serveur MCP : écrire "N/A" et
+     prévoir son retrait dans la story de setup (src/mcp/README.md).
+     Règle de parité : chaque tool = adaptateur fin vers le même service que la Server Action.
+     Patterns : .method/conventions/mcp-patterns.md (tag mcp) -->
+
+### Tools
+| Tool | Input (Zod) | Effet | Widget associé | Parcours |
+|------|-------------|-------|----------------|----------|
+
+### Widgets (MCP Apps)
+| Widget | Données affichées | Actions (tools appelés) |
+|--------|-------------------|-------------------------|
+
+### Auth MCP
+<!-- OAuth 2.1 : authorization server retenu, mapping token → {userId, orgId, role} -->
+
+## 7. Auth & Sécurité
 
 <!-- INVARIANT — pattern standard framework -->
 
@@ -113,11 +131,11 @@ erDiagram
 - Pas de secrets dans le code client (NEXT_PUBLIC_ = public)
 - Rate limiting sur les actions sensibles
 
-## 7. Infrastructure & Déploiement
+## 8. Infrastructure & Déploiement
 
 <!-- À REMPLIR — spécifique au projet -->
-- **Hébergement :** <!-- Vercel, Coolify, Docker... -->
-- **Supabase :** <!-- Cloud, self-hosted -->
+- **Hébergement :** <!-- Vercel, Coolify, Docker, Scaleway... -->
+- **Supabase :** <!-- Cloud (défaut) ou self-hosted souverain : ADR + .method/conventions/deployment-scaleway.md -->
 - **CI/CD :** <!-- GitHub Actions, etc. -->
 - **Environnements :** <!-- dev, staging, prod -->
 
@@ -128,6 +146,7 @@ Ces choix ne changent JAMAIS sans ADR documenté :
 - TypeScript strict mode
 - Supabase pour auth + DB + RLS
 - Server Actions pour les mutations
+- Logique métier dans `src/lib/services/`, appelée par la Server Action ET le tool MCP (parité)
 - Zod pour toute validation
 - Migrations SQL versionnées
 

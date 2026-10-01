@@ -1,34 +1,42 @@
-# Tiple Method Template
+# App MCP Template
 
-Template Git réutilisable pour bootstrapper un projet avec la Tiple Method : structure, templates
-de documents, checklists, conventions techniques routées, et skills Claude Code auto-déclenchés.
-Stack de base : Next.js 15 + TypeScript strict + Tailwind + Shadcn/ui. Base de données et auth
-optionnelles via starter (Supabase).
+Template Git réutilisable pour bootstrapper une **app MCP-first** avec la Tiple Method : structure,
+templates de documents, checklists, conventions techniques routées, et skills Claude Code
+auto-déclenchés. Stack de base : Next.js 15 + TypeScript strict + Tailwind + Shadcn/ui, **canal
+MCP installé** (Claude + ChatGPT, widgets MCP Apps). Base de données et auth optionnelles via
+starter (Supabase Cloud, ou self-hosted souverain sur Scaleway ou ailleurs).
 
 Le principe : **les garanties de qualité s'attachent au changement, pas à un workflow qu'il faut
 penser à lancer.** Les conventions se chargent depuis les fichiers touchés, la review confronte le
 code aux règles écrites plutôt qu'à une opinion, et le gate de commit est appliqué par un hook —
 pas par une consigne qu'on peut oublier.
 
+## Canal MCP
+
+Installé par défaut : endpoint `/api/mcp` (Streamable HTTP, stateless), tool démo câblé
+schéma Zod → service partagé → tool, résultats texte et structurés, widget MCP Apps dual-host
+(Claude + ChatGPT) buildé en single-file, test `InMemoryTransport` et smoke HTTP
+(`pnpm mcp:smoke`). L'auth OAuth 2.1 s'active avec le starter Supabase + Auth ; en production,
+`/api/mcp` refuse les appels tant qu'elle ne l'est pas. Mode d'emploi : `src/mcp/README.md`.
+
 ## Design System
 
-Un design system **violet corporate** complet est inclus, prêt à l'emploi :
+Un design system **neutre, à personnaliser par projet**, est inclus :
 
-- **Thème :** Violet profond corporate avec dark mode (class-based, next-themes)
+- **Thème :** palette neutre (oklch) regroupée dans un bloc « THÈME PROJET » de `src/app/globals.css`, dark mode class-based (next-themes), Tailwind v4 CSS-first
 - **34 composants Shadcn/ui** installés (style new-york) dans `src/components/ui/`
-- **6 composants métier** : PageContainer, EmptyState, StatCard, DataTable, ThemeToggle, ThemeProvider
+- **Composants métier** : PageContainer, EmptyState, StatCard, DataTable, ThemeToggle, ThemeProvider, AppLogo, SidebarNav, CopyButton
+- **Icônes :** Phosphor (lucide-react réservé aux internes Shadcn)
 - **Preview interactive** : route `/design-system` pour voir tous les composants
-- **Tokens complets** : couleurs (oklch), typographie (Inter), spacing, radius, shadows
-- **Documentation** : `docs/design/system.md`
+- **Documentation** : `docs/design/system.md` (dont « Personnaliser le thème »)
 
 ## Starters
 
-Le template est minimal par défaut. Les starters dans `.method/starters/` ajoutent des fonctionnalités complètes. Ils sont **identifiés** par `/plan` (qui ne fait que documenter) et **installés** par `/dev` dans la story de setup technique.
+Le canal MCP est installé ; le reste est minimal par défaut. Les starters dans `.method/starters/` ajoutent des fonctionnalités complètes. Ils sont **identifiés** par `/plan` (qui ne fait que documenter) et **installés** par `/dev` dans la story de setup technique.
 
 | Starter | Dossier | Ce qu'il ajoute |
 |---------|---------|-----------------|
 | **Supabase + Auth** | `.method/starters/supabase-auth/` | Base de données, auth (login/signup/reset), middleware, Server Actions, pages auth, CI migrations |
-| **Canal MCP** | `.method/starters/mcp/` | Endpoint MCP (Streamable HTTP, stateless par défaut), tool démo câblé schéma Zod → service → tool, résultats texte et structurés, widgets MCP Apps pour Claude et ChatGPT, auth OAuth 2.1 (avec Supabase + Auth), test `InMemoryTransport` et smoke HTTP |
 
 ## Quick Start
 
@@ -68,7 +76,7 @@ reste invocable explicitement en `/<nom>` quand tu veux forcer le passage.
 | `wrap-up` | auto — « on a fini », « c'est bouclé » | Capture les apprentissages : conventions, ADR, registry. Écrit, puis annonce chaque écriture. |
 | `plan` | **explicite uniquement** (`/plan`) | Cadrage à la carte : brief, PRD par parcours, archi, design, epics/stories. 4 niveaux — **refus**, **story seule**, évolution ciblée, initial. |
 | `conventions` | auto — question sur une règle, sans fichier touché | Répond depuis `.method/conventions/` en citant la source, jamais de mémoire. |
-| `audit` | demande explicite (`/audit`) | Audite la **codebase existante** par lots : 10 axes, auto-réfutation avant de rendre. |
+| `audit` | demande explicite (`/audit`) | Audite la **codebase existante** par lots : 10 axes, auto-réfutation avant de rendre ; plus deux lots qui exercent le produit, UI/UX (captures réelles) et AX (simulation de routage des golden queries). |
 
 `plan` est le seul à ne jamais s'auto-déclencher : un cadrage réécrit PRD, architecture et
 stories. Claude le **propose** face à un besoin produit large, il ne le lance pas.
@@ -184,12 +192,18 @@ dépasse 400 lignes, si une checklist n'est appelée par rien, si un composant d
 ├── src/
 │   ├── app/
 │   │   ├── (dashboard)/         # Layout principal + page servant `/`
+│   │   ├── api/[transport]/     # Endpoint MCP `/api/mcp`
+│   │   ├── .well-known/         # Metadata OAuth (RFC 9728)
 │   │   └── design-system/       # Preview du design system
 │   ├── components/
 │   │   ├── ui/                  # 34 composants Shadcn/ui
 │   │   └── ...                  # Composants métier (PageContainer, EmptyState, etc.)
+│   ├── mcp/                     # Serveur MCP : tools, auth, résultats, widgets inlinés
 │   └── lib/
+│       ├── schemas/             # Schemas Zod partagés (form, action, tool)
+│       ├── services/            # Logique métier partagée web ↔ MCP
 │       └── utils/cn.ts          # Tailwind class merge
+├── widgets/                     # Sources des widgets MCP Apps (build Vite single-file)
 └── tests/                       # Unit, integration, e2e
 ```
 
@@ -198,7 +212,7 @@ dépasse 400 lignes, si une checklist n'est appelée par rien, si un composant d
 Après le clone :
 
 1. **`CLAUDE.md`** — Section "Projet" : nom et description
-2. **`docs/design/system.md`** — Ajuster les tokens si besoin (couleurs, radius)
+2. **Thème** — bloc « THÈME PROJET » de `src/app/globals.css` + police de `src/app/layout.tsx` (procédure : `docs/design/system.md`)
 3. **`.method/conventions/tech-stack.md`** — Ajouter les libs spécifiques
 4. **`package.json`** — Nom du projet
 
@@ -268,3 +282,7 @@ sur les cas de contournement connus.
 
 Le déploiement Vercel est automatique (connecter le repo). La CI migrations Supabase arrive avec
 le starter Supabase + Auth.
+
+**Option souveraine** : Supabase self-hosted (Scaleway ou autre hébergeur, données en France) au
+lieu de Supabase Cloud — socle, réglages OAuth 2.1 bloquants pour le canal MCP et checklist de
+validation dans `.method/conventions/deployment-scaleway.md`. Choisi au cadrage (`/plan`), figé par ADR.

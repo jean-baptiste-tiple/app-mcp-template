@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Loader2 } from "lucide-react"
+import { CircleNotch } from "@phosphor-icons/react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -104,7 +104,7 @@ export default function SignupPage() {
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {loading && <CircleNotch className="mr-2 h-4 w-4 animate-spin" />}
             Créer mon compte
           </Button>
           <p className="text-center text-sm text-muted-foreground">

@@ -49,17 +49,10 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 - `SUPABASE_ACCESS_TOKEN` — supabase.com/dashboard/account/tokens
 - `SUPABASE_DB_PASSWORD` — mot de passe DB du projet
 
-### Dashboard layout
-Le layout `src/app/(dashboard)/layout.tsx` sera mis à jour pour ajouter la vérification auth :
-```tsx
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-
-// + check auth dans le layout
-const supabase = await createClient()
-const { data: { user } } = await supabase.auth.getUser()
-if (!user) redirect("/login")
-```
+### Pages protégées
+Un layout n'est **jamais** une frontière d'autorisation (`nextjs-patterns.md § Un layout n'est JAMAIS une frontière d'autorisation`) :
+le middleware redirige pour l'UX, et **chaque `page.tsx`** protégée (ou sa couche d'accès aux
+données) ainsi que chaque Server Action revérifient `supabase.auth.getUser()`.
 
 ### Règles ajoutées (CLAUDE.md)
 Quand ce starter est activé, les règles Supabase s'appliquent :

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Loader2 } from "lucide-react"
+import { CircleNotch } from "@phosphor-icons/react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -85,7 +85,7 @@ export default function ResetPasswordPage() {
         </CardContent>
         <CardFooter>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {loading && <CircleNotch className="mr-2 h-4 w-4 animate-spin" />}
             Réinitialiser le mot de passe
           </Button>
         </CardFooter>

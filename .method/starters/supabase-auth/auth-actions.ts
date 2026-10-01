@@ -34,7 +34,7 @@ export async function loginAction(formData: FormData) {
   if (error) return { error: INVALID_CREDENTIALS }
 
   revalidatePath("/", "layout")
-  redirect("/dashboard")
+  redirect("/")
 }
 
 export async function signupAction(formData: FormData) {
@@ -82,7 +82,7 @@ export async function resetPasswordAction(formData: FormData) {
     if (error) return { error: GENERIC_ERROR }
 
     revalidatePath("/", "layout")
-    redirect("/dashboard")
+    redirect("/")
   } catch (error) {
     // redirect() lève NEXT_REDIRECT : sans ce rethrow, le catch avalerait la redirection.
     unstable_rethrow(error)

@@ -30,6 +30,8 @@ NEXT_PUBLIC_SITE_URL=
 
 **En production :** variables dans le dashboard de l'hébergeur (Vercel, Coolify, etc.), JAMAIS dans des fichiers.
 
+> Option souveraine : Supabase self-hosted (Scaleway ou autre) au lieu de Supabase Cloud → `deployment-scaleway.md` (tag `selfhost`, activé par ADR).
+
 ## Database Migrations en Production
 
 ### Workflow

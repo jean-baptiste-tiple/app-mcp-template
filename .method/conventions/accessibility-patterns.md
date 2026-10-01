@@ -198,7 +198,7 @@ relisant les tokens — seule la mesure la voit.
 
 // BON : couleur + icône + texte
 <span className="text-destructive flex items-center gap-1">
-  <AlertCircle className="h-4 w-4" aria-hidden="true" />
+  <WarningCircle className="h-4 w-4" aria-hidden="true" /> {/* Phosphor */}
   Erreur
 </span>
 ```

@@ -7,7 +7,7 @@ export async function GET(request: Request) {
   // `next` vient de l'URL : seul un chemin relatif du site est accepté. `//hote` ou `@hote`
   // concaténés à `origin` feraient de cette route une redirection ouverte.
   const requested = searchParams.get("next")
-  const next = requested?.startsWith("/") && !requested.startsWith("//") ? requested : "/dashboard"
+  const next = requested?.startsWith("/") && !requested.startsWith("//") ? requested : "/"
 
   if (code) {
     const supabase = await createClient()

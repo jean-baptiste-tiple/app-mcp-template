@@ -1,0 +1,37 @@
+<!doctype html>
+<!-- Buildé par Vite en single-file : tout est inliné, zéro requête externe (CSP hosts, §5.3).
+     Pas de Google Fonts, pas de CDN — police système uniquement. -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>status-card</title>
+    <style>
+      /* Thème clair/sombre piloté par le bridge via data-theme (§5.3) */
+      :root {
+        --bg: #ffffff;
+        --fg: #0a0a0a;
+        --muted: #737373;
+        --border: #e5e5e5;
+        --accent: #171717;
+      }
+      :root[data-theme="dark"] {
+        --bg: #0a0a0a;
+        --fg: #fafafa;
+        --muted: #a3a3a3;
+        --border: #262626;
+        --accent: #fafafa;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./main.tsx"></script>
+  </body>
+</html>

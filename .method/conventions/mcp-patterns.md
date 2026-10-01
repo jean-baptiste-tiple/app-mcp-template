@@ -2,7 +2,7 @@
 
 > Tag : `mcp`
 > Lire ce fichier avant d'écrire un tool MCP, un widget MCP Apps, ou de toucher à `src/mcp/` / `widgets/`.
-> Squelette d'implémentation prêt : `.method/starters/mcp/` (installé en S01) — chaque fichier du starter référence la section qu'il implémente.
+> Implémentation installée par défaut : `src/mcp/` + `widgets/` (mode d'emploi : `src/mcp/README.md`) — chaque fichier référence la section qu'il implémente.
 > Les exemples ci-dessous utilisent un domaine fictif (gestion de documents) — adapter au domaine du projet.
 > Cibles : **Claude ET ChatGPT dès la V1** — toute règle ci-dessous s'applique aux deux hosts.
 
@@ -20,7 +20,7 @@ server.registerTool("archive_document", ..., async (input, extra) => {
 server.registerTool("archive_document", {
   title: "Archiver un document",
   description: ARCHIVE_DESC,                   // voir §3
-  inputSchema: ArchiveDocumentInput,           // Zod — même schéma que le form web
+  inputSchema: archiveDocumentSchema,          // Zod — même schéma que le form web (nommage : coding-standards)
   annotations: { readOnlyHint: false, idempotentHint: true },
   _meta: widgetMeta("document-preview"),       // voir §5
 }, async (input, extra) => {
@@ -243,7 +243,7 @@ Règle : **aucun fichier hors `widget-meta.ts` ne manipule ces clés**. Quand Ch
 Notre serveur = **resource server** ; Supabase Auth = **authorization server** (OAuth 2.1 Server, DCR activé). À figer par ADR lors du cadrage du projet. Ce qui doit exister et ne jamais régresser :
 
 1. **`/.well-known/oauth-protected-resource`** sur NOTRE domaine (RFC 9728) : `resource` (URL canonique du serveur MCP), `authorization_servers: ["https://<ref>.supabase.co/auth/v1"]`, `scopes_supported`, `resource_documentation` (→ notre page /connect). C'est LE point d'entrée de la découverte auth des deux hosts.
-2. **401 + header `WWW-Authenticate`** pointant la metadata ci-dessus sur toute requête non authentifiée — c'est ce qui déclenche le flow OAuth chez l'host. Jamais de "mode dégradé anonyme".
+2. **401 + header `WWW-Authenticate`** pointant la metadata ci-dessus sur toute requête non authentifiée — c'est ce qui déclenche le flow OAuth chez l'host. Jamais de "mode dégradé anonyme". **Tant que l'auth n'est pas activée**, la route refuse déjà en production (401 + `WWW-Authenticate`, garde `anonymousGuard` de `src/app/api/[transport]/route.ts`) ; seul `MCP_ALLOW_ANONYMOUS=true` la lève, pour le smoke local sur `next start` — jamais sur un déploiement.
 3. **Par tool** : `securitySchemes: oauth2` + en cas de token manquant/invalide, erreur avec `_meta["mcp/www_authenticate"]` (exigence ChatGPT pour afficher l'UI de liaison).
 4. **Validation de token dans `src/mcp/auth.ts`** : signature via JWKS Supabase, `iss`, `exp`/`nbf`, scopes ; puis résolution `{userId, orgId, role}` → client Supabase **au JWT de l'utilisateur** → RLS active dans les tools comme au web. `service_role` interdit.
 5. **Adresses de retour** `[mesuré · 2026-09-23 · E03]` : la liste « Redirect URLs » du tableau de bord ne s'applique pas aux clients enregistrés dynamiquement — chaque client est validé sur ses propres `redirect_uris` (correspondance exacte) : `https://claude.ai/api/mcp/auth_callback` (Claude, client confidentiel `client_secret_post`), `https://chatgpt.com/connector/oauth/<id>` (ChatGPT, client public, un par connecteur), `http://localhost:<port aléatoire>/callback` (Claude Code, client public, un par serveur). DCR ouvert = monitorer `auth.oauth_clients`, que les hosts ne purgent jamais (sur le banc : `pnpm oauth:admin clients`).
@@ -261,13 +261,13 @@ Notre serveur = **resource server** ; Supabase Auth = **authorization server** (
 
 ## 7. Transport : stateless (défaut) ou stateful — ADR obligatoire au cadrage
 
-**Stateless (le défaut du starter)** : Streamable HTTP **sans session** — pas de `Mcp-Session-Id` persisté, pas de Redis, chaque requête reconstruit le serveur (`disableSse: true`). Tout l'état métier est en Postgres ; l'état conversationnel appartient à l'host. Simple, scale-to-zero, parfait Vercel.
+**Stateless (le défaut du template)** : Streamable HTTP **sans session** — pas de `Mcp-Session-Id` persisté, pas de Redis, chaque requête reconstruit le serveur (`disableSse: true`). Tout l'état métier est en Postgres ; l'état conversationnel appartient à l'host. Simple, scale-to-zero, parfait Vercel.
 - Conséquences : pas de notifications server→client hors requête ni de subscriptions resources — ne PAS en introduire sans rouvrir l'ADR. Une opération longue tient dans la requête (`maxDuration` ajusté sur la route) ; si un jour > 60 s → pattern "job + tool de statut", pas du push.
 - **Notification dans la réponse** `[précisé · 2026-09-22 · grille B, bench_mutate]` : en stateless, un tool qui modifie la surface peut écrire `notifications/tools/list_changed` dans le flux de réponse de sa propre requête (`relatedRequestId`). Claude Code la reçoit et relit la liste en 0,5 s ; claude.ai et ChatGPT l'ignorent.
 - **Aucune affinité réseau** `[mesuré · 2026-09-22 · readme_gate]` : claude.ai et ChatGPT appellent depuis des pools d'IP tournants (une IP différente presque à chaque requête). Aucun état ne s'attache à une empreinte UA + IP ; un état « a déjà fait X » passe dans l'appel (champ requis, §2.4) ou dans une session OAuth.
 
 **Stateful (si le produit l'exige)** : sessions `Mcp-Session-Id` + SSE via `redisUrl` dans la config mcp-handler (Redis Upstash/Vercel KV — y stocke sessions et flux entre invocations serverless). À choisir quand le produit a besoin de : notifications server→client, subscriptions de resources (updates temps réel, `listChanged` poussé), elicitation, état de session côté serveur.
-- Conséquences : coût Redis, plus de scale-to-zero pur, gestion d'invalidation de session, tests plus lourds. Le bloc de config prêt est en commentaire dans la route du starter.
+- Conséquences : coût Redis, plus de scale-to-zero pur, gestion d'invalidation de session, tests plus lourds. Le bloc de config prêt est en commentaire dans `src/app/api/[transport]/route.ts`.
 
 Le choix est **figé par ADR** (`docs/decisions/`) lors du cadrage — en changer = rouvrir l'ADR, pas un simple diff de config.
 
@@ -294,7 +294,7 @@ Règles : seed = les prompts d'exemple du brief ; toute story qui ajoute/modifie
 
 ## 9. Onboarding humain (l'autre moitié de l'AX)
 
-- Page **`/connect`** dans l'app web : URL du serveur MCP à copier, guide pas-à-pas par host (Claude : Paramètres → Connecteurs → Ajouter ; ChatGPT : mode développeur / app), les prompts d'exemple à essayer, lien vers l'état de connexion.
+- Page **`/connect`** dans l'app web (installée : `src/app/(dashboard)/connect/page.tsx`, à personnaliser) : URL du serveur MCP à copier, guide pas-à-pas par host (Claude : Paramètres → Connecteurs → Ajouter ; ChatGPT : mode développeur / app), les prompts d'exemple à essayer, lien vers l'état de connexion.
 - `resource_documentation` de la metadata OAuth pointe cette page ; le README produit aussi.
 - **Phrase dans les préférences de l'utilisateur** `[mesuré · 2026-09-23 · proto, mesure 1]` : sur claude.ai, sans phrase, une demande qui ne nomme pas le domaine fait demander « quel outil ? » ou part vers un autre connecteur de l'utilisateur ; avec « Quand une demande concerne mon travail, commence par l'outil de contexte du connecteur « <Nom> ». », le readme est appelé en premier 15/15. Ne pas y ajouter « si rien ne correspond, dis-le au lieu de deviner » (bloque les questions de données, 0/2), ne pas nommer un connecteur quand l'utilisateur en a plusieurs du même genre (capte les demandes des autres, 0/2). Sur ChatGPT et Claude Code, aucune phrase : le readme vient déjà en premier, et sur ChatGPT la phrase le fait rappeler à chaque tour.
 - Après la première connexion, le premier message de l'utilisateur est guidé par les prompts MCP (§2.3) — l'objectif : **< 2 min entre "j'ajoute le connecteur" et "premier résultat utile"**.
@@ -302,7 +302,7 @@ Règles : seed = les prompts d'exemple du brief ; toute story qui ajoute/modifie
 ## 10. Tests & évolution
 
 - **Unit** : services sans MCP ; tools via `InMemoryTransport.createLinkedPair()` + `Client` (auth mockée) — vérifier schéma, `structuredContent`, `next_actions`, erreurs actionnables, metas widget (la TRIPLE clé §5.1) et les deux resources (mcp-app + skybridge).
-- **Smoke HTTP scripté** : `scripts/smoke-mcp.mjs` (fourni par le starter) — initialize + tools/list + tool d'appel contre `next start` local ou une URL de prod ; à lancer après chaque déploiement.
+- **Smoke HTTP scripté** : `scripts/smoke-mcp.mjs` (`pnpm mcp:smoke`) — initialize + tools/list + tool d'appel contre `next start` local ou une URL de prod ; à lancer après chaque déploiement. Les scripts Node qui lancent un binaire (`widgets/build.mjs`, `scripts/smoke-mcp.mjs`) exécutent son fichier JS par `process.execPath`, jamais `node_modules/.bin/*` : sous Windows ce sont des shims `.cmd` qu'un `spawn` sans shell ne lance pas.
 - **Manuel** : MCP Inspector sur `http://localhost:3000/api/mcp` (tools, auth, resources) + matrice §5.4.
 - **Évolution** : ajouter un champ optionnel = OK. Renommer/supprimer un tool ou rendre un champ requis = **breaking** → ADR + dépréciation (le tool répond encore avec un message de migration) + notification `listChanged` (effet sur Claude Code seulement, §7). Bump `serverInfo.version` à chaque changement de surface : utile au journal, mais aucun host ne le montre et il ne rafraîchit aucun cache `[précisé · 2026-09-22 · M6, baseline 15:12]`. Un contrat modifié en place (schéma, prérequis) n'atteint pas de façon fiable les conversations claude.ai (instantané local, §8) : un changement de contrat = **nouveau nom de tool** + dépréciation de l'ancien.
 - Descriptions/schemas **stables** (prompt caching des hosts) ; golden queries rejouées à chaque évolution (§8).

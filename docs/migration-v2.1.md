@@ -14,7 +14,7 @@
 ---
 
 Tu vas appliquer la révision v2.1 du framework sur ce projet. Le template de référence est
-`jean-baptiste-tiple/dev-framework-template`, branche `main`.
+`jean-baptiste-tiple/app-mcp-template` (ex-`dev-framework-template`), branche `main`.
 
 ## Ce que corrige cette révision
 
