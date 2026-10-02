@@ -200,6 +200,7 @@ Règle : **aucun fichier hors `widget-meta.ts` ne manipule ces clés**. Quand Ch
 ### 5.2 Bridge — un seul module, deux dialectes
 
 - `widgets/shared/bridge.ts` expose une API interne unique : `getToolOutput()`, `callTool(name, args)`, `sendFollowupMessage(text)`, `openExternal(url)`, `getTheme()`.
+- **Un appel parti du widget ne porte jamais `confirm`** : un clic dans le widget ne vaut pas l'accord explicite de l'utilisateur dans la conversation (§3, flow 2 temps), et une fonction sensible appelée par le widget ne rend que son récapitulatif. Une suite proposée (`next_actions`) part en message à l'assistant (`sendFollowupMessage`), jamais en appel direct : c'est le modèle qui la lance, avec ses arguments. **Vérifiable :** aucun `confirm` dans les arguments que construit un fichier de `widgets/`.
 - **Protocole GA : utiliser le SDK OFFICIEL `@modelcontextprotocol/ext-apps` (entrée
   `app-with-deps`, autonome) — ne JAMAIS réimplémenter le handshake à la main.** Deux pièges
   vécus (= widget vide, sans erreur) : (1) le host n'envoie RIEN avant `ui/notifications/initialized` ;
@@ -265,6 +266,7 @@ Notre serveur = **resource server** ; Supabase Auth = **authorization server** (
 - Conséquences : pas de notifications server→client hors requête ni de subscriptions resources — ne PAS en introduire sans rouvrir l'ADR. Une opération longue tient dans la requête (`maxDuration` ajusté sur la route) ; si un jour > 60 s → pattern "job + tool de statut", pas du push.
 - **Notification dans la réponse** `[précisé · 2026-09-22 · grille B, bench_mutate]` : en stateless, un tool qui modifie la surface peut écrire `notifications/tools/list_changed` dans le flux de réponse de sa propre requête (`relatedRequestId`). Claude Code la reçoit et relit la liste en 0,5 s ; claude.ai et ChatGPT l'ignorent.
 - **Aucune affinité réseau** `[mesuré · 2026-09-22 · readme_gate]` : claude.ai et ChatGPT appellent depuis des pools d'IP tournants (une IP différente presque à chaque requête). Aucun état ne s'attache à une empreinte UA + IP ; un état « a déjà fait X » passe dans l'appel (champ requis, §2.4) ou dans une session OAuth.
+- **mcp-handler et un corps illisible** `[reproduit · 2026-10-02 · mcp-handler 1.1.0]` : il lit le corps d'un `POST` sans attendre son échec ; un JSON illisible laisse la requête sans réponse jusqu'à `maxDuration`. `src/app/api/[transport]/route.ts` le refuse avant lui, en 400 `-32700` (`withReadableBody`), et `scripts/smoke-mcp.mjs` le vérifie.
 
 **Stateful (si le produit l'exige)** : sessions `Mcp-Session-Id` + SSE via `redisUrl` dans la config mcp-handler (Redis Upstash/Vercel KV — y stocke sessions et flux entre invocations serverless). À choisir quand le produit a besoin de : notifications server→client, subscriptions de resources (updates temps réel, `listChanged` poussé), elicitation, état de session côté serveur.
 - Conséquences : coût Redis, plus de scale-to-zero pur, gestion d'invalidation de session, tests plus lourds. Le bloc de config prêt est en commentaire dans `src/app/api/[transport]/route.ts`.

@@ -10,6 +10,12 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-10-02] — Fusion de main : correctifs MCP reportés dans `src/`, nom `app-mcp-template`
+
+**Quoi :** les correctifs du starter MCP poussés sur `main` en parallèle sont reportés dans le code installé : versions exactes dans `package.json` (jose 6.2.12, Vite 7.3.1, vite-plugin-singlefile 2.3.3, sans `^`) et `tech-stack.md § Canal MCP` avec la raison de chaque borne ; `src/app/api/[transport]/route.ts` refuse un corps JSON illisible avant mcp-handler (`withReadableBody`, 400 `-32700`), garde-fou anonyme compris, et `scripts/smoke-mcp.mjs` le vérifie ; `mcp-patterns.md` § 5.2 (jamais de `confirm` depuis un widget) et § 7 (corps illisible). Le renommage `mcp-dev-template` est remplacé par `app-mcp-template` (choix utilisateur).
+**Pourquoi :** deux sessions travaillaient le template ; le starter MCP qu'elles corrigeaient est désormais installé dans `src/`.
+**Fichiers :** `package.json`, `src/app/api/[transport]/route.ts`, `scripts/smoke-mcp.mjs`, `.method/conventions/{tech-stack,mcp-patterns}.md`, `docs/migration-v2*.md`, `docs/changelog.md`
+
 ## [2026-10-02] — Auth du canal MCP : organisation hors du jeton, page de consentement, middleware
 
 **Quoi :**
@@ -40,6 +46,26 @@
 - Porter tel quel le design mint Tiple — choix utilisateur : thème neutre, la marque se pose par projet.
 
 **Fichiers :** `src/mcp/**`, `src/app/api/[transport]/route.ts`, `src/app/.well-known/oauth-protected-resource/route.ts`, `src/lib/schemas/status.ts`, `src/lib/services/status-service.ts`, `widgets/**`, `scripts/smoke-mcp.mjs`, `src/app/(dashboard)/connect/page.tsx`, `src/app/{globals.css,layout.tsx,error.tsx,loading.tsx,icon.svg}`, `src/app/(dashboard)/**`, `src/app/design-system/**`, `src/components/{logo,copy-button,sidebar-nav,mobile-nav,nav-items,theme-toggle}.tsx`, `src/components/ui/{button,dialog,radio-group,sheet,spinner}.tsx`, `tests/**`, `package.json`, `tsconfig.json`, `next.config.ts`, `components.json`, `.env.example`, `tailwind.config.ts` (supprimé), `.method/starters/mcp/` (supprimé), `.method/starters/supabase-auth/**`, `.method/conventions/{_index,mcp-patterns,tech-stack,deployment-patterns,deployment-scaleway,accessibility-patterns,component-registry}.md`, `.method/templates/architecture.tmpl.md`, `.claude/skills/{plan,audit}/SKILL.md`, `CLAUDE.md`, `README.md`, `docs/design/system.md`, `docs/migration-v2*.md`, `docs/changelog.md`
+
+## [2026-10-02] — Starter MCP : versions figées, corps illisible refusé par la route
+
+**Quoi :**
+- Le README du starter installe des versions exactes : sdk 1.26.0, mcp-handler 1.1.0, jose 6.2.12, ext-apps 1.7.4, Vite 7.3.1 et vite-plugin-singlefile 2.3.3. `tech-stack.md § Canal MCP` les porte, avec la raison de chaque borne.
+- `mcp-route.ts` refuse un corps JSON illisible avant mcp-handler (`withReadableBody`, 400 `-32700`), en mode sans auth comme dans le bloc auth commenté. `smoke-mcp.mjs` le vérifie.
+- `mcp-patterns.md` :
+  - § 5.2 : un appel parti du widget ne porte jamais `confirm`, et une suite proposée part en message à l'assistant ;
+  - § 7 : le corps illisible.
+- Correction d'une fausse affirmation du README (le template n'exclut pas `widgets` du tsconfig).
+
+**Pourquoi :** installé à la lettre au 2026-10-02, le starter ne compilait plus. Sans version, pnpm tirait ext-apps 2.0.3 (exige zod 4), Vite 8.3.1 (refusé par `@vitejs/plugin-react` 4 et par le typage de `vitest.config.ts`) et mcp-handler 2.2.0 (`createMcpHandler` à deux arguments). Résultat : `tsc` en échec sur la route et sur `vitest.config.ts`. Un POST au JSON illisible restait sans réponse (20 s sans octet, jusqu'à `maxDuration` en vrai), défaut déjà corrigé sur oto-platform. La règle `confirm` vient de son widget routeur : un clic dans un widget ne vaut pas l'accord de l'utilisateur dans la conversation.
+
+**Vérifié :** le starter installé par son README dans une copie neuve du template passe type-check, lint, tests, `check:framework`, `widgets:build`, `next build` et le smoke HTTP. Le smoke couvre maintenant le corps illisible refusé en 400. La variante auth de la route compile.
+
+**Écarté :**
+- Passer à ext-apps 1.7.5, la version d'oto-platform : 1.7.4 est celle éprouvée en production et compile à l'identique.
+- Porter le widget routeur d'oto-platform (un widget sur plusieurs outils, aiguillé par `view`) : son ADR n'est pas encore validé par un banc.
+
+**Fichiers :** `.method/starters/mcp/{README.md, mcp-route.ts, smoke-mcp.mjs}`, `.method/conventions/{tech-stack.md, mcp-patterns.md}`, `docs/changelog.md`
 
 ## [2026-09-23] — Gate git : le reçu du dépôt visé ; `.gitattributes` en LF
 

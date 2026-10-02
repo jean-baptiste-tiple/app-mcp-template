@@ -55,6 +55,19 @@ async function anonymousGuard(req: Request): Promise<Response> {
   return handler(req)
 }
 
+// mcp-handler lit le corps d'un POST sans attendre son échec : un JSON illisible laisse la
+// requête sans réponse jusqu'à `maxDuration` (mcp-patterns §7). La route le refuse avant lui.
+function withReadableBody(next: (request: Request) => Promise<Response>) {
+  return async (request: Request): Promise<Response> => {
+    try {
+      JSON.parse(await request.clone().text())
+    } catch {
+      return Response.json({ jsonrpc: "2.0", id: null, error: { code: -32700, message: "Parse error" } }, { status: 400 })
+    }
+    return next(request)
+  }
+}
+
 // ── Auth OAuth 2.1 (activer avec le starter supabase-auth — voir src/mcp/README.md) ──
 // TODO(S01) : décommenter après install de supabase-auth + config OAuth Server côté Supabase.
 // Activer ce bloc SUPPRIME le garde-fou `anonymousGuard` ci-dessus et son export : withMcpAuth
@@ -71,6 +84,9 @@ async function anonymousGuard(req: Request): Promise<Response> {
 //   resourceMetadataPath: "/.well-known/oauth-protected-resource",
 //   resourceUrl: MCP_RESOURCE_URL,
 // })
-// export { authHandler as GET, authHandler as POST, authHandler as DELETE }
+// const authPost = withReadableBody(authHandler)
+// export { authHandler as GET, authPost as POST, authHandler as DELETE }
 
-export { anonymousGuard as GET, anonymousGuard as POST, anonymousGuard as DELETE }
+const POST = withReadableBody(anonymousGuard)
+
+export { anonymousGuard as GET, POST, anonymousGuard as DELETE }

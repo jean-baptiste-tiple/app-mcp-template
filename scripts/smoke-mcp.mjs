@@ -90,6 +90,17 @@ async function main() {
   console.log(`get_status  → HTTP ${status.status} | ${content}`)
   if (status.status !== 200 || !/status/.test(content ?? "")) throw new Error("get_status KO")
 
+  // Corps illisible : refusé par la route, sans quoi mcp-handler ne répond jamais (mcp-patterns §7).
+  const unreadable = await fetch(`${BASE}/api/mcp`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream" },
+    body: '{"jsonrpc":"2.0","id":4,"method":',
+    signal: AbortSignal.timeout(10_000),
+  })
+  const parseError = (await unreadable.json().catch(() => null))?.error?.code
+  console.log(`illisible   → HTTP ${unreadable.status} | code ${parseError}`)
+  if (unreadable.status !== 400 || parseError !== -32700) throw new Error("corps illisible KO")
+
   console.log("\n✅ SMOKE TEST MCP COMPLET : OK")
 }
 

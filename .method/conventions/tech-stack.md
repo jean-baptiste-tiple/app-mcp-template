@@ -22,13 +22,13 @@
 ## Canal MCP (installé par défaut)
 
 > Code : `src/mcp/`, `src/app/api/[transport]/`, `widgets/` — mode d'emploi : `src/mcp/README.md`.
-> Versions figées à la fusion du canal MCP dans le template (2026-10-01).
+> Versions exactes (`package.json` sans `^`) : une majeure suivante casse le type-check (raison par ligne).
 
 | Techno | Version | Rôle | Justification |
 |--------|---------|------|---------------|
-| @modelcontextprotocol/sdk | 1.26.0 | Serveur MCP (tools, resources) | SDK TypeScript officiel — **épinglé sur le peer de `mcp-handler`** |
-| mcp-handler | 1.1.0 | Endpoint MCP dans Next.js (`/api/mcp`) | Transport Streamable HTTP sur route handler (`src/app/api/[transport]`), stateless par défaut, stateful via `redisUrl` — compatible Vercel |
+| @modelcontextprotocol/sdk | 1.26.0 exacte | Serveur MCP (tools, resources) | SDK TypeScript officiel — épinglé sur le peer exact de `mcp-handler` 1.1.0 |
+| mcp-handler | 1.1.0 exacte | Endpoint MCP dans Next.js (`/api/mcp`) | Transport Streamable HTTP sur route handler (`src/app/api/[transport]`), stateless par défaut, stateful via `redisUrl` — compatible Vercel. En 2.x, `createMcpHandler` ne prend plus que deux arguments |
 | MCP Apps (GA 2026-01-26) — resources `ui://` | via SDK | Widgets visuels dans Claude/ChatGPT | Bundles `ui://` en `text/html;profile=mcp-app` + variante `-skybridge` (`text/html+skybridge`, ChatGPT), triple méta (`ui.resourceUri` + alias plat déprécié + `openai/outputTemplate`). Pas de dépendance `@mcp-ui/*` |
-| @modelcontextprotocol/ext-apps | 1.7.4 (**figé**) | SDK officiel côté widget (bridge MCP Apps) | Le bridge `widgets/shared/bridge.ts` en dépend entièrement (handshake `ui/initialize`, tool-result, thème, autoResize) — ne PAS réimplémenter le protocole. Entrée `app-with-deps` : contourne son peer `sdk ^1.29` (warning `pnpm peers check` connu et assumé) |
-| Vite + vite-plugin-singlefile | 7.3.x + 2.3.x | Build des widgets en HTML single-file (`widgets/build.mjs` → `generated.ts` inliné) | CSP des hosts = zéro requête externe, zéro fs à runtime. **Vite 7, pas 8** : `@vitejs/plugin-react` 4 n'accepte pas Vite 8 en peer |
-| jose | 6.2.x | Validation JWT (JWKS Supabase) dans `src/mcp/auth.ts` | OAuth 2.1 resource server, RLS au JWT utilisateur |
+| @modelcontextprotocol/ext-apps | 1.7.4 exacte (2.x exige zod 4, le template est en zod 3) | SDK officiel côté widget (bridge MCP Apps) | Le bridge `widgets/shared/bridge.ts` en dépend entièrement (handshake `ui/initialize`, tool-result, thème, autoResize) — ne PAS réimplémenter le protocole. Entrée `app-with-deps` (évite le conflit de peer avec le SDK serveur) |
+| Vite + vite-plugin-singlefile | 7.3.1 et 2.3.3 exactes (Vite 8 n'est accepté ni par `@vitejs/plugin-react` 4 ni par le typage de `vitest.config.ts`) | Build des widgets en HTML single-file (`widgets/build.mjs` → `generated.ts` inliné) | CSP des hosts = zéro requête externe, zéro fs à runtime |
+| jose | 6.2.12 exacte | Validation JWT (JWKS Supabase) dans `src/mcp/auth.ts` | OAuth 2.1 resource server, RLS au JWT utilisateur |
