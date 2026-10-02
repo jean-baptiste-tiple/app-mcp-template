@@ -10,6 +10,12 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-10-02] — Dépôt renommé `mcp-dev-template`
+
+**Quoi :** `package.json` (`name`) et les URL de clone de `docs/migration-v2.md` et `docs/migration-v2.1.md` passent de `dev-framework-template` à `mcp-dev-template`.
+**Pourquoi :** le dépôt est renommé `jean-baptiste-tiple/mcp-dev-template`. GitHub redirige les anciennes URL ; les nouvelles ne répondent qu'une fois le renommage fait par le propriétaire (Settings > General).
+**Fichiers :** `package.json`, `docs/migration-v2.md`, `docs/migration-v2.1.md`, `docs/changelog.md`
+
 ## [2026-10-02] — Starter MCP : versions figées, corps illisible refusé par la route
 
 **Quoi :**

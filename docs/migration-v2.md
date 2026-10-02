@@ -12,7 +12,7 @@
 ---
 
 Tu vas migrer ce projet vers la version 2 du framework. Le template de référence est
-`jean-baptiste-tiple/dev-framework-template`, branche `main`.
+`jean-baptiste-tiple/mcp-dev-template`, branche `main`.
 
 ## Règle qui prime sur tout le reste
 
@@ -73,7 +73,7 @@ Si le projet est **déjà en v2** sur certains points, saute les lots correspond
 Récupère le template v2 dans un dossier temporaire hors du projet :
 
 ```
-git clone --depth 1 https://github.com/jean-baptiste-tiple/dev-framework-template /tmp/framework-v2
+git clone --depth 1 https://github.com/jean-baptiste-tiple/mcp-dev-template /tmp/framework-v2
 ```
 
 Si le clone est impossible (réseau, accès), demande-moi de te fournir les fichiers et
