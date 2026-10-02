@@ -114,7 +114,7 @@ l'accessibilite — `<button aria-label="...">` autour, `aria-hidden` sur l'icon
 | toolMeta | `src/mcp/tool-meta.ts` | `securitySchemes` + meta widget d'un tool |
 | toToolResult, toolError | `src/mcp/tool-result.ts` | Resultat deux formes (texte + structuredContent), erreurs actionnables |
 | widgetMeta, WIDGET_NAMES | `src/mcp/widget-meta.ts` | Triple meta dual-host d'un widget |
-| verifyToken, requireAuthContext | `src/mcp/auth.ts` | JWT Supabase -> `{userId, orgId, role}` (auth a activer) |
+| verifyToken, requireAuthContext | `src/mcp/auth.ts` | JWT Supabase -> `{userId}` ; org et role relus en base a chaque appel (auth a activer) |
 | useToolOutput, mount | `widgets/shared/mount.tsx` | Donnees du tool dans un widget, montage React |
 
 ## Utils

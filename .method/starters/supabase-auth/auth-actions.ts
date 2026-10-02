@@ -5,6 +5,7 @@ import { redirect, unstable_rethrow } from "next/navigation"
 import {
   forgotPasswordSchema,
   loginSchema,
+  redirectPathSchema,
   resetPasswordSchema,
   signupSchema,
 } from "@/lib/schemas/auth"
@@ -34,7 +35,9 @@ export async function loginAction(formData: FormData) {
   if (error) return { error: INVALID_CREDENTIALS }
 
   revalidatePath("/", "layout")
-  redirect("/")
+  // Retour sur la page demandée avant la connexion (posée par le middleware), dont le
+  // consentement OAuth d'un assistant MCP ; chemin du site uniquement, sinon `/`.
+  redirect(redirectPathSchema.parse(formData.get("redirect")))
 }
 
 export async function signupAction(formData: FormData) {

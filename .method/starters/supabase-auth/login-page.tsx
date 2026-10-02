@@ -18,7 +18,14 @@ import {
 import { loginAction } from "@/lib/actions/auth"
 import { loginSchema } from "@/lib/schemas/auth"
 
-export default function LoginPage() {
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirect?: string | string[] }>
+}) {
+  // Page demandée avant la connexion (posée par le middleware) : renvoyée telle quelle à
+  // loginAction, qui la valide (redirectPathSchema) avant d'y rediriger.
+  const { redirect: returnTo } = React.use(searchParams)
   const [error, setError] = React.useState<string | null>(null)
   const [loading, setLoading] = React.useState(false)
 
@@ -55,6 +62,7 @@ export default function LoginPage() {
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
+        {typeof returnTo === "string" ? <input type="hidden" name="redirect" value={returnTo} /> : null}
         <CardContent className="space-y-4">
           {error && (
             <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">

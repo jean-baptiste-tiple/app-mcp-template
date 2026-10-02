@@ -10,6 +10,18 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-10-02] — Auth du canal MCP : organisation hors du jeton, page de consentement, middleware
+
+**Quoi :**
+- `src/mcp/auth.ts` ne lit plus `org_id` ni `user_role` dans le jeton : `{userId}` seulement ; organisation (adresse appelée) et rôle relus en base à chaque appel (`mcp-patterns` §6.4, §6.7). Plus de hook Custom Access Token à configurer (README MCP, `deployment-scaleway.md` : 4 réglages bloquants au lieu de 5).
+- Starter `supabase-auth` : page `/oauth/consent` + `decideConsentAction` (lecture de la demande, Autoriser/Refuser, retour vers l'assistant en http(s) seulement) ; middleware : `/api` et `/.well-known` publics (le MCP répond 401 lui-même), retour sur la page demandée via `/login?redirect=`, POST du consentement laissé passer ; `loginAction` et le callback valident le retour par un seul `redirectPathSchema` (ferme aussi `/\hote`) ; test `auth-routing-test.ts`.
+
+**Pourquoi :** trois défauts latents du template (sans effet tant que l'auth MCP était désactivée) : le code lisait l'organisation dans un claim alors que la convention la déduit de l'adresse ; aucune page de consentement alors que le serveur OAuth de Supabase en exige une ; le middleware redirigeait `/api/mcp` et `/.well-known` vers `/login` au lieu de laisser le 401 déclencher OAuth chez les hosts. Vérifié en installant le starter dans une copie du template : type-check, lint, tests, build, et routage du middleware sur l'app buildée.
+
+**Écarté :** approuver la demande sans page (appel direct à `approveAuthorization`) — l'utilisateur ne verrait jamais quel assistant obtient l'accès ; dépendre de `@otomata_tech/oto_platform` pour son consentement — tout le paquet pour deux appels de SDK ; garder le claim `user_role` — un retrait de droit attendrait l'expiration du jeton (choix utilisateur : rôle lu en base).
+
+**Fichiers :** `src/mcp/auth.ts`, `src/mcp/README.md`, `.method/starters/supabase-auth/{middleware.ts,auth-actions.ts,auth-callback-route.ts,login-page.tsx,schemas-auth.ts,oauth-consent-page.tsx,oauth-consent-actions.ts,auth-routing-test.ts,README.md}`, `.method/conventions/{mcp-patterns,deployment-scaleway,component-registry}.md`, `.method/templates/architecture.tmpl.md`, `.claude/skills/plan/SKILL.md`, `docs/changelog.md`
+
 ## [2026-10-01] — Fusion avec mcp-template : app-mcp-template (MCP par défaut, thème neutre, option souveraine)
 
 **Quoi :**

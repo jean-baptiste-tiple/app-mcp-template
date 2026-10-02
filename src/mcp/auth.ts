@@ -1,6 +1,9 @@
 // Validation des tokens OAuth 2.1 (Supabase = authorization server) — mcp-patterns §6.
 // Signature vérifiée via JWKS, puis client Supabase construit AU JWT DE L'UTILISATEUR
 // → RLS active dans les tools exactement comme au web. `service_role` INTERDIT ici.
+// Le jeton dit QUI appelle, rien de plus : l'organisation (déduite de l'adresse appelée) et le
+// rôle sont relus en base à chaque appel, via ce client (§6.7) — jamais lus dans un claim, qui
+// survivrait à un retrait de droit jusqu'à l'expiration du jeton.
 import { createRemoteJWKSet, jwtVerify } from "jose"
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js"
 
@@ -23,15 +26,13 @@ function getJwks() {
 
 export interface AuthContext {
   userId: string
-  orgId: string | null
-  role: string
   // supabase: SupabaseClient // TODO(S01) : décommenter avec supabase-auth
 }
 
 /**
  * Vérifie un token OAuth Supabase (signature JWKS, issuer, exp/nbf) et renvoie
  * un AuthInfo. Renvoie `undefined` si absent/invalide → withMcpAuth répond 401.
- * `extra` porte {userId, orgId?, role?} issus des claims (hook Custom Access Token).
+ * `extra.userId` = `sub` du jeton.
  */
 export async function verifyToken(
   _req: Request,
@@ -45,8 +46,6 @@ export async function verifyToken(
     const userId = typeof payload.sub === "string" ? payload.sub : undefined
     if (!userId) return undefined
 
-    const orgId = typeof payload.org_id === "string" ? payload.org_id : undefined
-    const role = typeof payload.user_role === "string" ? payload.user_role : undefined
     const scope = typeof payload.scope === "string" ? payload.scope : ""
 
     return {
@@ -54,7 +53,7 @@ export async function verifyToken(
       clientId: userId,
       scopes: scope ? scope.split(" ") : [],
       expiresAt: typeof payload.exp === "number" ? payload.exp : undefined,
-      extra: { userId, orgId, role },
+      extra: { userId },
     }
   } catch {
     return undefined
@@ -63,9 +62,9 @@ export async function verifyToken(
 
 /**
  * Résout l'AuthContext d'un tool depuis l'`extra` du handler MCP.
- * À appeler en tête de CHAQUE tool authentifié (§1). Si le claim org_id manque
- * (hook Custom Access Token pas encore configuré), fallback : requête org_members
- * via le JWT (RLS) — voir l'implémentation de référence dans mcp-cv-editor.
+ * À appeler en tête de CHAQUE tool authentifié (§1). Projet multi-organisations : le service
+ * résout ensuite l'organisation depuis l'adresse appelée (`extra.requestInfo`) et vérifie
+ * l'appartenance et le rôle en base, via `ctx.supabase`, à chaque appel (§6.7).
  */
 export function requireAuthContext(extra: { authInfo?: AuthInfo }): AuthContext {
   const info = extra.authInfo
@@ -77,8 +76,6 @@ export function requireAuthContext(extra: { authInfo?: AuthInfo }): AuthContext 
 
   return {
     userId,
-    orgId: typeof info.extra?.orgId === "string" ? info.extra.orgId : null,
-    role: typeof info.extra?.role === "string" ? info.extra.role : "authenticated",
     // TODO(S01) : client au JWT de l'utilisateur → RLS active (jamais service_role)
     // supabase: createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     //   global: { headers: { Authorization: `Bearer ${info.token}` } },

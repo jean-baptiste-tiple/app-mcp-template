@@ -17,7 +17,7 @@ raisons : `.method/conventions/tech-stack.md`.
 | `src/app/api/[transport]/route.ts` ⚠️ pas `api/mcp/…` | Endpoint natif `/api/mcp`, stateless ou stateful, garde-fou anonyme + activation auth | §7, §6 |
 | `src/mcp/config.ts` | URL canonique, issuer Supabase, `serverInfo` | §2.1 |
 | `src/mcp/server.ts` | `instructions`, enregistrement tools/widgets — SEUL endroit qui les liste | §2.1 |
-| `src/mcp/auth.ts` | JWKS Supabase → `AuthInfo` → `{userId, orgId, role}` | §6 |
+| `src/mcp/auth.ts` | JWKS Supabase → `AuthInfo` → `{userId}` (organisation et rôle relus en base, §6.7) | §6 |
 | `src/mcp/tool-meta.ts` | `securitySchemes` + méta widget par tool | §3 |
 | `src/mcp/tool-result.ts` | Résultats deux formes + erreurs actionnables | §4 |
 | `src/mcp/widget-meta.ts` | Triple méta + mimeTypes profilés — SEUL endroit qui manipule ces clés | §5.1 |
@@ -84,9 +84,11 @@ uniquement. L'activation est un bloc commenté dans `src/app/api/[transport]/rou
 2. Décommenter le bloc auth de la route en supprimant `anonymousGuard` et son export, décommenter
    les blocs `supabase` de `src/mcp/auth.ts`, puis appeler `requireAuthContext(extra)` en tête de
    chaque tool et passer le contexte au service (`TODO(S01)` dans `src/mcp/tools/get-status.ts`).
-3. Dashboard Supabase : activer OAuth Server + DCR, configurer le hook Custom Access Token
-   (claims `org_id`, `user_role`), autoriser les redirect URIs
+3. Dashboard Supabase : activer OAuth Server + DCR, déclarer l'Authorization Path
+   `/oauth/consent` (page installée par le starter), autoriser les redirect URIs
    `https://claude.ai/api/mcp/auth_callback` et `https://chatgpt.com/connector/oauth/*`.
+   Aucun hook Custom Access Token : l'organisation (adresse appelée) et le rôle sont relus en
+   base à chaque appel, jamais lus dans le jeton (§6.7).
 4. Vérifier `/.well-known/oauth-protected-resource` (+ les 2 variantes en rewrites) : sans
    `NEXT_PUBLIC_SUPABASE_URL`, `authorization_servers` vaut `[""]`.
 5. Figer le choix par ADR (`docs/decisions/`) — exigé par mcp-patterns §6.

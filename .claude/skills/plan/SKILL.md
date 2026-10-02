@@ -153,7 +153,7 @@ Si le projet a une base de données, demander où elle vit, via `AskUserQuestion
 - **Self-hosted souverain** (Scaleway ou autre hébergeur, données en France, hors Supabase Cloud)
   → lire `.method/conventions/deployment-scaleway.md` ; choisir l'option A (Supabase sur
   Instance, app sur Vercel) ou B (tout chez l'hébergeur) ; figer le choix par ADR dans
-  `docs/decisions/` (cet ADR active le tag `selfhost`) ; ajouter à la story de setup les 5
+  `docs/decisions/` (cet ADR active le tag `selfhost`) ; ajouter à la story de setup les 4
   réglages OAuth bloquants et la checklist de validation de ce fichier.
 
 ## Gate de sortie

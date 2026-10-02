@@ -110,7 +110,7 @@ erDiagram
 |--------|-------------------|-------------------------|
 
 ### Auth MCP
-<!-- OAuth 2.1 : authorization server retenu, mapping token → {userId, orgId, role} -->
+<!-- OAuth 2.1 : authorization server retenu ; token → userId ; organisation (adresse appelée) et rôle relus en base à chaque appel -->
 
 ## 7. Auth & Sécurité
 

@@ -6,7 +6,7 @@
 
 ## Verdict
 
-Supabase Auth open source (GoTrue) couvre tout ce que le template utilise côté MCP (`mcp-patterns.md` §6) : serveur OAuth 2.1, enregistrement dynamique (DCR), JWKS asymétrique, hook Custom Access Token. Le docker-compose officiel ne l'active pas par défaut : 5 réglages obligatoires (§ Auth OAuth 2.1). Le serveur OAuth est en **beta** : retester à chaque montée de version de GoTrue.
+Supabase Auth open source (GoTrue) couvre tout ce que le template utilise côté MCP (`mcp-patterns.md` §6) : serveur OAuth 2.1, enregistrement dynamique (DCR), JWKS asymétrique. Le docker-compose officiel ne l'active pas par défaut : 4 réglages obligatoires (§ Auth OAuth 2.1). Le serveur OAuth est en **beta** : retester à chaque montée de version de GoTrue.
 
 ## Les deux options
 
@@ -49,6 +49,9 @@ Même Instance pour Supabase. L'app Next.js (build `standalone`) tourne en Serve
 
 ## Auth OAuth 2.1 (bloquants)
 
+> Aucun hook Custom Access Token n'est requis : l'organisation et le rôle sont relus en base à
+> chaque appel, jamais lus dans le jeton (`mcp-patterns.md` §6).
+
 ### 1. URLs
 
 ```env
@@ -69,7 +72,7 @@ GOTRUE_OAUTH_SERVER_ALLOW_DYNAMIC_REGISTRATION: "true"   # Claude, ChatGPT, Clau
 GOTRUE_OAUTH_SERVER_AUTHORIZATION_PATH: "/oauth/consent" # page de l'app, combinée à SITE_URL
 ```
 
-La page `/oauth/consent` n'est fournie par aucun starter. Elle est à coder, comme sur Cloud.
+La page `/oauth/consent` est fournie par le starter `supabase-auth` (`oauth-consent-page.tsx`), comme sur Cloud.
 
 ### 3. Clés asymétriques (JWKS)
 
@@ -81,18 +84,7 @@ sh utils/add-new-auth-keys.sh --update-env
 
 Puis décommenter dans le compose les lignes `GOTRUE_JWT_KEYS`, `API_JWT_JWKS`, `JWT_JWKS`, `SUPABASE_JWKS` et passer `PGRST_JWT_SECRET` sur `${JWT_JWKS}`. Contrôle : `curl https://supabase.<domaine>/auth/v1/.well-known/jwks.json` renvoie une clé `EC`.
 
-### 4. Hook Custom Access Token (`org_id`, `user_role`)
-
-Décommenter dans le compose :
-
-```yaml
-GOTRUE_HOOK_CUSTOM_ACCESS_TOKEN_ENABLED: "true"
-GOTRUE_HOOK_CUSTOM_ACCESS_TOKEN_URI: "pg-functions://postgres/public/custom_access_token_hook"
-```
-
-La fonction SQL est versionnée dans `supabase/migrations/`, comme sur Cloud.
-
-### 5. Kong et Caddy : ouvrir les routes OAuth
+### 4. Kong et Caddy : ouvrir les routes OAuth
 
 Kong protège `/auth/v1/*` par `key-auth`, sans fallback anonyme. Or les hosts MCP et le navigateur (sur `/oauth/authorize`) n'envoient pas d'`apikey`. Ajouter dans `volumes/api/kong.yml`, à côté de `auth-v1-open-jwks` ; le préfixe le plus long l'emporte sur `/auth/v1/` :
 
