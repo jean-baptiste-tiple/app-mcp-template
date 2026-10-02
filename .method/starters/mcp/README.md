@@ -11,14 +11,17 @@ Les fichiers sont issus du code **éprouvé en prod** de `mcp-cv-editor` (fixes 
 ### Dépendances
 
 ```bash
-pnpm add @modelcontextprotocol/sdk mcp-handler jose
-pnpm add -D @modelcontextprotocol/ext-apps vite vite-plugin-singlefile
+pnpm add --save-exact @modelcontextprotocol/sdk@1.26.0 mcp-handler@1.1.0 jose@6.2.12
+pnpm add -D --save-exact @modelcontextprotocol/ext-apps@1.7.4 vite@7.3.1 vite-plugin-singlefile@2.3.3
 ```
 
-> Figer les versions exactes dans `.method/conventions/tech-stack.md` après install (S01).
-> Référence connue-bonne (mcp-cv-editor, 2026-07) : sdk 1.26.0 (épinglé sur le peer de
-> mcp-handler), mcp-handler 1.1.0, ext-apps **1.7.4 figé** (entrée `app-with-deps`), jose 6.x.
-> `zod`, `react` et `@vitejs/plugin-react` sont déjà dans le template.
+> Versions exactes, celles de `.method/conventions/tech-stack.md` § Canal MCP. Sans version, pnpm
+> tire des majeures que le template refuse et le type-check échoue : ext-apps 2.x exige zod 4
+> (le template est en zod 3), Vite 8 n'est accepté ni par `@vitejs/plugin-react` 4 ni par le
+> typage de `vitest.config.ts`, et `createMcpHandler` de mcp-handler 2.x ne prend plus que deux
+> arguments. Le peer `@modelcontextprotocol/sdk` ^1.29 d'ext-apps reste non satisfait (1.26.0,
+> épinglé sur le peer exact de mcp-handler), sans effet : l'entrée `app-with-deps` embarque ses
+> dépendances. `zod`, `react` et `@vitejs/plugin-react` sont déjà dans le template.
 
 ### Fichiers copiés
 
@@ -45,12 +48,12 @@ pnpm add -D @modelcontextprotocol/ext-apps vite vite-plugin-singlefile
 | `widget-status-card-index.html` | `widgets/status-card/index.html` | Widget exemple |
 | `widget-status-card-main.tsx` | `widgets/status-card/main.tsx` | Widget exemple : états, thème (§5.3) |
 | `mcp-server-test.ts` | `tests/unit/mcp-server.test.ts` | Test contrat AX via `InMemoryTransport` (§10) |
-| `smoke-mcp.mjs` | `scripts/smoke-mcp.mjs` | Smoke HTTP : initialize + tools/list + get_status |
+| `smoke-mcp.mjs` | `scripts/smoke-mcp.mjs` | Smoke HTTP : initialize + tools/list + get_status + corps illisible refusé (400) |
 
 ### Ajustements config (racine du projet)
 
 1. **`tsconfig.json`** : `"exclude": ["node_modules", "widgets"]` — les widgets ont leur
-   propre tsconfig (déjà le cas dans le template).
+   propre tsconfig (le template n'exclut que `node_modules` : ajouter `widgets`).
 2. **`package.json`**, scripts :
    ```json
    "widgets:build": "node widgets/build.mjs",
@@ -116,7 +119,8 @@ bloc commenté dans `mcp-route.ts` (`withMcpAuth` + `verifyToken` de `src/mcp/au
    (triple méta, 2 resources, structuredContent) AVANT même le premier build de widgets
    (placeholder inclus dans `generated.ts`).
 2. `pnpm widgets:build` — bundles single-file générés + `generated.ts` régénéré.
-3. `pnpm build` puis `pnpm mcp:smoke` — initialize + tools/list + get_status en HTTP réel.
+3. `pnpm build` puis `pnpm mcp:smoke` — initialize + tools/list + get_status en HTTP réel, et un
+   corps illisible refusé en 400 `-32700` au lieu de rester sans réponse.
 4. `pnpm dev` puis `pnpm mcp:inspect` → connecter `http://localhost:3000/api/mcp` :
    tool `get_status` visible, resources `ui://widgets/status-card.html` (profile=mcp-app)
    ET `…-skybridge.html` listées.
@@ -137,4 +141,5 @@ du widget dans `widget-meta.ts` + `build.mjs`, maintenir `instructions` et bump
 > ET updates via le CustomEvent `openai:set_globals` (pas postMessage — sinon loader infini) ;
 > consignes et données d'un prepare vont dans le `content` TEXTE (lu par claude.ai et ChatGPT)
 > ET dans `structuredContent` (seul canal lu par Claude Code quand il existe, mcp-patterns §4) ;
-> le loader d'un widget n'est jamais terminal (timeout 12 s → erreur actionnable).
+> le loader d'un widget n'est jamais terminal (timeout 12 s → erreur actionnable) ; un corps JSON
+> illisible est refusé par la route avant mcp-handler, qui sinon ne répond jamais (`withReadableBody`).

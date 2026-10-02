@@ -10,6 +10,26 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-10-02] — Starter MCP : versions figées, corps illisible refusé par la route
+
+**Quoi :**
+- Le README du starter installe des versions exactes : sdk 1.26.0, mcp-handler 1.1.0, jose 6.2.12, ext-apps 1.7.4, Vite 7.3.1 et vite-plugin-singlefile 2.3.3. `tech-stack.md § Canal MCP` les porte, avec la raison de chaque borne.
+- `mcp-route.ts` refuse un corps JSON illisible avant mcp-handler (`withReadableBody`, 400 `-32700`), en mode sans auth comme dans le bloc auth commenté. `smoke-mcp.mjs` le vérifie.
+- `mcp-patterns.md` :
+  - § 5.2 : un appel parti du widget ne porte jamais `confirm`, et une suite proposée part en message à l'assistant ;
+  - § 7 : le corps illisible.
+- Correction d'une fausse affirmation du README (le template n'exclut pas `widgets` du tsconfig).
+
+**Pourquoi :** installé à la lettre au 2026-10-02, le starter ne compilait plus. Sans version, pnpm tirait ext-apps 2.0.3 (exige zod 4), Vite 8.3.1 (refusé par `@vitejs/plugin-react` 4 et par le typage de `vitest.config.ts`) et mcp-handler 2.2.0 (`createMcpHandler` à deux arguments). Résultat : `tsc` en échec sur la route et sur `vitest.config.ts`. Un POST au JSON illisible restait sans réponse (20 s sans octet, jusqu'à `maxDuration` en vrai), défaut déjà corrigé sur oto-platform. La règle `confirm` vient de son widget routeur : un clic dans un widget ne vaut pas l'accord de l'utilisateur dans la conversation.
+
+**Vérifié :** le starter installé par son README dans une copie neuve du template passe type-check, lint, tests, `check:framework`, `widgets:build`, `next build` et le smoke HTTP. Le smoke couvre maintenant le corps illisible refusé en 400. La variante auth de la route compile.
+
+**Écarté :**
+- Passer à ext-apps 1.7.5, la version d'oto-platform : 1.7.4 est celle éprouvée en production et compile à l'identique.
+- Porter le widget routeur d'oto-platform (un widget sur plusieurs outils, aiguillé par `view`) : son ADR n'est pas encore validé par un banc.
+
+**Fichiers :** `.method/starters/mcp/{README.md, mcp-route.ts, smoke-mcp.mjs}`, `.method/conventions/{tech-stack.md, mcp-patterns.md}`, `docs/changelog.md`
+
 ## [2026-09-23] — Gate git : le reçu du dépôt visé ; `.gitattributes` en LF
 
 **Quoi :** le gate (`.claude/hooks/enforce-git-gate.mjs`) juge un commit sur le reçu du dépôt que la commande vise — `cd <dir> &&` en tête ou `git -C <dir>`, chemins Git Bash `/c/…` compris — et non plus toujours sur celui du checkout de la session ; `scripts/verify-receipt.mjs` prend la racine en paramètre. `.gitattributes` force LF sur `*.mjs`, `*.sh` et `.githooks/*`. Ligne « Worktree » dans CLAUDE.md.

@@ -33,6 +33,21 @@ const handler = createMcpHandler(initializeMcpServer, mcpServerOptions, {
   verboseLogs: process.env.NODE_ENV !== "production",
 })
 
+// mcp-handler lit le corps d'un POST sans attendre son échec : un JSON illisible laisse la
+// requête sans réponse jusqu'à `maxDuration` (mcp-patterns §7). La route le refuse avant lui.
+function withReadableBody(next: (request: Request) => Promise<Response>) {
+  return async (request: Request): Promise<Response> => {
+    try {
+      JSON.parse(await request.clone().text())
+    } catch {
+      return Response.json({ jsonrpc: "2.0", id: null, error: { code: -32700, message: "Parse error" } }, { status: 400 })
+    }
+    return next(request)
+  }
+}
+
+const POST = withReadableBody(handler)
+
 // ── Auth OAuth 2.1 (activer avec le starter supabase-auth — voir README du starter mcp) ──
 // TODO(S01) : décommenter après install de supabase-auth + config OAuth Server côté Supabase.
 // `withMcpAuth` renvoie 401 + WWW-Authenticate (RFC 9728) sur toute requête non authentifiée,
@@ -47,6 +62,7 @@ const handler = createMcpHandler(initializeMcpServer, mcpServerOptions, {
 //   resourceMetadataPath: "/.well-known/oauth-protected-resource",
 //   resourceUrl: MCP_RESOURCE_URL,
 // })
-// export { authHandler as GET, authHandler as POST, authHandler as DELETE }
+// const authPost = withReadableBody(authHandler)
+// export { authHandler as GET, authPost as POST, authHandler as DELETE }
 
-export { handler as GET, handler as POST, handler as DELETE }
+export { handler as GET, POST, handler as DELETE }
