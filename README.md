@@ -1,5 +1,64 @@
 # App MCP Template
 
+## Mode d'emploi
+
+### Pourquoi l'utiliser
+
+Pour démarrer un **SaaS ou un ERP interne** que les équipes utilisent à la fois dans le navigateur
+et depuis leur assistant (Claude, ChatGPT), sans réinventer à chaque projet :
+
+- **Un socle qui tourne dès le clone** : Next.js 15, design system neutre, serveur MCP câblé de bout
+  en bout (tool, widget, test, smoke HTTP).
+- **Une qualité qui ne dépend pas de la mémoire** : conventions chargées depuis les fichiers
+  touchés, review adossée à des règles écrites, commit bloqué par un hook tant que les 4 checks ne
+  passent pas.
+- **Des options branchées, pas à réécrire** : Supabase + Auth (base, RLS, OAuth du MCP), et la
+  plateforme Otomata pour héberger pages, tableaux et procédures dans l'ERP.
+
+À éviter pour un site vitrine ou un prototype jetable : la méthode coûte plus qu'elle ne rapporte.
+
+### Comment l'utiliser correctement
+
+1. **Créer le projet** depuis ce dépôt (« Use this template » ou clone), puis :
+   ```bash
+   pnpm install    # pnpm 12 (packageManager) ; si corepack échoue : npm i -g pnpm@12.4.1
+   pnpm verify     # doit passer avant toute modification
+   pnpm dev
+   ```
+2. **Cadrer avec `/plan`** dans Claude Code. C'est la seule commande à taper : il produit brief,
+   PRD, architecture et stories, et décide des options (Supabase, Otomata, MCP ou non). Sur un
+   besoin de quelques fichiers, décrire la demande suffit.
+3. **Story de setup** : nom et description dans `CLAUDE.md § Projet`, thème dans le bloc « THÈME
+   PROJET » de `src/app/globals.css`, remplacement du tool démo `get_status`, installation des
+   starters retenus.
+4. **Développer en décrivant le besoin**, sans invoquer les skills : `dev` charge les conventions,
+   `revue` relit dès 3 fichiers, `verify` lance les checks. Une décision produit est posée en
+   question, jamais tranchée en silence.
+5. **Enregistrer par « commit » ou « push »** : seul le skill `commit-push` peut commiter. Jamais de
+   `--no-verify` ni de `--force` (bloqués).
+6. **Clore par « c'est bouclé »** : `wrap-up` écrit ce qui a été appris (conventions, ADR, registry).
+
+Règles qui évitent la plupart des retours en review :
+
+- Une capacité métier = **une fonction dans `src/lib/services/`**, appelée par une Server Action
+  côté web et par le tool MCP (ou la fonction ERP si Otomata est activé). Jamais de logique dans
+  l'adaptateur.
+- **Un schéma Zod par entité**, en `zod/v4`, partagé par le formulaire, l'action et le MCP.
+- **Classes de couleur sémantiques** (`bg-primary`), jamais numérotées ; deux thèmes vérifiés.
+- **Un invariant d'architecture ne bouge que par un ADR** (`docs/decisions/`).
+
+### MCP du template ou plateforme Otomata ?
+
+| Besoin | Choix |
+|---|---|
+| L'assistant appelle les fonctions de l'app, avec des widgets sur mesure | MCP du template (défaut) |
+| Les équipes écrivent procédures, pages et tableaux que l'assistant suit, dans l'ERP | Plateforme Otomata (remplace le MCP du template, ADR-001) |
+| Aucun usage par assistant | Retirer le MCP : écart décidé au cadrage |
+
+Détail : section [Plateforme Otomata (option)](#plateforme-otomata-option).
+
+## Présentation
+
 Template Git réutilisable pour bootstrapper une **app MCP-first** avec la Tiple Method : structure,
 templates de documents, checklists, conventions techniques routées, et skills Claude Code
 auto-déclenchés. Stack de base : Next.js 15 + TypeScript strict + Tailwind + Shadcn/ui, **canal
@@ -24,7 +83,7 @@ schéma Zod → service partagé → tool, résultats texte et structurés, widg
 Un design system **neutre, à personnaliser par projet**, est inclus :
 
 - **Thème :** palette neutre (oklch) regroupée dans un bloc « THÈME PROJET » de `src/app/globals.css`, dark mode class-based (next-themes), Tailwind v4 CSS-first
-- **34 composants Shadcn/ui** installés (style new-york) dans `src/components/ui/`
+- **36 composants Shadcn/ui** installés (style new-york) dans `src/components/ui/`
 - **Composants métier** : PageContainer, EmptyState, StatCard, DataTable, ThemeToggle, ThemeProvider, AppLogo, SidebarNav, CopyButton
 - **Icônes :** Phosphor (lucide-react réservé aux internes Shadcn)
 - **Preview interactive** : route `/design-system` pour voir tous les composants
@@ -227,7 +286,7 @@ globs eux-mêmes : un skill intermédiaire par domaine n'ajouterait qu'un niveau
 une occasion de diverger. Le skill `conventions` couvre le seul cas que les globs ne peuvent pas
 atteindre — une question posée sans qu'aucun fichier ne soit touché.
 
-Une seule convention est lue systématiquement (`coding-standards.md`, 133 lignes). Le registry
+Une seule convention est lue systématiquement (`coding-standards.md`, 137 lignes). Le registry
 et la stack sont routés comme les autres : vérifier le registry n'a de sens qu'en créant un
 composant, la stack qu'en touchant aux dépendances.
 
@@ -248,8 +307,8 @@ dépasse 400 lignes, si une checklist n'est appelée par rien, si un composant d
 ├── scripts/
 │   └── check-framework.mjs      # Cohérence tags ↔ conventions ↔ skills ↔ hooks ↔ références
 ├── .method/
-│   ├── templates/               # 6 templates de documents
-│   ├── checklists/              # 5 checklists quality gates
+│   ├── templates/               # 7 templates de documents
+│   ├── checklists/              # 6 checklists quality gates
 │   ├── conventions/             # Conventions techniques routées par globs (_index.md = routing)
 │   ├── starters/                # Starters optionnels (supabase-auth, oto-platform)
 │   └── sprint/status.md         # Sprint tracking
@@ -269,7 +328,7 @@ dépasse 400 lignes, si une checklist n'est appelée par rien, si un composant d
 │   │   ├── .well-known/         # Metadata OAuth (RFC 9728)
 │   │   └── design-system/       # Preview du design system
 │   ├── components/
-│   │   ├── ui/                  # 34 composants Shadcn/ui
+│   │   ├── ui/                  # 36 composants Shadcn/ui
 │   │   └── ...                  # Composants métier (PageContainer, EmptyState, etc.)
 │   ├── mcp/                     # Serveur MCP : tools, auth, résultats, widgets inlinés
 │   └── lib/

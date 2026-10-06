@@ -10,6 +10,12 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-10-06] — README : mode d'emploi en tête ; fusion sur main
+
+**Quoi :** section « Mode d'emploi » en tête du README (pourquoi l'utiliser, comment en 6 étapes, règles qui évitent les retours en review, choix MCP du template ou Otomata) ; chiffres périmés corrigés (36 composants Shadcn, 7 templates, 6 checklists, `coding-standards.md` 137 lignes). Fusion des branches des 4 derniers jours sur `main` : `claude/trusting-darwin-g583yd` et `ccr-39a36324-gvtxgz` y étaient déjà (aucun commit propre), `claude/serene-heisenberg-4ayqhy` avance `main` en fast-forward.
+**Pourquoi :** demande utilisateur : un README qui dit d'abord comment et pourquoi utiliser le template.
+**Fichiers :** `README.md`, `docs/changelog.md`
+
 ## [2026-10-06] — Template aligné sur les peers d'Otomata : resolvers 5, schémas `zod/v4`, garde de route MCP
 
 **Quoi :** `@hookform/resolvers` ^3 → ^5 ; tous les schémas en `import * as z from "zod/v4"` (`src/lib/schemas/status.ts`, starter `schemas-auth.ts`, exemples de `auth-patterns`, `datetime-patterns`, `typescript-patterns`), règle ESLint `no-restricted-imports` sur `"zod"`, règle écrite dans `forms-patterns.md` (Principe) et `tech-stack.md` ; `check:framework` échoue si `src/app/api/mcp/route.ts` et `src/app/api/[transport]/` coexistent (test `tests/unit/check-framework-invariants.test.ts`). Starter Otomata, ADR-001 et README mis à jour.
