@@ -106,9 +106,10 @@ métier de l'ERP. Sans ce besoin, le MCP du template suffit. La décision se pre
 Le paquet sert `/api/mcp` en dur : activé, il **remplace** `src/mcp/`, `src/app/api/[transport]/` et
 `widgets/` (ADR-001, `docs/decisions/`). Les conventions `mcp-patterns.md` sur les instructions, le
 design de tools et les widgets ne s'appliquent plus ; la parité par services, le « zéro IA
-serveur » et les golden queries restent dus. Écarts de dépendances : `@hookform/resolvers` ^5
-(le template est en ^3), schémas partagés en `zod/v4` (zod 3.25 conservé). Montées de version par
-Renovate, migrations recopiées par `oto-platform migrations sync` à chaque version.
+serveur » et les golden queries restent dus. Le template est déjà aligné sur les peers du paquet :
+`@hookform/resolvers` ^5, schémas en `zod/v4` (zod 3.25 conservé, ESLint refuse `"zod"`), et
+`pnpm check:framework` refuse les deux routes MCP ensemble. Montées de version par Renovate,
+migrations recopiées par `oto-platform migrations sync` à chaque version.
 
 ## Quick Start
 

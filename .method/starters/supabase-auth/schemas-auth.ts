@@ -1,4 +1,4 @@
-import { z } from "zod"
+import * as z from "zod/v4"
 
 // Source unique des règles d'auth : les formulaires (validation client, confort) et les
 // Server Actions (validation serveur, sécurité) lisent les mêmes schémas.

@@ -10,8 +10,8 @@
 | Tailwind CSS | 4.x | Styling | Utility-first, **CSS-first** : tokens, dark variant et plugins dans `src/app/globals.css` — pas de `tailwind.config.ts` (v4 ne le lit pas) |
 | Shadcn/ui | latest | Composants UI | Copy-paste, personnalisables, accessibles, basés sur Radix |
 | @phosphor-icons/react | 2.1.x | Icônes de l'app | `/dist/ssr` en Server Component ; lucide-react reste réservé aux internes Shadcn |
-| Zod | 3.x | Validation | Schemas partagés front/back, inférence TypeScript |
-| React Hook Form | 7.x | Formulaires | Performance, intégration Zod via resolver |
+| Zod | 3.25.x, import `zod/v4` | Validation | Schemas partagés front/back, inférence TypeScript. API v4 par le sous-chemin `zod/v4` : seul format accepté par `@otomata_tech/oto_platform` (ADR-001), et zod 4 reste exclu par `@modelcontextprotocol/ext-apps` 1.7.4 |
+| React Hook Form | 7.x + `@hookform/resolvers` 5 | Formulaires | Performance, intégration Zod via resolver ; resolvers 5 lit les schémas `zod/v4` et est le peer exigé par la plateforme Otomata |
 | Vitest | latest | Tests unit/integ | Rapide, compatible ESM, API Jest-like |
 | Testing Library | latest | Tests composants | Test du comportement user, pas de l'implémentation |
 | Playwright | latest | Tests E2E | Cross-browser, fiable, auto-wait |

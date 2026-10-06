@@ -187,7 +187,7 @@ export const config = {
 
 ```typescript
 // lib/schemas/auth.ts
-import { z } from "zod"
+import * as z from "zod/v4"
 
 export const loginSchema = z.object({
   email: z.string().email("Email invalide").max(255),

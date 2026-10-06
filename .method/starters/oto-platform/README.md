@@ -26,13 +26,12 @@ version 1.4.0 (2026-10-06).
 
 ```bash
 pnpm add @otomata_tech/oto_platform@<version exacte>
-pnpm add @hookform/resolvers@^5     # peer du paquet ; le template est en ^3
 ```
 
-| Écart avec le template | Action |
+| Peer du paquet | État du template |
 |---|---|
-| `@hookform/resolvers` ^3 | Monter en ^5 : `zodResolver` y accepte les schémas `zod/v4` (`forms-patterns.md` inchangé côté import) |
-| `zod` 3.25.x | Garder : le paquet importe `zod/v4`, livré par zod 3.25 ; ne pas passer à zod 4 (`@modelcontextprotocol/ext-apps` 1.7.4, `tech-stack.md`) |
+| `@hookform/resolvers` ^5 | Déjà en ^5 |
+| `zod` ^3.25 | 3.25.x, schémas en `zod/v4` (ESLint refuse `"zod"`) ; ne pas passer à zod 4 (`@modelcontextprotocol/ext-apps` 1.7.4, `tech-stack.md`) |
 | `@supabase/supabase-js` | Déjà posé par `supabase-auth` |
 | `vite`, `vite-plugin-singlefile`, `@vitejs/plugin-react`, `@tailwindcss/postcss`, `@modelcontextprotocol/ext-apps` | Déjà en `devDependencies` : servent au build des vues de l'ERP |
 
@@ -48,7 +47,8 @@ Mettre à jour `tech-stack.md` (ligne du paquet, version exacte et raison) dans 
 ## 2. Ce qui sort du template
 
 Le paquet sert `/api/mcp` en dur (`MCP_RESOURCE_PATH`). Une route statique `src/app/api/mcp/route.ts`
-masquerait `src/app/api/[transport]/` **sans erreur** : retirer l'un avant de poser l'autre.
+masquerait `src/app/api/[transport]/` sans erreur de Next : `pnpm check:framework` refuse les deux
+ensemble. Retirer l'un avant de poser l'autre.
 
 | Retiré | Remplacé par |
 |---|---|
@@ -114,9 +114,9 @@ registerFunctions([
 ])
 ```
 
-- **Un schéma, deux canaux** : le schéma partagé par le formulaire et la fonction s'écrit en
-  `zod/v4` (`z.strictObject`), seul format que `defineErpFunction` accepte ; `@hookform/resolvers`
-  ^5 le lit côté formulaire.
+- **Un schéma, deux canaux** : le schéma partagé par le formulaire et la fonction est en `zod/v4`
+  comme tout schéma du template ; `defineErpFunction` exige en plus `z.strictObject` à chaque
+  niveau (`z.object` du template à durcir à l'activation).
 - **Données de l'ERP** sous le jeton de l'appelant (`ctx.accessToken`, RLS de l'ERP) ; `ctx.db`
   ne sert qu'aux services du paquet. Organisation = `ctx.identity.org` (l'adresse appelée).
 - **Écriture qui envoie, supprime ou paie** : `class: "sensitive"` + `summarize`.

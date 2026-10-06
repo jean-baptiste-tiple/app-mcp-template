@@ -10,6 +10,13 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-10-06] — Template aligné sur les peers d'Otomata : resolvers 5, schémas `zod/v4`, garde de route MCP
+
+**Quoi :** `@hookform/resolvers` ^3 → ^5 ; tous les schémas en `import * as z from "zod/v4"` (`src/lib/schemas/status.ts`, starter `schemas-auth.ts`, exemples de `auth-patterns`, `datetime-patterns`, `typescript-patterns`), règle ESLint `no-restricted-imports` sur `"zod"`, règle écrite dans `forms-patterns.md` (Principe) et `tech-stack.md` ; `check:framework` échoue si `src/app/api/mcp/route.ts` et `src/app/api/[transport]/` coexistent (test `tests/unit/check-framework-invariants.test.ts`). Starter Otomata, ADR-001 et README mis à jour.
+**Pourquoi :** les trois écarts relevés entre le template et `@otomata_tech/oto_platform` : peer resolvers 5, schémas `zod/v4` exigés par `defineErpFunction`, route `/api/mcp` qui masquait le MCP du template en silence. Choix utilisateur : les régler dans le template, avant toute activation.
+**Écarté :** règle en prose seule pour `zod/v4` (rien ne la contrôlerait) ; passer à zod 4 (exclu par `@modelcontextprotocol/ext-apps` 1.7.4).
+**Fichiers :** `package.json`, `pnpm-lock.yaml`, `eslint.config.mjs`, `src/lib/schemas/status.ts`, `scripts/check-framework-invariants.mjs`, `tests/unit/check-framework-invariants.test.ts`, `.method/starters/supabase-auth/schemas-auth.ts`, `.method/starters/oto-platform/README.md`, `.method/conventions/{forms-patterns,tech-stack,auth-patterns,datetime-patterns,typescript-patterns}.md`, `docs/decisions/ADR-001-oto-platform-remplace-mcp-template.md`, `README.md`, `docs/changelog.md`
+
 ## [2026-10-06] — Option plateforme Otomata : starter, ADR-001, README
 
 **Quoi :** starter `.method/starters/oto-platform/` (installation de `@otomata_tech/oto_platform` 1.4.0 dans ce template : dépendances, ce qui sort du template, configuration, fonctions ERP, vues, écrans à trois niveaux, migrations, critères de fin) ; ADR-001 : activée, la plateforme remplace le MCP du template et les capacités métier deviennent des fonctions ERP ; README : section « Plateforme Otomata (option) » (apports, faces, intégration ERP, options) ; renvois dans `CLAUDE.md § Projet`, `/plan` (identification) et `mcp-patterns.md` section 1 (dérogation).

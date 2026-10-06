@@ -160,7 +160,7 @@ const ROLE_LABELS: Record<Role, string> = {
 
 ```typescript
 // Le schema Zod EST la source de vérité pour le type
-import { z } from "zod"
+import * as z from "zod/v4"
 
 export const createProjectSchema = z.object({
   name: z.string().min(1).max(100),

@@ -74,6 +74,14 @@ function invariantsDeCode({ ROOT, read, walk, err }) {
     }
   }
 
+  // Le paquet Otomata sert son MCP sur `api/mcp/route.ts` (statique) : posé à côté de
+  // `api/[transport]/`, il masque le MCP du template sans que Next le signale (ADR-001).
+  if (existsSync(join(appDir, 'api/mcp/route.ts')) && existsSync(join(appDir, 'api/[transport]'))) {
+    err(
+      'src/app/api/mcp/route.ts et src/app/api/[transport]/ coexistent : la route statique masque le MCP du template en silence. Plateforme Otomata activée : retirer api/[transport]/ (ADR-001).'
+    )
+  }
+
   // « Classes sémantiques uniquement, aucune couleur Tailwind numérotée » (CLAUDE.md § Design system)
   const srcDir = join(ROOT, 'src')
   if (existsSync(srcDir)) {

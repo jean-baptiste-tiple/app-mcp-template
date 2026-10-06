@@ -28,8 +28,10 @@ Quand la plateforme Otomata est activée au cadrage :
    Son adaptateur MCP est une fonction ERP (`defineErpFunction`, inscrite par `registerFunctions`
    dans `src/lib/fonctions-metier.ts`), trouvée par `find`, lue par `read`, exécutée par `call` ;
    jamais un tool de plus.
-3. Le schéma partagé entre formulaire et fonction ERP s'écrit en `zod/v4` (`z.strictObject`) ;
-   `@hookform/resolvers` passe en ^5.
+3. Le schéma partagé entre formulaire et fonction ERP est en `zod/v4` (`z.strictObject`). Le
+   template s'y aligne dès maintenant, sans attendre l'activation : tous ses schémas importent
+   `zod/v4` (ESLint refuse `"zod"`), `@hookform/resolvers` est en ^5, et `check:framework` refuse
+   `src/app/api/mcp/route.ts` à côté de `src/app/api/[transport]/`.
 4. Les vues de conversation de l'ERP sont des `ErpView` (`src/widgets/*.tsx`), construites par
    `oto-platform widgets build`.
 

@@ -47,6 +47,13 @@ const eslintConfig = [
         },
       ],
 
+      // Schémas en `zod/v4` (forms-patterns.md § Principe) : le même schéma sert le formulaire,
+      // le tool MCP et, plateforme Otomata activée, la fonction ERP, qui refuse un schéma zod 3.
+      "no-restricted-imports": [
+        "error",
+        { paths: [{ name: "zod", message: "Importer `* as z from \"zod/v4\"` : un schéma zod 3 n'est pas accepté par defineErpFunction (ADR-001)." }] },
+      ],
+
       // Remplace l'ordre d'imports décrit en prose dans coding-standards.md
       "import/order": [
         "error",

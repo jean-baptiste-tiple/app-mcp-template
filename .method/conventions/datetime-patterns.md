@@ -119,7 +119,7 @@ const priceSchema = z.object({
 ## Validation des dates dans les formulaires
 
 ```typescript
-import { z } from "zod"
+import * as z from "zod/v4"
 
 const dateRangeSchema = z.object({
   start_date: z.string().datetime(),
