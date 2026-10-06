@@ -37,6 +37,78 @@ Le canal MCP est installé ; le reste est minimal par défaut. Les starters dans
 | Starter | Dossier | Ce qu'il ajoute |
 |---------|---------|-----------------|
 | **Supabase + Auth** | `.method/starters/supabase-auth/` | Base de données, auth (login/signup/reset), middleware, Server Actions, pages auth, CI migrations |
+| **Plateforme Otomata** | `.method/starters/oto-platform/` | Pages, tableaux, procédures, équipes et accès dans l'ERP ; MCP à six outils où s'inscrivent les fonctions métier. **Remplace le MCP du template** (ADR-001). Exige `supabase-auth` ou Postgres + OIDC |
+
+## Plateforme Otomata (option)
+
+[`@otomata_tech/oto_platform`](https://www.npmjs.com/package/@otomata_tech/oto_platform) (MIT,
+sources TypeScript, dépôt [`otomata-tech/oto-pkg`](https://github.com/otomata-tech/oto-pkg)) est la
+« plateforme MCP d'entreprise » d'Otomata en paquet npm : écrans, API, serveur MCP, services et
+migrations d'un schéma Postgres `platform`. Elle s'installe dans l'application, qui monte ses
+routes. Le connecteur MCP « Démo » d'Otomata en est une instance.
+
+**Quand la choisir :** un ERP ou SaaS interne dont les équipes écrivent leur savoir-faire
+(procédures, pages, tableaux) et veulent que leurs assistants le suivent et appellent les fonctions
+métier de l'ERP. Sans ce besoin, le MCP du template suffit. La décision se prend au cadrage
+(`/plan`) ; l'installation suit `.method/starters/oto-platform/README.md`.
+
+### Ce qu'elle apporte
+
+| Domaine | Contenu |
+|---|---|
+| Contenus | Arbre de nœuds par organisation, équipe et espace privé : **pages** (blocs : titres, listes, callouts, code, mermaid, fichiers, tâches), **tableaux** (lignes, agrégats, réclamation de lignes), **procédures** (étapes, chacune un appel de fonction), contexte servi aux assistants |
+| Accès | Organisations, équipes, membres, invitations, règles par nœud (`read`, `write`, `manage`), accès général, entrée sans invitation par domaine d'email |
+| Vie des contenus | Brouillons et révisions, liens `[[chemin]]` et contenus liés, impact d'un déplacement, duplication, corbeille 30 jours, journal des actions |
+| Partage | Liens publics par nœud (`/p/<jeton>`, `noindex`), image de partage Open Graph |
+| Fichiers joints | Stockage S3 compatible (Supabase Storage, Scaleway, MinIO) par URL présignée ; visionneuse HTML isolée ; dépôt par lien à usage unique pour un assistant |
+| Administration | Marque et thème (8 thèmes), connecteurs, drapeaux par organisation, usage, retours des assistants, MCP admin (`/api/mcp-admin`) |
+| MCP | Six outils figés : `context` (consignes, routage vers la bonne procédure, `ctx`), `find`, `read`, `call`, `write`, `feedback` ; vues dans la conversation (tableau, fiche, page) sur Claude et ChatGPT |
+
+### Les faces du paquet
+
+| Export | Rôle |
+|---|---|
+| `/ui` | Écrans et composants React (aucun accès base) ; styles `ui/styles.css` sous la racine `.oto` |
+| `/schemas` | Schémas Zod (`zod/v4`) partagés |
+| `/server` | Services : seule porte d'écriture (Zod → droits → écriture → journal) ; `defineErpFunction`, `registerFunctions`, `registerOrgLimits` |
+| `/api` | Route handlers `/api/platform/*` (`handlePlateforme`) |
+| `/mcp` | `handleMcpPost`, `handleResourceMetadata` |
+| `/widgets` | Types d'une vue de l'ERP (`ErpView`) |
+| `/migrations/*` + CLI `oto-platform` | SQL additif du schéma `platform` ; `migrations sync`/`check`, `db prepare`, `widgets build` |
+
+### Intégrer l'ERP
+
+- **Fonctions métier** : chaque capacité reste un service de `src/lib/services/`, appelé par une
+  Server Action côté web et par une fonction ERP (`defineErpFunction`, classe `read`, `write` ou
+  `sensitive`) côté MCP. Un assistant la trouve par `find` et l'exécute par `call` ; une procédure
+  l'enchaîne dans ses étapes. Un besoin nouveau = une fonction, jamais un outil.
+- **Écrans dans l'ERP**, trois niveaux : coque entière (section « Plateforme »), morceaux du rail
+  dans la barre latérale de l'ERP, ou écran seul dans une fiche métier (`TableauDuNoeud`,
+  `EcranDeNoeud`, `ProcedureDuNoeud`).
+- **Vues de l'ERP dans la conversation** : un `ErpView` par vue, construit par
+  `oto-platform widgets build`.
+
+### Options
+
+| Option | Par défaut | Comment l'activer |
+|---|---|---|
+| Émetteur d'identité | Supabase Auth | `PLATFORM_OIDC_ISSUER` + `PLATFORM_OIDC_AUDIENCE` (Logto, Keycloak), Postgres sans Supabase |
+| Vues dans la conversation | Éteintes (texte seul) | `handleMcpPost(…, { widgets: true })` |
+| Fichiers joints | Désactivés | Les cinq `PLATFORM_STORAGE_*` |
+| Inscription libre (création d'organisation) | Fermée, invitation seule | `handlePlateforme(…, { signup: { orgCreation, admit? } })` |
+| Entrée sans invitation | Fermée | Réglage administrateur, onglet Membres (`readOpenEntry`) |
+| Capacités par organisation (offres) | Sans limite | `registerOrgLimits({ read, raiseUrl? })` |
+| Adresse servie (preview, domaine unique) | Organisation = adresse appelée | Fonction `ServedHost` passée aux trois points d'entrée |
+| Partage public | Monté si l'hôte sert `/p/<jeton>` | Routes et page publique de l'hôte de référence |
+
+### Ce que l'activation change dans ce template
+
+Le paquet sert `/api/mcp` en dur : activé, il **remplace** `src/mcp/`, `src/app/api/[transport]/` et
+`widgets/` (ADR-001, `docs/decisions/`). Les conventions `mcp-patterns.md` sur les instructions, le
+design de tools et les widgets ne s'appliquent plus ; la parité par services, le « zéro IA
+serveur » et les golden queries restent dus. Écarts de dépendances : `@hookform/resolvers` ^5
+(le template est en ^3), schémas partagés en `zod/v4` (zod 3.25 conservé). Montées de version par
+Renovate, migrations recopiées par `oto-platform migrations sync` à chaque version.
 
 ## Quick Start
 
@@ -178,7 +250,7 @@ dépasse 400 lignes, si une checklist n'est appelée par rien, si un composant d
 │   ├── templates/               # 6 templates de documents
 │   ├── checklists/              # 5 checklists quality gates
 │   ├── conventions/             # Conventions techniques routées par globs (_index.md = routing)
-│   ├── starters/                # Starters optionnels (supabase-auth, ...)
+│   ├── starters/                # Starters optionnels (supabase-auth, oto-platform)
 │   └── sprint/status.md         # Sprint tracking
 ├── docs/
 │   ├── brief.md                 # Brief produit

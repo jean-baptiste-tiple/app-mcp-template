@@ -11,6 +11,9 @@ IA : **zéro IA serveur par défaut** — les opérations intelligentes passent 
 (`prepare → modèle → save validé`, `mcp-patterns.md` § 4 bis). Un appel LLM serveur se décide par ADR.
 Base de données et auth optionnelles via `.method/starters/supabase-auth/`. Supabase Cloud par
 défaut ; option souveraine self-hosted (Scaleway ou autre) par ADR, tag `selfhost`.
+Option plateforme Otomata (pages, tableaux, procédures dans l'ERP) via `.method/starters/oto-platform/` :
+activée, elle **remplace** le MCP du template, et les capacités métier deviennent des fonctions ERP
+(ADR-001, `docs/decisions/`).
 
 ## Style de réponse
 

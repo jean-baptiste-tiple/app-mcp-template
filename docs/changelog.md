@@ -10,6 +10,13 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-10-06] — Option plateforme Otomata : starter, ADR-001, README
+
+**Quoi :** starter `.method/starters/oto-platform/` (installation de `@otomata_tech/oto_platform` 1.4.0 dans ce template : dépendances, ce qui sort du template, configuration, fonctions ERP, vues, écrans à trois niveaux, migrations, critères de fin) ; ADR-001 : activée, la plateforme remplace le MCP du template et les capacités métier deviennent des fonctions ERP ; README : section « Plateforme Otomata (option) » (apports, faces, intégration ERP, options) ; renvois dans `CLAUDE.md § Projet`, `/plan` (identification) et `mcp-patterns.md` section 1 (dérogation).
+**Pourquoi :** le paquet sert `/api/mcp` en dur ; sa route statique masquerait `src/app/api/[transport]/` sans erreur. Choix utilisateur : Otomata remplace.
+**Écarté :** écrans seuls (les assistants ne liraient pas les procédures) ; deux MCP sur deux chemins (deux connecteurs, deux OAuth).
+**Fichiers :** `.method/starters/oto-platform/README.md`, `docs/decisions/ADR-001-oto-platform-remplace-mcp-template.md`, `README.md`, `CLAUDE.md`, `.claude/skills/plan/SKILL.md`, `.method/conventions/mcp-patterns.md`, `docs/changelog.md`
+
 ## [2026-10-02] — Fusion de main : correctifs MCP reportés dans `src/`, nom `app-mcp-template`
 
 **Quoi :** les correctifs du starter MCP poussés sur `main` en parallèle sont reportés dans le code installé : versions exactes dans `package.json` (jose 6.2.12, Vite 7.3.1, vite-plugin-singlefile 2.3.3, sans `^`) et `tech-stack.md § Canal MCP` avec la raison de chaque borne ; `src/app/api/[transport]/route.ts` refuse un corps JSON illisible avant mcp-handler (`withReadableBody`, 400 `-32700`), garde-fou anonyme compris, et `scripts/smoke-mcp.mjs` le vérifie ; `mcp-patterns.md` § 5.2 (jamais de `confirm` depuis un widget) et § 7 (corps illisible). Le renommage `mcp-dev-template` est remplacé par `app-mcp-template` (choix utilisateur).

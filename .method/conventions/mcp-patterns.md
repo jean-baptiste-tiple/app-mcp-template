@@ -32,6 +32,8 @@ server.registerTool("archive_document", {
 
 Toute nouvelle capacité = 1 fonction service + 2 adaptateurs (action + tool). Si un des deux manque, le dire dans la story.
 
+**Plateforme Otomata activée** (ADR-001) : l'adaptateur MCP est une fonction ERP (`defineErpFunction`), jamais un tool ; sections 2.1, 3 et 5 ne s'appliquent plus (outils et instructions figés par le paquet). Mode d'emploi : `.method/starters/oto-platform/README.md`.
+
 ## 2. AX — le serveur se présente (découverte par l'agent)
 
 L'« Agent Experience » commence à l'`initialize` : c'est là que le modèle apprend qui on est, ce qu'on sait faire et comment enchaîner. Trois niveaux, du global au local :

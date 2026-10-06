@@ -132,6 +132,11 @@ ne pas copier les pages auth du starter).
 
 **Non** → le template fonctionne sans base de données. Ne rien prévoir.
 
+Les équipes doivent-elles écrire des procédures, pages ou tableaux lus par leurs assistants, dans
+l'ERP ? **Oui** → poser l'option plateforme Otomata via `AskUserQuestion` (elle remplace le MCP du
+template : ADR-001), puis lire `.method/starters/oto-platform/README.md` et prévoir son installation
+dans la story « Setup technique », après `supabase-auth`.
+
 Le canal MCP (Claude, ChatGPT) est **installé par défaut** dans `src/mcp/` : le produit est
 MCP-first sauf décision contraire.
 
