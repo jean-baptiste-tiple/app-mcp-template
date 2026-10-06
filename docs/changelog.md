@@ -10,6 +10,12 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-10-06] — tech-stack : pnpm 12.4.1
+
+**Quoi :** ligne pnpm de `tech-stack.md` alignée sur `packageManager` (9.x → 12.4.1), avec `minimumReleaseAge` et le contournement si corepack échoue.
+**Pourquoi :** la convention annonçait pnpm 9 alors que le projet est en pnpm 12.
+**Fichiers :** `.method/conventions/tech-stack.md`, `docs/changelog.md`
+
 ## [2026-10-06] — README : mode d'emploi en tête ; fusion sur main
 
 **Quoi :** section « Mode d'emploi » en tête du README (pourquoi l'utiliser, comment en 6 étapes, règles qui évitent les retours en review, choix MCP du template ou Otomata) ; chiffres périmés corrigés (36 composants Shadcn, 7 templates, 6 checklists, `coding-standards.md` 137 lignes). Fusion des branches des 4 derniers jours sur `main` : `claude/trusting-darwin-g583yd` et `ccr-39a36324-gvtxgz` y étaient déjà (aucun commit propre), `claude/serene-heisenberg-4ayqhy` avance `main` en fast-forward.

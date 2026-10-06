@@ -15,7 +15,7 @@
 | Vitest | latest | Tests unit/integ | Rapide, compatible ESM, API Jest-like |
 | Testing Library | latest | Tests composants | Test du comportement user, pas de l'implémentation |
 | Playwright | latest | Tests E2E | Cross-browser, fiable, auto-wait |
-| pnpm | 9.x | Package manager | Rapide, strict, disk-efficient |
+| pnpm | 12.4.1 (`packageManager`) | Package manager | Rapide, strict, disk-efficient. `minimumReleaseAge` actif par défaut en 12 : une version publiée trop récemment est refusée (exclusion par paquet dans `pnpm-workspace.yaml`). Si corepack échoue à le télécharger : `npm i -g pnpm@12.4.1` |
 
 <!-- PERSONNALISER : ajouter les libs spécifiques au projet (ex: @tanstack/query, date-fns, etc.) -->
 
