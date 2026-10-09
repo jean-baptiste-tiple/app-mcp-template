@@ -19,6 +19,8 @@ build/
 test-results/
 playwright-report/
 coverage/
+# Captures locales lues par la review (pnpm ui:shots), jamais versionnées
+.ui-shots/
 
 # OS
 .DS_Store

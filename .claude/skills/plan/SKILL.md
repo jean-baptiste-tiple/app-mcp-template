@@ -103,6 +103,13 @@ Trois situations, toutes valides :
   PROJET » de `globals.css`, police de `layout.tsx`) sera modifié par `dev` à la story de setup
 - **Pas de maquettes, thème neutre gardé** → ne rien faire, le dire, passer à la suite
 
+Dans les trois cas, remplir **`docs/design/system.md § Direction`** (audience, densité, ton,
+références, interdits, autorisations, pages marketing) : c'est ce que `dev` et les sous-agents
+lisent avant de dessiner un écran, et ce qui autorise ou non un écart à `ui-patterns.md`.
+Vide, la direction est celle du thème neutre : le dire plutôt que laisser le tableau en
+gabarit. Chaque story avec écran renseigne ensuite ses champs **Lecture de design**,
+**Sous `md`** et **États UI** (`.method/templates/story.tmpl.md`).
+
 L'absence de maquette n'est jamais un blocage : les stories portent alors une description
 textuelle ou `N/A`.
 

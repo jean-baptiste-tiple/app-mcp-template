@@ -28,3 +28,4 @@
 - [ ] ADR créé dans `docs/decisions/` si un invariant d'architecture a été touché
 - [ ] `.method/sprint/status.md` : story passée en ✅ Done
 - [ ] (si référence UI ≠ `N/A`) Les écarts avec la référence sont documentés dans la story
+- [ ] (story avec écran) Les captures `pnpm ui:shots` des routes touchées ont été lues et citées dans le rapport de review (`code-review.md § Preuve visuelle`)

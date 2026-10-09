@@ -14,7 +14,8 @@
 | React Hook Form | 7.x + `@hookform/resolvers` 5 | Formulaires | Performance, intégration Zod via resolver ; resolvers 5 lit les schémas `zod/v4` et est le peer exigé par la plateforme Otomata |
 | Vitest | latest | Tests unit/integ | Rapide, compatible ESM, API Jest-like |
 | Testing Library | latest | Tests composants | Test du comportement user, pas de l'implémentation |
-| Playwright | latest | Tests E2E | Cross-browser, fiable, auto-wait |
+| Playwright | latest | Tests E2E, captures `pnpm ui:shots` (`scripts/ui-shots.mjs`) | Cross-browser, fiable, auto-wait. Trois projets : `chromium`, `mobile` (Pixel 7), `dark` |
+| @axe-core/playwright | ^4.13.0 | Accessibilité par règle dans le smoke e2e | Liste les éléments en violation (`serious`/`critical`), là où Lighthouse ne donne qu'un score global sur un build de prod |
 | pnpm | 12.4.1 (`packageManager`) | Package manager | Rapide, strict, disk-efficient. `minimumReleaseAge` actif par défaut en 12 : une version publiée trop récemment est refusée (exclusion par paquet dans `pnpm-workspace.yaml`). Si corepack échoue à le télécharger : `npm i -g pnpm@12.4.1` |
 
 <!-- PERSONNALISER : ajouter les libs spécifiques au projet (ex: @tanstack/query, date-fns, etc.) -->

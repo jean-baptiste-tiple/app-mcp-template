@@ -51,7 +51,9 @@ for (const name of WIDGET_NAMES) {
     console.error(`✗ HTML introuvable pour ${name} (cherché: ${nested})`)
     process.exit(1)
   }
-  const html = readFileSync(src, "utf8")
+  // Sur un checkout Windows (autocrlf), vite inline des sources en CRLF : sans normalisation,
+  // le bundle commité dans generated.ts dépend du poste qui l'a construit.
+  const html = readFileSync(src, "utf8").replace(/\r+\n?/g, "\n")
   writeFileSync(flat, html) // copie plate pour inspection/preview navigateur
   bundles[name] = html
   console.log(`  ✓ ${(Buffer.byteLength(html) / 1024).toFixed(1)} Ko`)

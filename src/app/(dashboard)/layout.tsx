@@ -11,13 +11,13 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-dvh">
       {/* Sidebar FIXE : sticky pleine hauteur, ne défile jamais avec le contenu (tokens --sidebar). */}
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex">
+      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex">
         <div className="flex h-16 shrink-0 items-center gap-2.5 px-5">
           <AppLogo size={32} />
           <div className="leading-tight">
-            <div className="text-[15px] font-semibold tracking-tight">Mon App</div>
+            <div className="text-base font-semibold tracking-tight">Mon App</div>
             <div className="text-xs text-sidebar-foreground/70">Sous-titre</div>
           </div>
         </div>

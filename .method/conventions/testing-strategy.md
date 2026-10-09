@@ -53,6 +53,13 @@ vi.mock("@/lib/supabase/server", () => ({
 - **Seed :** Script de seed pour données de test reproductibles
 - **Où :** `tests/e2e/`
 - **Convention :** un fichier par feature (`auth.spec.ts`, `projects.spec.ts`)
+- **Projets :** `chromium` (desktop clair), `mobile` (Pixel 7, Chromium) et `dark` (desktop,
+  `colorScheme: "dark"`) dans `playwright.config.ts`. Chaque spec tourne dans les trois : un
+  menu mobile cassé ou un contraste sombre insuffisant échoue sans test dédié.
+- **Smoke UI :** `smoke.spec.ts` vérifie l'absence de débordement horizontal à 375 px et
+  l'absence de violation axe `serious`/`critical` (`@axe-core/playwright`, tags `wcag2a`,
+  `wcag2aa`, `wcag22aa`) sur `/`. Une route nouvelle du parcours principal s'ajoute aux deux
+  listes (`ui-patterns.md § Preuve visuelle`).
 
 ## Non-régression
 

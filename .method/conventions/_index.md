@@ -37,6 +37,7 @@ déduits des globs — c'est le seul moyen d'activer les tags marqués **non rou
 | `state` | `state-management.md` | `src/hooks/**`, `src/components/**/*provider*.tsx`, `src/components/**/*filter*.tsx`, `src/app/**/page.tsx` | URL state, contexte, hiérarchie de state |
 | `feedback` | `feedback-patterns.md` | `src/components/**/*dialog*.tsx`, `src/components/**/*confirm*.tsx`, `src/components/**/*delete*.tsx`, `src/components/**/*toast*.tsx`, `src/components/ui/sonner.tsx` | Toasts, dialogs, confirmations, empty states |
 | `a11y` | `accessibility-patterns.md` | `src/components/**/*.tsx`, `src/app/**/*.tsx`, `src/app/globals.css` | WCAG, ARIA, clavier, focus, contraste |
+| `ui` | `ui-patterns.md` | `src/components/**/*.tsx`, `src/app/**/page.tsx`, `src/app/**/layout.tsx`, `src/app/globals.css`, `widgets/**/*.tsx` | Lecture de design, design system verrouillé, responsive, composition, états, texte, signatures IA, preuve visuelle |
 | `performance` | `performance-patterns.md` | `next.config.ts`, `src/app/**/loading.tsx`, `src/app/**/page.tsx`, `src/components/**/*chart*.tsx`, `src/components/**/*editor*.tsx` | Code splitting, Web Vitals, images, fonts |
 | `typescript` | `typescript-patterns.md` | `src/types/**`, `tsconfig.json` | Utility types, unions, branded types, type guards |
 | `registry` | `component-registry.md` | `src/components/**`, `src/hooks/**`, `src/lib/utils/**`, `src/lib/actions/**`, `src/lib/schemas/**`, `src/lib/services/**`, `src/types/**` | Registry DRY — vérifier avant de créer |

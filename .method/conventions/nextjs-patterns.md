@@ -37,7 +37,7 @@ export default async function DashboardLayout({
   const { data: { user } } = await supabase.auth.getUser()
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-dvh">
       {user ? <Sidebar user={user} /> : null}
       <main className="flex-1 p-6">{children}</main>
     </div>

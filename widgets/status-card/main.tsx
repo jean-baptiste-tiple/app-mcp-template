@@ -60,7 +60,7 @@ function StatusCard() {
     return timedOut ? (
       <p style={styles.muted}>
         Impossible de charger l&apos;état. Les données sont probablement disponibles côté
-        serveur — demandez dans le chat : « relance get_status ».
+        serveur. Demandez dans le chat : « relance get_status ».
       </p>
     ) : (
       <p style={styles.muted}>Chargement…</p>
@@ -78,7 +78,7 @@ function StatusCard() {
       </div>
       {output.components?.map((c) => (
         <div key={c.name} style={styles.component}>
-          {c.name} — {c.status}
+          {c.name} : {c.status}
         </div>
       ))}
       <button style={styles.button} onClick={refresh} disabled={refreshing}>
@@ -86,7 +86,7 @@ function StatusCard() {
       </button>
       {refreshError ? (
         <p role="alert" style={styles.mutedInline}>
-          Rafraîchissement impossible ici — demandez dans le chat : « relance get_status ».
+          Rafraîchissement impossible ici. Demandez dans le chat : « relance get_status ».
         </p>
       ) : null}
     </div>

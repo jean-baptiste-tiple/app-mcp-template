@@ -25,7 +25,7 @@ export default function RootError({
       <div>
         <h2 className="text-lg font-semibold">Une erreur est survenue</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Réessayez — si le problème persiste, contactez le support.
+          Réessayez. Si le problème persiste, contactez le support.
         </p>
       </div>
       <Button onClick={reset}>Réessayer</Button>

@@ -16,6 +16,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "ui:shots": "node scripts/ui-shots.mjs",
     "widgets:build": "node widgets/build.mjs",
     "mcp:inspect": "npx @modelcontextprotocol/inspector",
     "mcp:smoke": "node scripts/smoke-mcp.mjs",
@@ -66,6 +67,7 @@
     "zod": "^3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@eslint/eslintrc": "^3",
     "@modelcontextprotocol/ext-apps": "1.7.4",
     "@playwright/test": "^1",

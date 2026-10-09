@@ -18,6 +18,7 @@ import { join } from 'node:path'
  */
 export function verifierInvariants({ ROOT, read, walk, err, warn }) {
   invariantsDeCode({ ROOT, read, walk, err })
+  invariantsUi({ ROOT, read, walk, err })
   chaineDApplication({ ROOT, read, err, warn })
 }
 
@@ -96,6 +97,77 @@ function invariantsDeCode({ ROOT, read, walk, err }) {
             err(
               `${p.slice(ROOT.length + 1)}:${i + 1} : couleur Tailwind numérotée \`${m[0]}\` — utiliser une classe sémantique (bg-primary, text-muted-foreground…).`
             )
+          }
+        })
+    }
+  }
+}
+
+// ---------------------------------------------- invariants UI des fichiers .tsx
+// Ces règles étaient tenues par jugement en review et se dégradaient sans trace, comme celles
+// d'`invariantsDeCode` : mécanisées ici, elles échouent au lieu de dériver d'un écran à l'autre.
+const UI = 'ui-patterns.md § Design system verrouillé'
+const REGLES_UI = [
+  {
+    motif: /[—–]/,
+    message: 'tiret cadratin dans une chaîne visible — utiliser `-`, `,` ou `.` (ui-patterns.md § Texte visible)',
+  },
+  {
+    motif: /\b(?:min-|max-)?h-screen\b/,
+    message: 'hauteur en `*-screen` — utiliser `h-dvh` / `min-h-dvh` / `max-h-dvh` (ui-patterns.md § Responsive)',
+  },
+  {
+    // Widgets exclus : bundles single-file pour les hosts MCP, styles inline imposés par leur CSP.
+    // `-[` suivi d'un chiffre exclu : `text-[15px]` ou `border-[3px]` sont des tailles, pas des
+    // couleurs (la taille de texte est couverte par la règle suivante).
+    motif:
+      /(?:className|style)\b.*#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsl|oklch)\(|\b(?:bg|text|border|ring|fill|stroke|from|via|to)-\[(?![\d.])/,
+    message: `couleur en dur — utiliser un token sémantique (${UI})`,
+    horsWidgets: true,
+  },
+  {
+    motif: /\btext-\[\d+(?:\.\d+)?(?:px|rem)\]|\brounded-\[|\bz-\[/,
+    message: `valeur arbitraire de taille ou de couche — utiliser l'échelle du thème (${UI})`,
+  },
+  {
+    // Les tokens sémantiques changent déjà avec le thème : un `dark:` de couleur les contourne.
+    // `dark:rotate-90`, `dark:scale-0` (non-couleur) restent autorisés.
+    motif: /\bdark:(?:[\w-]+:)*(?:bg|text|border|ring)-/,
+    message: `\`dark:\` sur une couleur — les tokens sémantiques suivent déjà le thème (${UI})`,
+  },
+  {
+    motif: /['"]lucide-react['"]/,
+    message: 'import de `lucide-react` — icônes Phosphor (ui-patterns.md § Icônes)',
+  },
+  {
+    motif: /(?:^|[\s"'`])(?:focus:)?outline-none\b/,
+    sauf: /focus-visible:/,
+    message: '`outline-none` sans `focus-visible:` sur la même ligne — focus invisible (accessibility-patterns.md § Ordre de focus)',
+  },
+  {
+    // Heuristique mono-ligne assumée : une balise ouverte sur une ligne et dont le `onClick`
+    // est sur la suivante passe. Elle attrape le cas courant sans parser le JSX.
+    motif: /<(?:div|span)\b[^>]*\bonClick=/,
+    message: '`onClick` sur un `<div>`/`<span>` — utiliser `<button>` (accessibility-patterns.md § Ordre de focus)',
+  },
+]
+
+function invariantsUi({ ROOT, read, walk, err }) {
+  for (const dossier of ['src', 'widgets']) {
+    const racine = join(ROOT, dossier)
+    if (!existsSync(racine)) continue
+    for (const p of walk(racine).filter((p) => p.endsWith('.tsx'))) {
+      const rel = p.slice(ROOT.length + 1).replaceAll('\\', '/')
+      // Shadcn : régénéré par la CLI, une correction à la main serait écrasée au prochain `add`.
+      if (rel.startsWith('src/components/ui/')) continue
+      read(p)
+        .split('\n')
+        .forEach((l, i) => {
+          if (/^\s*(?:\/\/|\*|\/\*|\{\/\*)/.test(l)) return
+          for (const r of REGLES_UI) {
+            if (r.horsWidgets && dossier === 'widgets') continue
+            const m = r.motif.exec(l)
+            if (m && !(r.sauf && r.sauf.test(l))) err(`${rel}:${i + 1} : \`${m[0].trim()}\` ${r.message}.`)
           }
         })
     }

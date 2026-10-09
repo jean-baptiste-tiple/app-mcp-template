@@ -192,6 +192,10 @@ Le **modèle de la session** décide du rôle, pas la taille de la demande.
   arbitrage** — il s'arrête et le remonte, le pilote pose la question via `AskUserQuestion`
   (§ Avant de coder). Dès l'échelle Standard, il produit son **rayon d'impact** dans son rapport.
   Le commit reste au pilote.
+- **Un lot UI reçoit en plus** : la convention `ui-patterns.md` et `docs/design/system.md`
+  (§ Direction, § Patterns de page) à lire, le registry, les AC par largeur d'écran, et
+  l'obligation de lancer `pnpm ui:shots <routes>` et de décrire chaque capture (375 et 1280,
+  clair et sombre) dans son rapport. Un rapport de lot UI sans captures décrites est incomplet.
 
 ## Modifications documentaires
 
@@ -217,6 +221,7 @@ exclus du reçu de vérification : les éditer n'invalide pas des checks déjà 
 
 - **Pendant l'implémentation :** `pnpm type-check` seul, à chaque itération.
 - **Une fois terminé :** `pnpm verify` — les 4 checks (`check:framework`, `type-check`, `lint`, `test`) **et** l'écriture du reçu. Ne jamais lancer les 4 commandes séparément.
+- **Diff UI :** `pnpm ui:shots <routes touchées>` avant la review, hors reçu (il démarre un serveur). Les captures sont lues et citées par `revue`, elles ne sont pas versionnées.
 - **Pour commiter :** skill `commit-push`. Il lance `pnpm verify:cached`, qui ne rejoue les checks que si le code a bougé depuis le dernier passage.
 - **C'est un gate appliqué, pas une convention.** `.claude/hooks/enforce-git-gate.mjs` bloque tout `git commit` / `git push` direct, et refuse un commit dont le reçu ne couvre pas l'état exact du code. `--no-verify` et `--force` sont bloqués sans échappement possible.
 - **Worktree.** Le gate juge un commit sur le reçu du dépôt que la commande vise (`cd <dir> &&` en tête, ou `git -C <dir>`) : lancer `pnpm verify` puis `git commit` DANS le worktree. Le hook qui s'exécute est celui du checkout de la session : si sa copie est antérieure à ce correctif, ouvrir la session dans le worktree. Pour une branche sans commit, avancer par `git stash -u` → `git reset --hard main` → `git stash pop`.
@@ -245,8 +250,9 @@ Thème **neutre, à personnaliser par projet** : bloc « THÈME PROJET » de `sr
 `/design-system`.
 
 - **Réutiliser avant de créer** : `.method/conventions/component-registry.md` puis `src/components/ui/`.
-- **Classes sémantiques uniquement** (`bg-primary`, `text-muted-foreground`, `border-border`). Aucune couleur Tailwind numérotée (`bg-emerald-500`) dans `src/`.
-- **Tester les deux thèmes** avant de considérer un écran terminé.
+- **Classes sémantiques uniquement** (`bg-primary`, `text-muted-foreground`, `border-border`). Aucune couleur Tailwind numérotée (`bg-emerald-500`), aucun hex, aucun `dark:` de couleur dans `src/` (`check:framework`).
+- **Mobile d'abord, trois largeurs, deux thèmes.** Un écran est terminé quand ses captures à 375, 768 et 1280 px, en clair et en sombre (`pnpm ui:shots <route>`), ont été lues et citées en review. Composition, responsive, texte et signatures IA : convention `ui-patterns.md`, tag `ui`, routée sur tout composant et toute page.
+- **Aucun tiret cadratin dans une chaîne visible** (`check:framework`). *(Décision JB 2026-10-09.)*
 
 ## Workflow
 

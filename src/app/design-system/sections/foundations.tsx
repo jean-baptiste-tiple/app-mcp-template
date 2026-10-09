@@ -47,20 +47,20 @@ export function TypographySection() {
     <Section title="Typographie">
       <div className="space-y-3">
         {/* Spécimens en <p> : la page a déjà son h1 (un seul h1 par page, seo-patterns). */}
-        <p className="text-4xl font-bold tracking-tight">Heading 1 — Bold</p>
-        <p className="text-3xl font-semibold tracking-tight">Heading 2 — Semibold</p>
-        <p className="text-2xl font-semibold tracking-tight">Heading 3 — Semibold</p>
-        <p className="text-xl font-medium">Heading 4 — Medium</p>
+        <p className="text-4xl font-bold tracking-tight">Heading 1 : Bold</p>
+        <p className="text-3xl font-semibold tracking-tight">Heading 2 : Semibold</p>
+        <p className="text-2xl font-semibold tracking-tight">Heading 3 : Semibold</p>
+        <p className="text-xl font-medium">Heading 4 : Medium</p>
         <p className="text-base leading-7">
-          Body text — Regular, police du projet (variable --font-sans, Inter par défaut). Le thème
+          Body text : Regular, police du projet (variable --font-sans, Inter par défaut). Le thème
           neutre fournit des tokens cohérents pour couleurs, spacing et radius ; la marque se
           pose dans le bloc « THÈME PROJET » de globals.css.
         </p>
         <p className="text-sm text-muted-foreground">
-          Texte secondaire — Small, muted. Utilisé pour les descriptions et les labels.
+          Texte secondaire : Small, muted. Utilisé pour les descriptions et les labels.
         </p>
         <p className="text-xs text-muted-foreground">
-          Caption — Extra small, muted. Métadonnées, timestamps.
+          Caption : Extra small, muted. Métadonnées, timestamps.
         </p>
       </div>
     </Section>

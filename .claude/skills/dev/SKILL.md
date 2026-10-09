@@ -112,6 +112,13 @@ son rapport et **remonte** l'item 4 sans le trancher.
 Ordre quand plusieurs couches sont touchées : migration DB → schemas Zod → Server Actions +
 tests unit → composants + tests unit → page + tests d'intégration → E2E si demandé.
 
+**Tag `ui` actif** (composant, page, layout, widget) : écrire la **lecture de design** d'une
+ligne avant le premier composant, dans le plan ou la story (`ui-patterns.md § Lecture de
+design`), en lisant `docs/design/system.md` § Direction et § Patterns de page. Une fois
+l'écran rendu : `pnpm ui:shots <routes touchées>`, ouvrir les captures 375 et 1280 en clair et
+en sombre, corriger ce qu'elles montrent **avant** la review. Les captures sont ce que `revue`
+relit (`code-review.md § Preuve visuelle`).
+
 Placement des tests (`testing-strategy.md`) : `tests/unit/` · `tests/integration/` · `tests/e2e/`.
 
 **Edits chirurgicaux** : chaque ligne changée trace à la demande. Pas de cleanup adjacent, pas de

@@ -33,6 +33,15 @@ Point de contrôle de `CLAUDE.md § Justifier une surface nouvelle` — ne pas y
 - [ ] Aucune surface justifiée au futur (« on pourrait vouloir », « pour rester générique », « ce sera utile quand ») — une telle surface est **à retirer**, pas à documenter
 - [ ] (hors Micro) Le récap **nomme l'option d'un cran plus simple écartée** et la raison de l'écarter. Une seule solution présentée = aucun arbitrage rendu
 
+## Preuve visuelle
+
+Due dès qu'un fichier du périmètre active le tag `ui` (`.method/conventions/_index.md`). Les
+règles de composition sont dans `ui-patterns.md` ; cette rubrique ne vérifie que la preuve.
+
+- [ ] `pnpm ui:shots <routes touchées>` a tourné et le rapport cite les chemins des captures lues (375, 768, 1280 ; clair et sombre). Diff UI sans capture citée = review incomplète, verdict ❌
+- [ ] Ce que les captures montrent est écrit en une phrase par largeur : débordement, lisibilité en sombre, bouton principal visible, titres sur deux lignes maximum
+- [ ] La lecture de design (plan ou story) correspond à ce que les captures montrent ; un écart est un finding sourcé `ui-patterns.md § Lecture de design`
+
 ## Conformité à la demande
 
 - [ ] (mode story) Tous les AC de la story sont couverts par le code livré

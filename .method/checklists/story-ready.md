@@ -13,6 +13,7 @@
 - [ ] La section « Implémentation » liste les fichiers à créer ou modifier
 - [ ] La section « Tests attendus » liste les tests à écrire
 - [ ] La référence UI est renseignée (fichier JSX, lien, description texte, **ou `N/A`**)
+- [ ] (story avec écran) Les champs **Lecture de design**, **Sous `md`** et **États UI** sont renseignés, et au moins un AC porte sur le viewport 375 px et un sur le thème sombre ; sinon `N/A` avec la raison (`ui-patterns.md § Lecture de design`)
 - [ ] Les stories prérequises sont ✅ Done
 - [ ] (échelle Standard ou Module) La section « **Rayon d'impact** » est remplie : appelants avec commande citée, doublons avec verdict, effet produit, refacto proposé ou écarté — et tout refacto proposé a été **posé en question** via `AskUserQuestion`, pas laissé en note
 - [ ] Le champ **Conventions** est renseigné dans la section Meta — utile surtout pour les tags que les globs ne peuvent pas déduire (`datetime`, `i18n`, `flags`), voir `.method/conventions/_index.md`

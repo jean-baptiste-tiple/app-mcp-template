@@ -17,7 +17,7 @@ export default function DesignSystemPage() {
       <main id="main-content">
         <PageContainer
           heading="Design System"
-          description="Composants et tokens du thème neutre — la marque se pose dans le bloc « THÈME PROJET » de globals.css."
+          description="Composants et tokens du thème neutre : la marque se pose dans le bloc « THÈME PROJET » de globals.css."
         >
           <div className="mb-6 flex items-center justify-end">
             <ThemeToggle />

@@ -21,6 +21,38 @@
   `primary` ; la favicon `src/app/icon.svg` est un aplat neutre. Les deux se remplacent à la story
   de setup.
 
+## Direction
+
+> Remplie par `/plan` (artefact « design ») ou à la story de setup. Tant qu'elle est vide, la
+> direction est celle du thème neutre : densité standard, ton fonctionnel, aucun écart aux
+> interdits de `ui-patterns.md § Signatures IA`. C'est ce que lit un sous-agent avant de
+> dessiner un écran, et ce qui autorise ou non un écart à la convention `ui`.
+
+| Champ | Valeur |
+|-------|--------|
+| **Audience** | _qui utilise l'app, dans quel contexte (bureau, terrain, mobile en déplacement)_ |
+| **Densité** | _aérée / standard / dense : combien d'informations par écran, avec un exemple_ |
+| **Ton** | _trois mots au plus (sobre, chaleureux, technique…) et une référence réelle_ |
+| **Références** | _produits ou écrans que l'équipe cite comme modèle, avec ce qu'on en garde_ |
+| **Interdits du projet** | _ce qui ne doit jamais apparaître ici, au-delà de la convention_ |
+| **Autorisations** | _signatures de `ui-patterns.md § Signatures IA` explicitement acceptées, avec la raison_ |
+| **Pages marketing** | _oui / non ; si oui, lesquelles_ |
+
+## Patterns de page
+
+Chaque type d'écran a un pattern et un comportement mobile décidé une fois. La « lecture de
+design » (`ui-patterns.md § Lecture de design`) nomme le type ; le code suit le pattern.
+
+| Type | Desktop (≥ md) | Mobile (< md) | Composants |
+|------|----------------|---------------|------------|
+| **Liste** | `PageContainer` + barre de filtres + `DataTable` | filtres dans un `Sheet`, table en scroll horizontal avec colonnes prioritaires ou liste de cards (décision écrite) | `DataTable`, `EmptyState`, `Sheet` |
+| **Fiche** | en-tête (titre, statut, actions) + colonnes contenu / métadonnées | colonnes empilées, actions dans un menu `…` ou une barre basse | `Card` seulement pour les métadonnées, `Badge`, `DropdownMenu` |
+| **Formulaire** | une colonne `max-w-2xl`, sections séparées par `Separator`, bouton principal en bas à droite | même colonne pleine largeur, bouton principal pleine largeur, visible sans scroll sur un formulaire court | `Form`, `Input`, `Select`, `Alert` pour l'erreur globale |
+| **Dashboard** | grille `sm:grid-cols-2 lg:grid-cols-4` de `StatCard`, puis sections | une colonne, `StatCard` deux par ligne dès `sm` | `StatCard`, `EmptyState` |
+| **Réglages** | navigation secondaire à gauche + contenu | navigation en `Tabs` ou en liste de liens, puis contenu | `Tabs`, `Form` |
+| **Assistant multi-étapes** | indicateur d'étapes en haut, une étape par écran, « Précédent / Suivant » | indicateur réduit à « Étape 2 sur 4 », boutons pleine largeur | `Progress`, `Form` |
+| **Marketing** | voir `ui-patterns.md § Pages marketing` | hero dans le premier viewport | hors design system applicatif |
+
 ## Personnaliser le thème (story de setup)
 
 ### 1. Le bloc à éditer
@@ -87,11 +119,13 @@ du switch décoché) : c'est un élément d'interface, tenu à 3:1. `--border`, 
 `--muted-foreground` clair est à 0.51 et non à la valeur shadcn 0.556 : celle-ci tombe à 4.34:1
 sur `--muted` (onglets inactifs, avatar), sous AA.
 
-### 4. Tester les deux thèmes
+### 4. Tester les deux thèmes et les trois largeurs
 
-Après toute modification du bloc : parcourir `/design-system` avec le toggle de thème, puis les
-écrans réels, dans les deux thèmes. Avant mise en production, `pnpm audit:lh` mesure le contraste
-sur les pages buildées (audit `color-contrast`).
+Après toute modification du bloc : `pnpm ui:shots / /design-system` produit les captures à 375,
+768 et 1280 px en clair et en sombre dans `.ui-shots/` ; les lire, puis parcourir les écrans
+réels avec le toggle de thème. Avant mise en production, `pnpm audit:lh` mesure le contraste
+sur les pages buildées (audit `color-contrast`) et `pnpm test:e2e` vérifie le débordement
+mobile et les violations axe.
 
 ### 5. Le reste de l'identité
 
@@ -311,7 +345,10 @@ Dans `src/components/` (hors `ui/`) — détail des props dans
   couleur en dur dans un composant (seule la favicon SVG, hors CSS, en porte).
 - **Texte d'accent = `text-primary-dark`** (§ Personnaliser le thème, règle de contraste).
 - **Ne jamais transmettre une information par la couleur seule** : couleur + icône + texte.
-- **Tester les deux thèmes** avant de considérer un écran terminé (`CLAUDE.md § Design system`).
+- **Tester les deux thèmes et les trois largeurs** (375, 768, 1280) avant de considérer un
+  écran terminé : captures `pnpm ui:shots` lues en review (`CLAUDE.md § Design system`).
+- **Composition, responsive, texte, signatures IA** : convention `ui-patterns.md`, routée sur
+  tout composant et toute page (tag `ui`).
 
 ## Patterns UI récurrents
 

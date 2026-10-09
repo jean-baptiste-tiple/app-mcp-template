@@ -80,6 +80,13 @@
 | `data-flow` | Données transmises | `"user"`, `"order-id"` |
 | `data-auth` | Condition d'auth | `"required"`, `"guest-only"` |
 | `data-loading` | État de chargement | `"skeleton"`, `"spinner"` |
+| `data-mobile` | Comportement sous `md` d'une zone multi-colonnes | `"stack"`, `"scroll"`, `"sheet"`, `"hidden"` |
+| `data-density` | Densité de l'écran (`system.md § Direction`) | `"airy"`, `"standard"`, `"dense"` |
+| `data-error` | Ce que l'état en erreur affiche | `"Alert inline"`, `"toast"` |
+
+`data-mobile` est dû sur tout `<Section>`, `<Table>` ou `<Card>` disposé en colonnes : une
+maquette sans lui laisse le collapse mobile au hasard, et la story ne peut pas le reprendre
+dans son champ **Sous `md`**.
 
 ## Exemple complet
 
