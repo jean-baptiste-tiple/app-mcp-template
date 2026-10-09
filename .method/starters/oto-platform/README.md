@@ -42,6 +42,13 @@ minimumReleaseAgeExclude:
   - "@otomata_tech/oto_platform"
 ```
 
+Une fois `src/mcp/` retiré (§ 2), plus rien dans l'application n'importe le serveur du template :
+
+```bash
+pnpm remove mcp-handler @modelcontextprotocol/sdk jose
+pnpm peers check
+```
+
 Mettre à jour `tech-stack.md` (ligne du paquet, version exacte et raison) dans la même story.
 
 ## 2. Ce qui sort du template
@@ -56,11 +63,23 @@ ensemble. Retirer l'un avant de poser l'autre.
 | `src/app/.well-known/oauth-protected-resource/route.ts` et les `rewrites()` de `next.config.ts` | `handleResourceMetadata` sur les routes de métadonnées de l'hôte de référence |
 | `src/mcp/` (server, tools, auth, config, widgets) | Le paquet ; les capacités métier deviennent des fonctions ERP (§ 4) |
 | `widgets/` et `widgets:build` | Vues de l'ERP dans `src/widgets/*.tsx` (§ 5) |
-| `tests/unit/mcp-route.test.ts`, `tests/unit/mcp-server.test.ts` | Tests des fonctions ERP (services + `run`) |
-| `scripts/smoke-mcp.mjs` | Adapter : `tools/list` doit rendre les six outils du paquet, `call` une fonction ERP |
+| `tests/unit/mcp-route.test.ts`, `tests/unit/mcp-server.test.ts` | Tests des fonctions ERP (services + `run`) ; `fonctions-metier-imports-test.ts` de ce starter → `tests/unit/fonctions-metier-imports.test.ts` (chaque route qui monte une porte importe `@/lib/fonctions-metier`) |
+| `scripts/smoke-mcp.mjs` | `smoke-mcp.mjs` de ce starter : montage des portes **sans jeton** (401 + `WWW-Authenticate`, 405 en GET, 401 sur `/api/platform/*`, `/` → `/login`). À étendre avec un compte : `tools/list` doit rendre les six outils du paquet, `call` une fonction ERP |
+| `src/lib/schemas/status.ts`, `src/lib/services/status-service.ts` (domaine démo) | Les schémas et services du produit |
+| Scripts `build` (`pnpm widgets:build &&`) et `type-check` (`-p widgets/tsconfig.json`), `"widgets"` dans `exclude` de `tsconfig.json` | `next build` et `tsc --noEmit` seuls, tant qu'aucune vue de l'ERP n'existe (§ 5) |
+| `.next/` | Rien : ses types générés citent les routes retirées et font échouer `type-check` jusqu'au build suivant |
 | Page `/oauth/consent` du starter `supabase-auth` | `consentRequest` du paquet (mode Supabase) ; en OIDC, consentement chez l'émetteur |
 
 Garder `src/lib/services/` : c'est là que vit la logique, appelée par le web et par le MCP.
+
+`pnpm check:framework` échoue tant que `CLAUDE.md § Projet` et la section « Canal MCP » de
+`README.md` citent `src/mcp/` : les réécrire dans la même story, avec la table « Helpers MCP » de
+`component-registry.md` et les globs des tags `mcp` et `selfhost` de `_index.md`.
+
+Constaté le 2026-10-03 sur un clone du template, paquet 1.4.0, hôte de référence copié **en
+entier** (`src/` d'oto-pkg au tag `v1.4.0`, coque du template retirée) : `verify`, `build`,
+`mcp:smoke` et `migrations check` passent. Rien d'authentifié n'a été éprouvé (pas de base), ni le
+montage partiel décrit au § 6.
 
 ## 3. Configuration
 
@@ -159,7 +178,7 @@ Montées de version : Renovate, preset `github>otomata-tech/oto-pkg//renovate/pr
 ## Critères de fin de la story de setup
 
 - `pnpm verify` et `pnpm build` verts.
-- `src/app/api/[transport]/` absent ; `GET /api/mcp` sans jeton → 401 + `WWW-Authenticate`.
+- `src/app/api/[transport]/` absent ; `pnpm mcp:smoke` vert (`POST /api/mcp` sans jeton → 401 + `WWW-Authenticate`).
 - `tools/list` (jeton valide) → les six outils du paquet ; `find` trouve chaque fonction ERP.
 - `pnpm exec oto-platform migrations check` → code 0.
 - Chaque écran monté vérifié en clair et en sombre.

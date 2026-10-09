@@ -10,6 +10,13 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-10-09] — Starter `oto-platform` : smoke et garde fournis, constats d'un essai d'installation
+
+**Quoi :** le starter fournit `smoke-mcp.mjs` (montage des portes sans jeton) et `fonctions-metier-imports-test.ts` (chaque route qui monte une porte importe `@/lib/fonctions-metier`). Son README gagne : `pnpm remove mcp-handler @modelcontextprotocol/sdk jose`, les retraits oubliés (domaine démo `status`, scripts `build` et `type-check`, `exclude` de `tsconfig.json`, `.next/`), les documents que `check:framework` refuse après le retrait de `src/mcp/`, et la portée de l'essai. Critère de fin corrigé : c'est `POST /api/mcp` sans jeton qui répond 401, `GET` répond 405.
+**Pourquoi :** le README disait « adapter » le smoke sans le fournir ; un essai d'installation du 2026-10-03 (paquet 1.4.0, clone neuf) a fait apparaître ces étapes.
+**Écarté :** une convention `oto-patterns.md` et un tag `oto` — le paragraphe de `mcp-patterns.md` et l'ADR-001 portent déjà la règle (choix utilisateur).
+**Fichiers :** `.method/starters/oto-platform/{README.md,smoke-mcp.mjs,fonctions-metier-imports-test.ts}`, `docs/changelog.md`
+
 ## [2026-10-06] — tech-stack : pnpm 12.4.1
 
 **Quoi :** ligne pnpm de `tech-stack.md` alignée sur `packageManager` (9.x → 12.4.1), avec `minimumReleaseAge` et le contournement si corepack échoue.
