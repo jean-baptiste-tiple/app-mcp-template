@@ -8,9 +8,10 @@ Un schema Zod dans `src/lib/schemas/` = **une seule source de vérité**, valid�
 **et** côté action. Pas de double validation manuelle : si les deux divergent, c'est la
 version serveur qui compte et l'utilisateur voit une erreur qu'il ne comprend pas.
 
-Les schémas s'écrivent en `zod/v4` (`import * as z from "zod/v4"`, livré par zod 3.25), lu par
-`@hookform/resolvers` 5 côté formulaire, par le SDK MCP côté tool et par `defineErpFunction` si la
-plateforme Otomata est activée (ADR-001). L'import de `"zod"` est refusé par ESLint.
+Les schémas s'écrivent en `zod/v4` (`import * as z from "zod/v4"`, zod 4), lu par
+`@hookform/resolvers` 7 côté formulaire, par le SDK MCP 2 côté tool (`inputSchema` = l'objet zod,
+plus `.shape`) et par `defineErpFunction` si la plateforme Otomata est activée (ADR-001). L'import
+de `"zod"` est refusé par ESLint : un seul chemin d'import pour tous les schémas partagés.
 
 Le composant gère les quatre états : idle, pending, error (inline), success (redirect ou toast).
 

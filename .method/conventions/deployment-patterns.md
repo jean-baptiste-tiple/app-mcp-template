@@ -93,8 +93,7 @@ Politique du template, contrôlée par `pnpm check:framework` :
   plateforme Otomata).
 - **Tout pin exact ou tilde de `package.json` a son entrée `ignore` sur les mineures** dans
   `dependabot.yml` ; les patchs restent proposés. Un pin ajouté sans son entrée fait échouer
-  `check:framework`. `@modelcontextprotocol/sdk` ignore aussi les patchs : peer exact de
-  `mcp-handler`, il bouge avec lui.
+  `check:framework`. Au 2026-11-06, le seul pin est `typescript ~6.0` (`tech-stack.md`).
 - **Une PR groupée par semaine** (lundi 07:00 Paris), mineures et patchs, après 7 jours de
   recul par version (`cooldown`), même esprit que `minimumReleaseAge` de pnpm (1440 min par
   défaut). Les mises à jour de sécurité ne subissent ni le délai ni le groupe.
@@ -106,9 +105,17 @@ Politique du template, contrôlée par `pnpm check:framework` :
 - **Actions GitHub** : les majeures d'actions (`actions/checkout@v7`…) sont proposées et se
   mergent comme les autres, la CI verte faisant foi.
 - **Alertes de sécurité** : activées sur le dépôt (`vulnerability-alerts` et
-  `automated-security-fixes`, via `gh api -X PUT`). Limite connue : pnpm 12 avec `packageManager`
-  écrit `pnpm-lock.yaml` en deux documents YAML, que le dependency graph de GitHub ne lit pas ;
-  les alertes npm peuvent donc manquer. D'où `pnpm audit --prod` dans la checklist ci-dessus.
+  `automated-security-fixes`, via `gh api -X PUT`). Le dependency graph lit bien le
+  `pnpm-lock.yaml` à deux documents de pnpm 12 (vérifié le 2026-11-06 : 50 alertes, prod et dev,
+  `manifest_path: pnpm-lock.yaml`), mais il met quelques minutes à se construire après
+  l'activation : un compte à zéro juste après `PUT` ne prouve rien. Les alertes couvrent aussi
+  les devDependencies ; `pnpm audit --prod` de la checklist ci-dessus est le contrôle local
+  avant mise en production, `pnpm audit` (tout) celui d'une PR de sécurité.
+- **Corriger une transitive vulnérable** : `pnpm update <paquet> [<paquet>…]` (dans les plages
+  déclarées, sans override), puis `pnpm audit`. Jamais `pnpm audit --fix` : il écrit un
+  `minimumReleaseAgeExclude` dans `pnpm-workspace.yaml` pour contourner le délai de publication,
+  ce qui installe une version de moins de 24 h sans décision. Si la seule version corrigée est
+  hors des plages déclarées, c'est une majeure de `tech-stack.md`, pas un override.
 - **Projet dérivé** : garder le fichier et enrichir `ignore` à chaque pin ajouté. Le supprimer
   vaut « pas de mise à jour automatique » : le check l'avertit, il ne l'interdit pas.
 

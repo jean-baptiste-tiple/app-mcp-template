@@ -1,4 +1,4 @@
-# Next.js 15 App Router Patterns
+# Next.js 16 App Router Patterns
 
 > Tag : `nextjs`
 > Lire ce fichier pour toute story créant des pages, layouts, routes, ou fichiers spéciaux App Router.
@@ -50,11 +50,11 @@ export default async function DashboardLayout({
 Un layout n'est pas ré-exécuté lors d'une navigation client entre ses pages enfant. Un
 `redirect("/login")` placé uniquement dans un `layout.tsx` **n'est donc pas rejoué** : une
 session expirée en cours de navigation n'est jamais détectée, et les pages enfant continuent
-de rendre des données. C'est le vecteur de contournement du middleware corrigé par
-CVE-2025-29927.
+de rendre des données. C'est le vecteur de contournement du middleware (aujourd'hui `proxy.ts`)
+corrigé par CVE-2025-29927.
 
 Le contrôle d'accès se fait à **trois** endroits, jamais un seul :
-1. le middleware — pour la redirection UX, pas pour la sécurité
+1. le proxy (`src/proxy.ts`, ex-middleware, `auth-patterns.md § Proxy (ex-middleware)`) — pour la redirection UX, pas pour la sécurité
 2. **chaque `page.tsx`** ou la couche d'accès aux données
 3. **chaque Server Action** (`api-patterns.md § Pattern Server Action standard`)
 

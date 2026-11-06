@@ -5,7 +5,7 @@
 // - alias `-skybridge` en `text/html+skybridge` (ChatGPT Apps SDK), ciblée par `openai/outputTemplate`.
 // Ne registre que les bundles réellement présents (dégradation gracieuse : un tool
 // reste 100% fonctionnel en texte si son widget n'est pas encore buildé).
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import type { McpServer } from "@modelcontextprotocol/server"
 
 import {
   WIDGET_MIME_MCP_APP,

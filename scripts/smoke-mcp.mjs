@@ -90,7 +90,8 @@ async function main() {
   console.log(`get_status  → HTTP ${status.status} | ${content}`)
   if (status.status !== 200 || !/status/.test(content ?? "")) throw new Error("get_status KO")
 
-  // Corps illisible : refusé par la route, sans quoi mcp-handler ne répond jamais (mcp-patterns §7).
+  // Corps illisible : 400 `-32700` immédiat. mcp-handler 1.1.0 laissait la requête sans réponse
+  // (mcp-patterns §7) ; ce contrôle garde la régression visible.
   const unreadable = await fetch(`${BASE}/api/mcp`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream" },

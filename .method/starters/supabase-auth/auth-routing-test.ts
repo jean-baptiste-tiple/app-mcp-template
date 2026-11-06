@@ -1,8 +1,8 @@
-// Garde de retour après connexion et routage du middleware (canal MCP + consentement OAuth).
+// Garde de retour après connexion et routage du proxy (canal MCP + consentement OAuth).
 import { describe, it, expect } from "vitest"
 
 import { assistantRedirectSchema, redirectPathSchema } from "@/lib/schemas/auth"
-import { isPublicRoute, loginRedirectFor } from "@/middleware"
+import { isPublicRoute, loginRedirectFor } from "@/proxy"
 
 describe("redirectPathSchema", () => {
   it("should keep a path of the site, query string included", () => {
@@ -29,7 +29,7 @@ describe("assistantRedirectSchema", () => {
   })
 })
 
-describe("middleware routing without a session", () => {
+describe("proxy routing without a session", () => {
   it("should let the MCP endpoint and its OAuth metadata through (they answer 401 themselves)", () => {
     expect(isPublicRoute("/api/mcp")).toBe(true)
     expect(isPublicRoute("/.well-known/oauth-protected-resource")).toBe(true)

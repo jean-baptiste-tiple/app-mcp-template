@@ -17,7 +17,7 @@ pnpm add @supabase/supabase-js @supabase/ssr
 | `supabase-migrations.yml` | `.github/workflows/supabase-migrations.yml` | CI auto-deploy des migrations sur push |
 | `supabase-server.ts` | `src/lib/supabase/server.ts` | Client Supabase côté serveur |
 | `supabase-client.ts` | `src/lib/supabase/client.ts` | Client Supabase côté navigateur |
-| `middleware.ts` | `src/middleware.ts` | Middleware auth (session refresh + protection routes) : `/api` et `/.well-known` publics (le MCP répond 401 lui-même), retour sur la page demandée via `/login?redirect=` |
+| `proxy.ts` | `src/proxy.ts` | Proxy auth (Next 16, ex-`middleware.ts`, runtime nodejs) : refresh de session + protection des routes, `/api` et `/.well-known` publics (le MCP répond 401 lui-même), retour sur la page demandée via `/login?redirect=` |
 | `auth-actions.ts` | `src/lib/actions/auth.ts` | Server Actions : `loginAction`, `signupAction`, `forgotPasswordAction`, `resetPasswordAction`, `logoutAction` |
 | `schemas-auth.ts` | `src/lib/schemas/auth.ts` | Schémas Zod partagés : formulaires et actions valident avec le même `safeParse` |
 | `auth-callback-route.ts` | `src/app/auth/callback/route.ts` | Route callback OAuth/email verification — `next` validé par `redirectPathSchema` : chemin du site seulement (sinon redirection ouverte) |
@@ -28,7 +28,7 @@ pnpm add @supabase/supabase-js @supabase/ssr
 | `reset-password-page.tsx` | `src/app/(auth)/reset-password/page.tsx` | Page reset mot de passe |
 | `oauth-consent-page.tsx` | `src/app/(auth)/oauth/consent/page.tsx` | Consentement OAuth 2.1 du canal MCP : Supabase y envoie la personne avant de délivrer un code à l'assistant |
 | `oauth-consent-actions.ts` | `src/lib/actions/oauth-consent.ts` | `decideConsentAction` : Autoriser / Refuser, retour vers l'assistant (http(s) seulement) |
-| `auth-routing-test.ts` | `tests/unit/auth-routing.test.ts` | Garde de retour après connexion, routes publiques du middleware, POST du consentement |
+| `auth-routing-test.ts` | `tests/unit/auth-routing.test.ts` | Garde de retour après connexion, routes publiques du proxy, POST du consentement |
 | `supabase-config.toml` | `supabase/config.toml` | Config Supabase locale |
 | `seed.sql` | `supabase/seed.sql` | Données de seed (template) |
 

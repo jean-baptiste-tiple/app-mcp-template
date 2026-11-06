@@ -60,7 +60,7 @@ src/
 │   ├── supabase/                 # Clients Supabase (server.ts, client.ts)
 │   └── utils/                    # Fonctions utilitaires pures
 ├── types/                        # Types TypeScript partagés
-└── middleware.ts                  # Auth middleware
+└── proxy.ts                       # Proxy auth (ex-middleware, Next 16)
 ```
 
 ## 4. Modèle de données
@@ -118,8 +118,8 @@ erDiagram
 
 ### Flux d'authentification
 - Supabase Auth (email/password par défaut, extensible OAuth)
-- Middleware Next.js : refresh token + redirect si non authentifié
-- Server Actions : toujours revérifier auth (le middleware ne suffit pas)
+- Proxy Next.js (`src/proxy.ts`) : refresh token + redirect si non authentifié
+- Server Actions : toujours revérifier auth (le proxy ne suffit pas)
 
 ### RLS
 - Activé sur TOUTE table, sans exception
@@ -142,7 +142,7 @@ erDiagram
 ## Invariants
 
 Ces choix ne changent JAMAIS sans ADR documenté :
-- Next.js 15 App Router (pas Pages Router)
+- Next.js 16 App Router (pas Pages Router)
 - TypeScript strict mode
 - Supabase pour auth + DB + RLS
 - Server Actions pour les mutations

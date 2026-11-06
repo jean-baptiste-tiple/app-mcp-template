@@ -2,6 +2,9 @@ import { Envelope, Plus } from "@phosphor-icons/react/dist/ssr"
 
 import { CopyButton } from "@/components/copy-button"
 import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
+import { DeleteIcon } from "@/components/ui/delete"
+import { SettingsIcon } from "@/components/ui/settings"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -17,6 +20,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Section } from "./section"
+
+// Midi et non minuit : la date traverse la frontière serveur → client ; tant que les fuseaux
+// du serveur et du navigateur diffèrent de moins de 12 h, elle reste le 15 janvier des deux côtés
+// (captures déterministes, pas d'écart d'hydratation).
+const CALENDAR_DEMO_DATE = new Date(2026, 0, 15, 12)
 
 export function ButtonsSection() {
   return (
@@ -48,6 +56,17 @@ export function ButtonsSection() {
       <div className="flex flex-wrap items-center gap-3">
         <CopyButton value="pnpm install" label="Copier la commande" />
         <CopyButton value="https://exemple.fr/api/mcp" size="icon" />
+      </div>
+      <h3 className="mt-6 text-sm font-medium text-muted-foreground">
+        Icônes animées (lucide-animated)
+      </h3>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button variant="outline" size="icon" aria-label="Supprimer">
+          <DeleteIcon aria-hidden="true" />
+        </Button>
+        <Button variant="outline" size="icon" aria-label="Paramètres">
+          <SettingsIcon aria-hidden="true" />
+        </Button>
       </div>
     </Section>
   )
@@ -123,6 +142,13 @@ export function FormsSection() {
           </RadioGroup>
         </div>
       </div>
+      <h3 className="mt-6 text-sm font-medium text-muted-foreground">Calendrier (Calendar)</h3>
+      <Calendar
+        mode="single"
+        defaultMonth={CALENDAR_DEMO_DATE}
+        selected={CALENDAR_DEMO_DATE}
+        className="w-fit rounded-md border border-border"
+      />
     </Section>
   )
 }

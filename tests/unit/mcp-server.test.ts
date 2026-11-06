@@ -2,10 +2,8 @@
 // du SDK — un vrai client connecté au vrai serveur. Vérifie le contrat AX : schéma,
 // structuredContent, next_actions, et les TROIS clés de méta widget + les DEUX resources.
 import { describe, it, expect, beforeAll } from "vitest"
-import { Client } from "@modelcontextprotocol/sdk/client/index.js"
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
-import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js"
-import { CallToolResultSchema } from "@modelcontextprotocol/sdk/types.js"
+import { Client, InMemoryTransport } from "@modelcontextprotocol/client"
+import { McpServer } from "@modelcontextprotocol/server"
 
 import { initializeMcpServer, mcpServerOptions } from "@/mcp/server"
 
@@ -43,18 +41,15 @@ describe("MCP server", () => {
   })
 
   it("should return both forms: text content and structuredContent with next_actions (§4)", async () => {
-    // callTool type aussi la forme legacy `{ toolResult }` : on valide par le schéma du SDK
-    // plutôt que d'asserter le type.
-    const result = CallToolResultSchema.parse(
-      await client.callTool({ name: "get_status", arguments: { verbose: true } })
-    )
+    // En 2.x, `client.callTool` valide déjà la réponse et renvoie un `CallToolResult` typé.
+    const result = await client.callTool({ name: "get_status", arguments: { verbose: true } })
 
     expect(result.isError).toBeFalsy()
     expect(result.content[0]?.type).toBe("text")
 
-    const structured = result.structuredContent
-    expect(structured?.status).toBe("ok")
-    expect(Array.isArray(structured?.next_actions)).toBe(true)
+    // structuredContent est typé `{}` en 2.x : le contrat se vérifie par la forme, pas par le type.
+    expect(result.structuredContent).toBeDefined()
+    expect(result.structuredContent).toMatchObject({ status: "ok", next_actions: expect.any(Array) })
   })
 
   it("should list BOTH widget resources: standard profile=mcp-app and skybridge variant (§5.1)", async () => {

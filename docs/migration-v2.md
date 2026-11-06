@@ -235,7 +235,7 @@ brut. Ne corrige pas le code métier sans mon accord : liste les fichiers concer
    `max-params`, `max-depth`, `no-empty`, `no-restricted-syntax` (enums), `import/order`.
    Installe `eslint-plugin-import`. Exempte `src/components/ui/**` d'`import/order` (généré par
    la CLI Shadcn) et `src/app/design-system/**` des limites de lignes.
-2. **`vitest.config.ts`** : `setupFiles: ["./tests/setup.ts"]` si `tests/setup.ts` existe — en
+2. **`vitest.config.mts`** : `setupFiles: ["./tests/setup.ts"]` si `tests/setup.ts` existe — en
    v1 il était vide alors que le fichier importe les matchers jest-dom.
 3. Lance `npx eslint . --fix` pour absorber l'ordre des imports, puis vérifie le diff.
 

@@ -12,20 +12,20 @@ Un tool MCP est un **adaptateur fin** — exactement comme une Server Action. La
 
 ```typescript
 // ❌ Logique métier dans le tool
-server.registerTool("archive_document", ..., async (input, extra) => {
+server.registerTool("archive_document", ..., async (input, ctx) => {
   const { data } = await supabase.from("documents").select()...  // NON
 })
 
-// ✅ Tool = auth + validation + appel service + mise en forme
+// ✅ Tool = auth + validation + appel service + mise en forme (SDK 2 : `@modelcontextprotocol/server`)
 server.registerTool("archive_document", {
   title: "Archiver un document",
   description: ARCHIVE_DESC,                   // voir §3
-  inputSchema: archiveDocumentSchema,          // Zod — même schéma que le form web (nommage : coding-standards)
+  inputSchema: archiveDocumentSchema,          // l'objet zod 4 lui-même (plus `.shape`) — même schéma que le form web
   annotations: { readOnlyHint: false, idempotentHint: true },
   _meta: widgetMeta("document-preview"),       // voir §5
-}, async (input, extra) => {
-  const ctx = await requireAuthContext(extra)  // {userId, supabase} — org et rôle relus en base, §6
-  const result = await archiveDocument(ctx, input) // lib/services/document-service.ts
+}, async (input, ctx) => {
+  const auth = requireAuthContext(ctx)         // lit ctx.http?.authInfo → {userId, supabase} — org et rôle relus en base, §6
+  const result = await archiveDocument(auth, input) // lib/services/document-service.ts
   return toToolResult(result, { widget: "document-preview" })
 })
 ```
@@ -203,14 +203,16 @@ Règle : **aucun fichier hors `widget-meta.ts` ne manipule ces clés**. Quand Ch
 
 - `widgets/shared/bridge.ts` expose une API interne unique : `getToolOutput()`, `callTool(name, args)`, `sendFollowupMessage(text)`, `openExternal(url)`, `getTheme()`.
 - **Un appel parti du widget ne porte jamais `confirm`** : un clic dans le widget ne vaut pas l'accord explicite de l'utilisateur dans la conversation (§3, flow 2 temps), et une fonction sensible appelée par le widget ne rend que son récapitulatif. Une suite proposée (`next_actions`) part en message à l'assistant (`sendFollowupMessage`), jamais en appel direct : c'est le modèle qui la lance, avec ses arguments. **Vérifiable :** aucun `confirm` dans les arguments que construit un fichier de `widgets/`.
-- **Protocole GA : utiliser le SDK OFFICIEL `@modelcontextprotocol/ext-apps` (entrée
-  `app-with-deps`, autonome) — ne JAMAIS réimplémenter le handshake à la main.** Deux pièges
-  vécus (= widget vide, sans erreur) : (1) le host n'envoie RIEN avant `ui/notifications/initialized` ;
-  (2) les params d'`ui/initialize` sont validés par schéma — c'est `appInfo`, PAS `clientInfo`,
-  et un initialize invalide est rejeté silencieusement. Le SDK gère aussi : tool-result
-  (CallToolResult complet → déballer `structuredContent`), host-context (thème), size-changed
-  (`autoResize`), `ui/open-link`, `ui/message`, et les requêtes du host (ping). L'entrée
-  `app-with-deps` évite le conflit de peer avec le SDK serveur épinglé (mcp-handler).
+- **Protocole GA : utiliser le SDK OFFICIEL `@modelcontextprotocol/ext-apps` 2.x (entrée `.` ;
+  `client` en devDependencies, `core` arrive en peer auto-installé, sans import direct) — ne
+  JAMAIS réimplémenter le handshake à la main.** Deux pièges vécus (= widget vide, sans erreur) : (1) le host n'envoie RIEN avant
+  `ui/notifications/initialized` ; (2) les params d'`ui/initialize` sont validés par schéma —
+  c'est `appInfo`, PAS `clientInfo`, et un initialize invalide est rejeté silencieusement. Le SDK
+  gère aussi : tool-result (CallToolResult complet → déballer `structuredContent`), host-context
+  (thème), size-changed (`autoResize`), `ui/open-link`, `ui/message`, et les requêtes du host
+  (ping). Écouter par `addEventListener("toolresult" | "hostcontextchanged", …)` : les setters
+  `on*` sont dépréciés en 2.x. L'entrée `app-with-deps` (client + core + zod embarqués) n'a plus
+  de raison d'être depuis que le SDK serveur n'est plus épinglé : elle pèse ~290 Ko de plus.
 - Détection de `window.openai` → délégation aux équivalents Apps SDK quand présent. Les widgets n'importent QUE le bridge, jamais `window.openai` directement.
 - **Écouter TOUS les canaux de données (leçon vécue — loader infini sinon)**, cumulés et défensifs : (a) SDK officiel `ext-apps` (GA) ; (b) lecture synchrone `window.openai.toolOutput` **+ écoute du CustomEvent `openai:set_globals`** — sur ChatGPT les mises à jour post-mount arrivent par LÀ, pas par postMessage ; (c) postMessage legacy pré-GA ; (d) **polling de secours dans le hook de données** (`useToolOutput` : ~400 ms × 30). Jamais casser le rendu si un canal manque.
 - Données d'entrée du widget = le `structuredContent` du tool (contrat §4) — identique sur les deux hosts.
@@ -220,7 +222,7 @@ Règle : **aucun fichier hors `widget-meta.ts` ne manipule ces clés**. Quand Ch
 - Bundle **Vite single-file** : JS/CSS inlinés, images en data-URI, **zéro requête réseau** (pas de CDN, pas de Google Fonts, pas de fetch d'API tierce). Les deux hosts sandboxent l'iframe avec une CSP stricte.
 - Exception possible : un widget peut POST sur NOTRE API (même produit) avec un token court fourni par le tool — **l'URL doit être ABSOLUE** (le widget tourne dans l'iframe sandbox du host : une URL relative se résout contre la mauvaise origine et le POST échoue silencieusement sur les deux hosts). Vérifier que l'origine est autorisée par la CSP du host ; sinon prévoir un fallback texte (le tool le propose).
 - **Les deep links du widget pointent les ROUTES RÉELLES de l'app** — attention aux route groups Next.js : `(dashboard)/cvs/[id]` s'atteint via `/cvs/[id]`, pas `/dashboard/cvs/[id]`. Tester chaque lien.
-- Poids cible < 300 Ko par bundle ; **jusqu'à ~600 Ko / gzip < 150 Ko assumé** quand le SDK `ext-apps` + des polices embarquées s'ajoutent (mesure réelle cv-preview : ~527 Ko). Si un rendu existe côté web (composant React), le widget importe **le même composant**, pas une copie.
+- Poids cible < 300 Ko par bundle ; **jusqu'à ~600 Ko / gzip < 150 Ko assumé** quand le SDK `ext-apps` + des polices embarquées s'ajoutent (mesures réelles : cv-preview ~527 Ko ; `status-card` du template ~460 Ko / gzip ~131 Ko avec ext-apps 2 par l'entrée `.`, contre ~746 Ko avec `app-with-deps`). Si un rendu existe côté web (composant React), le widget importe **le même composant**, pas une copie.
 - Bundles **inlinés dans un module généré** (`src/mcp/widgets/generated.ts`, produit par `widgets/build.mjs`) : servis en mémoire par le serveur — zéro lecture fs à runtime, zéro config de tracing Vercel.
 - Thème : lire clair/sombre via le bridge, styler les deux. **4 états obligatoires : loading / data / vide / erreur — et le loader n'est JAMAIS un état terminal** : timeout (~12 s) qui bascule vers une erreur actionnable disant QUOI demander dans le chat (« demandez le PDF / réessayez »). Un « Chargement… » infini alors que le backend a réussi est le pire ressenti possible. A11y : zones cliquables focusables au clavier (`role="button"` + `tabIndex` + `onKeyDown`), `aria-label` sur les icônes.
 - **Dégradation** : tout tool doit être pleinement utilisable sans widget (le `content` texte suffit). Le widget est un bonus d'ergonomie, jamais le seul canal d'information.
@@ -246,7 +248,7 @@ Règle : **aucun fichier hors `widget-meta.ts` ne manipule ces clés**. Quand Ch
 Notre serveur = **resource server** ; Supabase Auth = **authorization server** (OAuth 2.1 Server, DCR activé). À figer par ADR lors du cadrage du projet. Ce qui doit exister et ne jamais régresser :
 
 1. **`/.well-known/oauth-protected-resource`** sur NOTRE domaine (RFC 9728) : `resource` (URL canonique du serveur MCP), `authorization_servers: ["https://<ref>.supabase.co/auth/v1"]`, `scopes_supported`, `resource_documentation` (→ notre page /connect). C'est LE point d'entrée de la découverte auth des deux hosts.
-2. **401 + header `WWW-Authenticate`** pointant la metadata ci-dessus sur toute requête non authentifiée — c'est ce qui déclenche le flow OAuth chez l'host. Jamais de "mode dégradé anonyme". **Tant que l'auth n'est pas activée**, la route refuse déjà en production (401 + `WWW-Authenticate`, garde `anonymousGuard` de `src/app/api/[transport]/route.ts`) ; seul `MCP_ALLOW_ANONYMOUS=true` la lève, pour le smoke local sur `next start` — jamais sur un déploiement.
+2. **401 + header `WWW-Authenticate`** pointant la metadata ci-dessus sur toute requête non authentifiée — c'est ce qui déclenche le flow OAuth chez l'host. Jamais de "mode dégradé anonyme". **Tant que l'auth n'est pas activée**, la route refuse déjà en production (401 + `WWW-Authenticate`, garde `anonymousGuard` de `src/app/api/mcp/route.ts`) ; seul `MCP_ALLOW_ANONYMOUS=true` la lève, pour le smoke local sur `next start` — jamais sur un déploiement.
 3. **Par tool** : `securitySchemes: oauth2` + en cas de token manquant/invalide, erreur avec `_meta["mcp/www_authenticate"]` (exigence ChatGPT pour afficher l'UI de liaison).
 4. **Validation de token dans `src/mcp/auth.ts`** : signature via JWKS Supabase, `iss`, `exp`/`nbf`, scopes ; puis `userId` (le `sub`) → client Supabase **au JWT de l'utilisateur** → RLS active dans les tools comme au web. `service_role` interdit. L'organisation et le rôle ne sont **jamais** lus dans un claim (hook Custom Access Token inutile) : relus en base à chaque appel (point 7), sinon un retrait de droit attend l'expiration du jeton.
 5. **Adresses de retour** `[mesuré · 2026-09-23 · E03]` : la liste « Redirect URLs » du tableau de bord ne s'applique pas aux clients enregistrés dynamiquement — chaque client est validé sur ses propres `redirect_uris` (correspondance exacte) : `https://claude.ai/api/mcp/auth_callback` (Claude, client confidentiel `client_secret_post`), `https://chatgpt.com/connector/oauth/<id>` (ChatGPT, client public, un par connecteur), `http://localhost:<port aléatoire>/callback` (Claude Code, client public, un par serveur). DCR ouvert = monitorer `auth.oauth_clients`, que les hosts ne purgent jamais (sur le banc : `pnpm oauth:admin clients`).
@@ -258,20 +260,20 @@ Notre serveur = **resource server** ; Supabase Auth = **authorization server** (
 
 - **Fetch d'URL fournie par l'utilisateur (SSRF)** : https only, hôtes loopback/privés/link-local/métadonnées cloud bloqués (`localhost`, `127.*`, `10.*`, `172.16-31.*`, `192.168.*`, `169.254.169.254`, `*.internal`), `redirect: "error"`, `AbortSignal.timeout(15s)`, cap de taille AVANT et APRÈS lecture. Un tool qui fetch une URL est un proxy de lecture pour un attaquant (ou un document prompt-injecté).
 - **Endpoint d'upload appelé par un widget** : token d'upload signé et scoppé au chemin (type `createSignedUploadUrl` Supabase) — jamais de `service_role`. MIME **requis ET** dans l'allowlist (un MIME vide ne contourne pas le contrôle), taille cappée, magic bytes re-vérifiés à l'extraction.
-- **Middleware** : si `/api` entier est public (le MCP gère sa propre auth), le COMMENTER — tout nouveau route handler naît public et doit implémenter sa propre auth.
+- **Proxy (`src/proxy.ts`, ex-middleware)** : si `/api` entier est public (le MCP gère sa propre auth), le COMMENTER — tout nouveau route handler naît public et doit implémenter sa propre auth.
 - **RGPD à la suppression** : purge Storage **paginée** (`.list()` est cappé à ~100), et rédiger les meta nominatives des logs d'activité AVANT le delete (les FK `SET NULL` rendent les lignes introuvables après) ; le log de suppression lui-même est non nominatif.
 - **`ilike`** : échapper `%`/`_` des saisies utilisateur ; sels/secrets (`IP_HASH_SALT`…) : échouer bruyamment si absents en prod, jamais de fallback silencieux.
 
 ## 7. Transport : stateless (défaut) ou stateful — ADR obligatoire au cadrage
 
-**Stateless (le défaut du template)** : Streamable HTTP **sans session** — pas de `Mcp-Session-Id` persisté, pas de Redis, chaque requête reconstruit le serveur (`disableSse: true`). Tout l'état métier est en Postgres ; l'état conversationnel appartient à l'host. Simple, scale-to-zero, parfait Vercel.
+**Stateless (le défaut du template, ADR-002)** : `mcp-handler` 2 sert la spec 2026-07-28 nativement (`server/discover` + enveloppe `_meta`, plus d'`initialize`) et replie les clients 2025 sur Streamable HTTP **sans session** — pas de `Mcp-Session-Id` persisté, pas de Redis, chaque requête reconstruit le serveur ; `/sse` et `/message` n'existent plus (404). Le handler ne lit pas le pathname : c'est la route `src/app/api/mcp/route.ts` qui fixe l'URL. Tout l'état métier est en Postgres ; l'état conversationnel appartient à l'host. Simple, scale-to-zero, parfait Vercel.
 - Conséquences : pas de notifications server→client hors requête ni de subscriptions resources — ne PAS en introduire sans rouvrir l'ADR. Une opération longue tient dans la requête (`maxDuration` ajusté sur la route) ; si un jour > 60 s → pattern "job + tool de statut", pas du push.
 - **Notification dans la réponse** `[précisé · 2026-09-22 · grille B, bench_mutate]` : en stateless, un tool qui modifie la surface peut écrire `notifications/tools/list_changed` dans le flux de réponse de sa propre requête (`relatedRequestId`). Claude Code la reçoit et relit la liste en 0,5 s ; claude.ai et ChatGPT l'ignorent.
 - **Aucune affinité réseau** `[mesuré · 2026-09-22 · readme_gate]` : claude.ai et ChatGPT appellent depuis des pools d'IP tournants (une IP différente presque à chaque requête). Aucun état ne s'attache à une empreinte UA + IP ; un état « a déjà fait X » passe dans l'appel (champ requis, §2.4) ou dans une session OAuth.
-- **mcp-handler et un corps illisible** `[reproduit · 2026-10-02 · mcp-handler 1.1.0]` : il lit le corps d'un `POST` sans attendre son échec ; un JSON illisible laisse la requête sans réponse jusqu'à `maxDuration`. `src/app/api/[transport]/route.ts` le refuse avant lui, en 400 `-32700` (`withReadableBody`), et `scripts/smoke-mcp.mjs` le vérifie.
+- **Corps illisible** `[reproduit · 2026-10-02 · mcp-handler 1.1.0 ; corrigé · 2026-11-06 · mcp-handler 2.3.0]` : la 1.x lisait le corps d'un `POST` sans attendre son échec et laissait la requête pendre jusqu'à `maxDuration` ; la 2.x répond elle-même 400 `-32700`. La garde maison `withReadableBody` est retirée ; `scripts/smoke-mcp.mjs` garde le contrôle.
 
-**Stateful (si le produit l'exige)** : sessions `Mcp-Session-Id` + SSE via `redisUrl` dans la config mcp-handler (Redis Upstash/Vercel KV — y stocke sessions et flux entre invocations serverless). À choisir quand le produit a besoin de : notifications server→client, subscriptions de resources (updates temps réel, `listChanged` poussé), elicitation, état de session côté serveur.
-- Conséquences : coût Redis, plus de scale-to-zero pur, gestion d'invalidation de session, tests plus lourds. Le bloc de config prêt est en commentaire dans `src/app/api/[transport]/route.ts`.
+**Stateful (si le produit l'exige)** : `mcp-handler` 2 n'a plus de mode session (`redisUrl`, `disableSse` retirés). Sessions `Mcp-Session-Id`, SSE serveur→client, subscriptions de resources, elicitation passent par le transport Node du SDK (`@modelcontextprotocol/node`, `NodeStreamableHTTPServerTransport`) monté hors `mcp-handler`, avec un stockage de sessions partagé entre invocations.
+- Conséquences : plus de scale-to-zero pur, gestion d'invalidation de session, tests plus lourds, et la route `src/app/api/mcp/route.ts` à réécrire. À choisir quand le produit a besoin de notifications poussées (`listChanged`, updates temps réel) ou d'un état de session côté serveur.
 
 Le choix est **figé par ADR** (`docs/decisions/`) lors du cadrage — en changer = rouvrir l'ADR, pas un simple diff de config.
 
@@ -305,8 +307,8 @@ Règles : seed = les prompts d'exemple du brief ; toute story qui ajoute/modifie
 
 ## 10. Tests & évolution
 
-- **Unit** : services sans MCP ; tools via `InMemoryTransport.createLinkedPair()` + `Client` (auth mockée) — vérifier schéma, `structuredContent`, `next_actions`, erreurs actionnables, metas widget (la TRIPLE clé §5.1) et les deux resources (mcp-app + skybridge).
-- **Smoke HTTP scripté** : `scripts/smoke-mcp.mjs` (`pnpm mcp:smoke`) — initialize + tools/list + tool d'appel contre `next start` local ou une URL de prod ; à lancer après chaque déploiement. **Build frais obligatoire** : `next dev` (lancé par `test:e2e` et `ui:shots`) réécrit `.next`, et `next start` échoue ensuite sur `routesManifest.dataRoutes is not iterable` ; enchaîner `pnpm build` puis `pnpm mcp:smoke`, jamais le smoke après un dev. Les scripts Node qui lancent un binaire (`widgets/build.mjs`, `scripts/smoke-mcp.mjs`) exécutent son fichier JS par `process.execPath`, jamais `node_modules/.bin/*` : sous Windows ce sont des shims `.cmd` qu'un `spawn` sans shell ne lance pas.
+- **Unit** : services sans MCP ; tools via `InMemoryTransport.createLinkedPair()` + `Client` de `@modelcontextprotocol/client` (auth mockée) — vérifier schéma, `structuredContent`, `next_actions`, erreurs actionnables, metas widget (la TRIPLE clé §5.1) et les deux resources (mcp-app + skybridge). En SDK 2, `client.callTool` renvoie un `CallToolResult` typé (`structuredContent` typé `{}` : tester `toBeDefined()` puis `toMatchObject`), sans `CallToolResultSchema.parse` ni dépendance à `core`. `createLinkedPair` connecte des instances de l'ère 2025 : suffisant pour tester les tools, pas le protocole 2026.
+- **Smoke HTTP scripté** : `scripts/smoke-mcp.mjs` (`pnpm mcp:smoke`) — initialize + tools/list + tool d'appel contre `next start` local ou une URL de prod ; à lancer après chaque déploiement. **Un `pnpm build` préalable est requis** (`next start` sert le build) ; depuis Next 16, `next dev` écrit dans `.next/dev` et ne l'écrase plus : `test:e2e` ou `ui:shots` puis `mcp:smoke` s'enchaînent sans rebuild. Les scripts Node qui lancent un binaire (`widgets/build.mjs`, `scripts/smoke-mcp.mjs`) exécutent son fichier JS par `process.execPath`, jamais `node_modules/.bin/*` : sous Windows ce sont des shims `.cmd` qu'un `spawn` sans shell ne lance pas.
 - **Manuel** : MCP Inspector sur `http://localhost:3000/api/mcp` (tools, auth, resources) + matrice §5.4.
 - **Évolution** : ajouter un champ optionnel = OK. Renommer/supprimer un tool ou rendre un champ requis = **breaking** → ADR + dépréciation (le tool répond encore avec un message de migration) + notification `listChanged` (effet sur Claude Code seulement, §7). Bump `serverInfo.version` à chaque changement de surface : utile au journal, mais aucun host ne le montre et il ne rafraîchit aucun cache `[précisé · 2026-09-22 · M6, baseline 15:12]`. Un contrat modifié en place (schéma, prérequis) n'atteint pas de façon fiable les conversations claude.ai (instantané local, §8) : un changement de contrat = **nouveau nom de tool** + dépréciation de l'ancien.
 - Descriptions/schemas **stables** (prompt caching des hosts) ; golden queries rejouées à chaque évolution (§8).

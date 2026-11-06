@@ -2,7 +2,10 @@ import { execFileSync } from "node:child_process"
 import { mkdirSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { afterAll, beforeEach, describe, expect, it } from "vitest"
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest"
+
+// Ces tests et leurs hooks lancent de vrais process git et dépassent les délais par défaut (5 s, 10 s) sur une machine chargée.
+vi.setConfig({ testTimeout: 20_000, hookTimeout: 20_000 })
 
 /**
  * Le gate git est la seule garantie non probabiliste du framework : si un `git push` nu passe,

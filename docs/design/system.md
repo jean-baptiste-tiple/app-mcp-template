@@ -256,7 +256,7 @@ Tous installés dans `src/components/ui/`. Style **new-york**.
 | Label | `label.tsx` | Radix Label |
 | Form | `form.tsx` | Intégration react-hook-form |
 | Slider | `slider.tsx` | Range input stylisé |
-| Calendar | `calendar.tsx` | react-day-picker v9 |
+| Calendar | `calendar.tsx` | react-day-picker 10, gabarit Shadcn réinstallé par la CLI ; locale française par défaut (semaine au lundi, « janvier 2026 »), seule personnalisation ; visible dans `/design-system` |
 
 ### Layout & Navigation
 | Composant | Fichier | Notes |
@@ -272,7 +272,7 @@ Tous installés dans `src/components/ui/`. Style **new-york**.
 | Composant | Fichier | Notes |
 |-----------|---------|-------|
 | Badge | `badge.tsx` | 6 variants (default, secondary, destructive, outline, success, warning) |
-| Alert | `alert.tsx` | Default + destructive |
+| Alert | `alert.tsx` | Default + destructive ; `AlertTitle` est un `div`, pas un titre de document (gabarit Shadcn v4) |
 | Progress | `progress.tsx` | Barre animée, couleur primary |
 | Skeleton | `skeleton.tsx` | Pulse animation |
 | Spinner | `spinner.tsx` | SVG animé, 3 tailles, `text-primary-dark` |
@@ -300,8 +300,8 @@ Tous installés dans `src/components/ui/`. Style **new-york**.
 ### Icônes animées
 | Composant | Fichier | Notes |
 |-----------|---------|-------|
-| DeleteIcon | `delete.tsx` | lucide-animated, décoratif — l'appelant porte le label |
-| SettingsIcon | `settings.tsx` | lucide-animated, décoratif — l'appelant porte le label |
+| DeleteIcon | `delete.tsx` | lucide-animated, décoratif — l'appelant porte le label ; visible dans `/design-system` |
+| SettingsIcon | `settings.tsx` | lucide-animated, décoratif — l'appelant porte le label ; n'honore pas `prefers-reduced-motion`, décoratif seulement |
 
 ## Composants métier réutilisables
 
@@ -313,7 +313,7 @@ Dans `src/components/` (hors `ui/`) — détail des props dans
 | ThemeProvider | `theme-provider.tsx` | children, attribute, defaultTheme | Provider next-themes |
 | ThemeToggle | `theme-toggle.tsx` | — | Bouton toggle light/dark (Phosphor) |
 | PageContainer | `page-container.tsx` | heading?, description?, children | Wrapper de page avec max-width |
-| EmptyState | `empty-state.tsx` | icon?, heading, description?, action? | État vide (listes, tables) |
+| EmptyState | `empty-state.tsx` | icon?, heading, description?, action?, headingLevel? | État vide (listes, tables) ; titre `h2` par défaut, `headingLevel={3}` sous une section |
 | StatCard | `stat-card.tsx` | label, value, description?, icon?, trend? | KPI dashboard |
 | DataTable | `data-table.tsx` | columns, data, emptyMessage? | Table de données générique |
 | CopyButton | `copy-button.tsx` | value, label?, size?, variant? | Copie presse-papiers + feedback 2 s, annoncé aux lecteurs d'écran |
@@ -345,6 +345,10 @@ Dans `src/components/` (hors `ui/`) — détail des props dans
   couleur en dur dans un composant (seule la favicon SVG, hors CSS, en porte).
 - **Texte d'accent = `text-primary-dark`** (§ Personnaliser le thème, règle de contraste).
 - **Ne jamais transmettre une information par la couleur seule** : couleur + icône + texte.
+- **Hiérarchie des titres sans saut** : un `h1` par page (`PageContainer`), les sections en `h2`,
+  et tout titre de composant suit le niveau de son contexte (`EmptyState` en `h2` sous le titre de
+  page, `headingLevel={3}` sous une section). `AlertTitle` et `CardTitle` ne sont pas des titres
+  de document. Mesuré par Lighthouse (`heading-order`) dans `pnpm audit:lh`.
 - **Tester les deux thèmes et les trois largeurs** (375, 768, 1280) avant de considérer un
   écran terminé : captures `pnpm ui:shots` lues en review (`CLAUDE.md § Design system`).
 - **Composition, responsive, texte, signatures IA** : convention `ui-patterns.md`, routée sur

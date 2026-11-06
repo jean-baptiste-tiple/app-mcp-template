@@ -5,7 +5,7 @@
 // rôle sont relus en base à chaque appel, via ce client (§6.7) — jamais lus dans un claim, qui
 // survivrait à un retrait de droit jusqu'à l'expiration du jeton.
 import { createRemoteJWKSet, jwtVerify } from "jose"
-import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js"
+import type { AuthInfo } from "@modelcontextprotocol/server"
 
 import { supabaseIssuer } from "./config"
 
@@ -32,7 +32,7 @@ export interface AuthContext {
 /**
  * Vérifie un token OAuth Supabase (signature JWKS, issuer, exp/nbf) et renvoie
  * un AuthInfo. Renvoie `undefined` si absent/invalide → withMcpAuth répond 401.
- * `extra.userId` = `sub` du jeton.
+ * `authInfo.extra.userId` = `sub` du jeton.
  */
 export async function verifyToken(
   _req: Request,
@@ -61,13 +61,14 @@ export async function verifyToken(
 }
 
 /**
- * Résout l'AuthContext d'un tool depuis l'`extra` du handler MCP.
- * À appeler en tête de CHAQUE tool authentifié (§1). Projet multi-organisations : le service
- * résout ensuite l'organisation depuis l'adresse appelée (`extra.requestInfo`) et vérifie
- * l'appartenance et le rôle en base, via `ctx.supabase`, à chaque appel (§6.7).
+ * Résout l'AuthContext d'un tool depuis le `ctx` du handler MCP (`ctx.http?.authInfo`, posé
+ * par withMcpAuth). À appeler en tête de CHAQUE tool authentifié (§1). Projet
+ * multi-organisations : le service résout ensuite l'organisation depuis l'adresse appelée
+ * (`ctx.http?.req`, la Request Web) et vérifie l'appartenance et le rôle en base, via le
+ * `supabase` de l'AuthContext, à chaque appel (§6.7).
  */
-export function requireAuthContext(extra: { authInfo?: AuthInfo }): AuthContext {
-  const info = extra.authInfo
+export function requireAuthContext(ctx: { http?: { authInfo?: AuthInfo } }): AuthContext {
+  const info = ctx.http?.authInfo
   const userId = typeof info?.extra?.userId === "string" ? info.extra.userId : undefined
   if (!info?.token || !userId) {
     // Erreur actionnable (§4) — le tool la transforme en résultat isError

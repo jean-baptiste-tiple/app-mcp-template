@@ -28,12 +28,19 @@ version 1.4.0 (2026-10-06).
 pnpm add @otomata_tech/oto_platform@<version exacte>
 ```
 
-| Peer du paquet | État du template |
+| Peer du paquet (1.6.2) | État du template (ADR-002, 2026-11-06) |
 |---|---|
-| `@hookform/resolvers` ^5 | Déjà en ^5 |
-| `zod` ^3.25 | 3.25.x, schémas en `zod/v4` (ESLint refuse `"zod"`) ; ne pas passer à zod 4 (`@modelcontextprotocol/ext-apps` 1.7.4, `tech-stack.md`) |
+| `@hookform/resolvers` ^5 | **^7** : rétrograder en ^5 si le paquet n'a pas suivi |
+| `zod` ^3.25 | **^4.6**, schémas en `zod/v4` (ESLint refuse `"zod"`) : rétrograder en 3.25 si le paquet n'a pas suivi ; le SDK MCP du template, retiré ici, était la raison de zod 4 |
+| `next` ^15 | **^16** : rétrograder en 15.5 si le paquet n'a pas suivi (et remettre `middleware.ts` si le paquet l'exige) |
+| `vite` ^7, `@vitejs/plugin-react` ^4, `@modelcontextprotocol/ext-apps` ^1.7 | **^8, ^6, ^2** (`devDependencies`, build des vues de l'ERP) : rétrograder si le paquet n'a pas suivi |
+| `vite-plugin-singlefile` ^2.3, `@tailwindcss/postcss` ^4 | Déjà alignés |
 | `@supabase/supabase-js` | Déjà posé par `supabase-auth` |
-| `vite`, `vite-plugin-singlefile`, `@vitejs/plugin-react`, `@tailwindcss/postcss`, `@modelcontextprotocol/ext-apps` | Déjà en `devDependencies` : servent au build des vues de l'ERP |
+
+**Vérifier d'abord la version du paquet** : `pnpm view @otomata_tech/oto_platform peerDependencies`.
+Si ses peers acceptent les majeures du template, rien à rétrograder. Sinon, chaque rétrogradation
+s'écrit dans `tech-stack.md` (version et raison « peer Otomata ») ; l'ignore global des majeures de
+`.github/dependabot.yml` la protège déjà, ajouter l'entrée sur les mineures si un pin exact est posé.
 
 `pnpm-workspace.yaml` (pnpm 12 refuse une version trop récente) :
 
@@ -45,7 +52,7 @@ minimumReleaseAgeExclude:
 Une fois `src/mcp/` retiré (§ 2), plus rien dans l'application n'importe le serveur du template :
 
 ```bash
-pnpm remove mcp-handler @modelcontextprotocol/sdk jose
+pnpm remove mcp-handler @modelcontextprotocol/server @modelcontextprotocol/client jose
 pnpm peers check
 ```
 
@@ -53,13 +60,13 @@ Mettre à jour `tech-stack.md` (ligne du paquet, version exacte et raison) dans 
 
 ## 2. Ce qui sort du template
 
-Le paquet sert `/api/mcp` en dur (`MCP_RESOURCE_PATH`). Une route statique `src/app/api/mcp/route.ts`
-masquerait `src/app/api/[transport]/` sans erreur de Next : `pnpm check:framework` refuse les deux
-ensemble. Retirer l'un avant de poser l'autre.
+Le paquet sert `/api/mcp` en dur (`MCP_RESOURCE_PATH`). Le template sert le sien au même chemin,
+dans le même fichier `src/app/api/mcp/route.ts` : le contenu de la route est **remplacé** par celui
+du paquet (ADR-001), pas posé à côté.
 
 | Retiré | Remplacé par |
 |---|---|
-| `src/app/api/[transport]/` | `src/app/api/mcp/route.ts` → `handleMcpPost` (modèle : oto-pkg) |
+| Contenu de `src/app/api/mcp/route.ts` (mcp-handler 2 + `src/mcp/server`) | `src/app/api/mcp/route.ts` → `handleMcpPost` (modèle : oto-pkg) |
 | `src/app/.well-known/oauth-protected-resource/route.ts` et les `rewrites()` de `next.config.ts` | `handleResourceMetadata` sur les routes de métadonnées de l'hôte de référence |
 | `src/mcp/` (server, tools, auth, config, widgets) | Le paquet ; les capacités métier deviennent des fonctions ERP (§ 4) |
 | `widgets/` et `widgets:build` | Vues de l'ERP dans `src/widgets/*.tsx` (§ 5) |
@@ -104,7 +111,7 @@ transaction, rôle `platform_app`, après `pnpm exec oto-platform db prepare`) ;
 
 Routes à monter, copiées de l'hôte de référence : `src/app/api/mcp/route.ts`,
 `src/app/api/platform/[...route]/route.ts`, `src/app/api/mcp-admin/route.ts`, et les écrans choisis
-(§ 6). Le middleware de `supabase-auth` laisse déjà `/api` et `/.well-known` publics ; y ajouter
+(§ 6). Le proxy de `supabase-auth` (`src/proxy.ts`) laisse déjà `/api` et `/.well-known` publics ; y ajouter
 `/p/` (lecture publique) et `/opengraph-image` si le partage public est monté.
 
 ## 4. Fonctions métier : la parité passe par `defineErpFunction`
@@ -178,7 +185,7 @@ Montées de version : Renovate, preset `github>otomata-tech/oto-pkg//renovate/pr
 ## Critères de fin de la story de setup
 
 - `pnpm verify` et `pnpm build` verts.
-- `src/app/api/[transport]/` absent ; `pnpm mcp:smoke` vert (`POST /api/mcp` sans jeton → 401 + `WWW-Authenticate`).
+- `src/app/api/mcp/route.ts` n'importe plus `mcp-handler` ni `@/mcp/server` ; `pnpm mcp:smoke` vert (`POST /api/mcp` sans jeton → 401 + `WWW-Authenticate`).
 - `tools/list` (jeton valide) → les six outils du paquet ; `find` trouve chaque fonction ERP.
 - `pnpm exec oto-platform migrations check` → code 0.
 - Chaque écran monté vérifié en clair et en sombre.

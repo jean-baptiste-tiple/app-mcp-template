@@ -1,7 +1,6 @@
-// ⚠️ Le dossier est bien `src/app/api/[transport]` (PAS `src/app/api/mcp/[transport]`) :
-// avec basePath "/api", mcp-handler sert le transport Streamable HTTP NATIVEMENT sur
-// /api/mcp — l'URL canonique donnée aux hosts. Un niveau de dossier en trop = 404 même
-// avec un token valide (bug vécu). Les routes statiques (/api/…) restent prioritaires.
+// Endpoint MCP `/api/mcp` (mcp-patterns §7) : mcp-handler 2 ne lit pas le pathname, il sert
+// toute requête qu'on lui passe. C'est donc ce dossier qui fixe l'URL canonique donnée aux
+// hosts (`MCP_RESOURCE_URL`, src/mcp/config.ts) : le déplacer, c'est changer cette URL.
 import { createMcpHandler, getPublicOrigin } from "mcp-handler"
 
 import { initializeMcpServer, mcpServerOptions } from "@/mcp/server"
@@ -11,24 +10,13 @@ import { initializeMcpServer, mcpServerOptions } from "@/mcp/server"
 export const maxDuration = 60
 export const dynamic = "force-dynamic"
 
-// ── Transport : STATELESS (défaut) ou STATEFUL — décision à figer par ADR au cadrage ──
-// STATELESS (défaut ci-dessous) : pas de session, pas de Redis, chaque requête reconstruit
-//   le serveur. Tout l'état métier en Postgres. Simple, scale-to-zero, parfait Vercel.
-// STATEFUL (si le projet en a besoin : notifications server→client, subscriptions de
-//   resources, elicitation, sessions `Mcp-Session-Id`) : fournir un Redis et retirer
-//   `disableSse` — mcp-handler y stocke l'état de session/SSE entre invocations serverless.
-//   → remplacer le bloc config par :
-//   {
-//     basePath: "/api",
-//     maxDuration: 60,
-//     redisUrl: process.env.REDIS_URL, // ex: rediss://… (Upstash/Vercel KV compatible)
-//     verboseLogs: process.env.NODE_ENV !== "production",
-//   }
-//   et documenter le choix dans docs/decisions/ (ADR transport).
-const handler = createMcpHandler(initializeMcpServer, mcpServerOptions, {
-  basePath: "/api", // → endpoint exposé sur /api/mcp
-  maxDuration: 60,
-  disableSse: true, // stateless : pas de flux SSE ni de session
+// ── Transport : STATELESS — décision à figer par ADR au cadrage ──
+// mcp-handler 2 est stateless natif (spec 2026-07-28, repli Streamable HTTP sans session pour
+// les clients 2025) : pas de session, pas de Redis, chaque requête reconstruit le serveur. Tout
+// l'état métier en Postgres. Un besoin de sessions ou de notifications server→client passe par
+// le transport Node du SDK (`@modelcontextprotocol/node`) et un ADR (docs/decisions/).
+const handler = createMcpHandler(initializeMcpServer, {
+  ...mcpServerOptions,
   verboseLogs: process.env.NODE_ENV !== "production",
 })
 
@@ -55,25 +43,14 @@ async function anonymousGuard(req: Request): Promise<Response> {
   return handler(req)
 }
 
-// mcp-handler lit le corps d'un POST sans attendre son échec : un JSON illisible laisse la
-// requête sans réponse jusqu'à `maxDuration` (mcp-patterns §7). La route le refuse avant lui.
-function withReadableBody(next: (request: Request) => Promise<Response>) {
-  return async (request: Request): Promise<Response> => {
-    try {
-      JSON.parse(await request.clone().text())
-    } catch {
-      return Response.json({ jsonrpc: "2.0", id: null, error: { code: -32700, message: "Parse error" } }, { status: 400 })
-    }
-    return next(request)
-  }
-}
-
 // ── Auth OAuth 2.1 (activer avec le starter supabase-auth — voir src/mcp/README.md) ──
 // TODO(S01) : décommenter après install de supabase-auth + config OAuth Server côté Supabase.
 // Activer ce bloc SUPPRIME le garde-fou `anonymousGuard` ci-dessus et son export : withMcpAuth
 // le remplace, en dev comme en prod.
 // `withMcpAuth` renvoie 401 + WWW-Authenticate (RFC 9728) sur toute requête non authentifiée,
 // ce qui déclenche le flow OAuth chez Claude et ChatGPT (§6.2). Jamais de mode anonyme en prod.
+// `verifyToken(req, bearerToken)` rend un `AuthInfo` (ou `undefined` → 401) ; les tools le
+// lisent dans `ctx.http?.authInfo` (`requireAuthContext`, src/mcp/auth.ts).
 //
 // import { withMcpAuth } from "mcp-handler"
 // import { verifyToken } from "@/mcp/auth"
@@ -84,9 +61,8 @@ function withReadableBody(next: (request: Request) => Promise<Response>) {
 //   resourceMetadataPath: "/.well-known/oauth-protected-resource",
 //   resourceUrl: MCP_RESOURCE_URL,
 // })
-// const authPost = withReadableBody(authHandler)
-// export { authHandler as GET, authPost as POST, authHandler as DELETE }
+// export { authHandler as GET, authHandler as POST, authHandler as DELETE }
 
-const POST = withReadableBody(anonymousGuard)
-
-export { anonymousGuard as GET, POST, anonymousGuard as DELETE }
+// Un corps JSON illisible : mcp-handler 2 répond lui-même 400 `-32700` (1.1.0 laissait la
+// requête pendre jusqu'à `maxDuration`, mcp-patterns §7) ; scripts/smoke-mcp.mjs le vérifie.
+export { anonymousGuard as GET, anonymousGuard as POST, anonymousGuard as DELETE }

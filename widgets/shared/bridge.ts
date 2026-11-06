@@ -2,7 +2,8 @@
 // Les widgets n'importent QUE ce module — jamais `window.openai` directement.
 // Deux dialectes derrière une API interne unique :
 //   - Standard MCP Apps GA 2026-01-26 : via le SDK OFFICIEL `@modelcontextprotocol/ext-apps`
-//     (build autonome app-with-deps — découplé du SDK serveur épinglé). Le SDK gère le
+//     (entrée `.` : client, core et zod résolus depuis node_modules et dédoublonnés au build ;
+//     `app-with-deps` les embarquait en double, 746 Ko contre 459). Le SDK gère le
 //     handshake `ui/initialize` (params EXACTS : appInfo, pas clientInfo — bug vécu : un
 //     initialize invalide = widget vide), les notifications tool-result/host-context, le
 //     size-changed (autoResize) et répond aux requêtes du host (ping…).
@@ -10,7 +11,7 @@
 // Tout est défensif (try/catch + fallbacks) : le host réel n'est pas testable ici, donc
 // on ne casse jamais le rendu si une capacité manque. Chemin mock local : `window.__MCP_TOOL_OUTPUT__`.
 
-import { App } from "@modelcontextprotocol/ext-apps/app-with-deps"
+import { App } from "@modelcontextprotocol/ext-apps"
 
 export type Theme = "light" | "dark"
 
@@ -173,8 +174,8 @@ async function connectStandardHost(): Promise<void> {
       { autoResize: true }
     )
     // Handlers AVANT connect : le host livre tool-input/tool-result dès `initialized`.
-    a.ontoolresult = (result) => emitOutput(result)
-    a.onhostcontextchanged = (hostContext) => emitTheme(normalizeTheme(hostContext.theme))
+    a.addEventListener("toolresult", (result) => emitOutput(result))
+    a.addEventListener("hostcontextchanged", (hostContext) => emitTheme(normalizeTheme(hostContext.theme)))
     await a.connect()
     app = a
     emitTheme(normalizeTheme(a.getHostContext()?.theme))

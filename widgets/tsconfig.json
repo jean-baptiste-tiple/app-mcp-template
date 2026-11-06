@@ -14,11 +14,10 @@
     "useDefineForClassFields": true,
     "allowImportingTsExtensions": true,
     "types": ["vite/client"],
-    "baseUrl": ".",
     "paths": {
       "@/*": ["../src/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", "vite.config.ts"],
+  "include": ["**/*.ts", "**/*.tsx", "vite.config.mts"],
   "exclude": ["dist", "node_modules"]
 }

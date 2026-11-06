@@ -194,6 +194,10 @@ Une UI se juge en la regardant, pas en lisant ses classes.
   scroll sur un formulaire court.
 - **Avant mise en production** : `pnpm audit:lh` (contraste, performance) et
   `pnpm test:e2e` (projets `chromium`, `mobile`, `dark` ; smoke de débordement et axe).
+- **Mesurer sur le bon serveur** : avant Lighthouse ou une capture sur `next start`, vérifier que
+  le PID qui écoute sur le port est celui qu'on vient de lancer (un serveur orphelin sert
+  l'ancien build et fausse la mesure), et l'arrêter ensuite par PID, jamais « par port ». Vu le
+  2026-11-06 : deux mesures sur un build périmé avant de s'en apercevoir.
 
 ## Vérifiable
 

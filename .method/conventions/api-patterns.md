@@ -111,8 +111,8 @@ Le Client Component reçoit les données en props. Il ne fetch pas.
 
 ## Auth
 
-Le middleware ne suffit pas : **chaque** Server Action revérifie l'auth en première
-instruction. Détail du middleware et des flows : `auth-patterns.md`. RLS et policies :
+Le proxy (`src/proxy.ts`, ex-middleware) ne suffit pas : **chaque** Server Action revérifie
+l'auth en première instruction. Détail du proxy et des flows : `auth-patterns.md`. RLS et policies :
 `supabase-patterns.md`.
 
 ```typescript

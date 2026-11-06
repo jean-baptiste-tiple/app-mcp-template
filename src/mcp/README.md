@@ -7,14 +7,18 @@ les widgets MCP Apps GA (triple méta + variante skybridge, bundles inlinés), l
 `InMemoryTransport` et un smoke test HTTP.
 
 Chaque fichier implémente une section de `.method/conventions/mcp-patterns.md` — lire les deux en parallèle.
-Code issu de `mcp-cv-editor`, **éprouvé en prod** (fixes dual-host inclus). Versions figées et leurs
+Code issu de `mcp-cv-editor`, **éprouvé en prod** (fixes dual-host inclus). Versions et leurs
 raisons : `.method/conventions/tech-stack.md`.
+
+Paquets (SDK MCP 2.x, zod 4) : `@modelcontextprotocol/server` + `mcp-handler` 2 (serveur et
+endpoint), `@modelcontextprotocol/ext-apps` 2 (bridge des widgets), `@modelcontextprotocol/client`
+(tests : client `InMemoryTransport` ; `core` arrive en peer de `ext-apps`, sans import direct).
 
 ## Où vit quoi
 
 | Fichier | Rôle | mcp-patterns |
 |---------|------|--------------|
-| `src/app/api/[transport]/route.ts` ⚠️ pas `api/mcp/…` | Endpoint natif `/api/mcp`, stateless ou stateful, garde-fou anonyme + activation auth | §7, §6 |
+| `src/app/api/mcp/route.ts` | Endpoint `/api/mcp` (mcp-handler 2, stateless), garde-fou anonyme + activation auth | §7, §6 |
 | `src/mcp/config.ts` | URL canonique, issuer Supabase, `serverInfo` | §2.1 |
 | `src/mcp/server.ts` | `instructions`, enregistrement tools/widgets — SEUL endroit qui les liste | §2.1 |
 | `src/mcp/auth.ts` | JWKS Supabase → `AuthInfo` → `{userId}` (organisation et rôle relus en base, §6.7) | §6 |
@@ -27,7 +31,7 @@ raisons : `.method/conventions/tech-stack.md`.
 | `src/lib/schemas/status.ts` | Schema Zod partagé = source de vérité | §1 |
 | `src/lib/services/status-service.ts` | Logique métier, appelée par la Server Action ET le tool | §1 |
 | `src/app/.well-known/oauth-protected-resource/route.ts` | Metadata RFC 9728 (+ 2 variantes d'URL en rewrites dans `next.config.ts`) | §6 |
-| `widgets/build.mjs`, `widgets/vite.config.ts` | Build Vite single-file par widget → régénère `generated.ts` | §5.3 |
+| `widgets/build.mjs`, `widgets/vite.config.mts` | Build Vite single-file par widget → régénère `generated.ts` | §5.3 |
 | `widgets/shared/bridge.ts` | Bridge SDK officiel `ext-apps`, TOUS les canaux de données | §5.2 |
 | `widgets/shared/mount.tsx` | Hook `useToolOutput` (subscription + polling filet) + `mount()` | §5.2 |
 | `widgets/status-card/` | Widget exemple : 4 états, thème | §5.3 |
@@ -51,24 +55,26 @@ racine, donc de `pnpm type-check`. ESLint, lui, le couvre.
 
 ```
 MCP_RESOURCE_URL=http://localhost:3000/api/mcp   # URL canonique (prod : https://<domaine>/api/mcp)
-# REDIS_URL=rediss://…                           # UNIQUEMENT si transport stateful (voir ci-dessous)
 # MCP_ALLOW_ANONYMOUS=true                        # smoke local sur `next start` — JAMAIS en production réelle
 ```
 
-## Transport : stateless (défaut) ou stateful — À CHOISIR AU CADRAGE (ADR)
+## Transport : stateless — décision à figer au cadrage (ADR)
 
-Le canal démarre **stateless** : pas de session, pas de Redis, chaque requête reconstruit le
-serveur, tout l'état métier en Postgres. C'est le bon défaut Vercel (simple, scale-to-zero).
+`mcp-handler` 2 est **stateless natif** : spec 2026-07-28 servie nativement (`server/discover`,
+enveloppe `_meta` par requête), clients 2025 servis par le repli Streamable HTTP sans session du
+SDK, depuis le même handler. Pas de session, pas de Redis, chaque requête reconstruit le serveur,
+tout l'état métier en Postgres. C'est le bon défaut Vercel (simple, scale-to-zero).
 
-Passer **stateful** si le projet a besoin de : notifications server→client, subscriptions de
-resources (`listChanged`, updates temps réel), elicitation, ou sessions `Mcp-Session-Id`
-persistantes. Dans ce cas :
+`createMcpHandler(initialize, options)` : `options` = `ServerOptions` du SDK (`capabilities`,
+`instructions`) + `serverInfo`, `verboseLogs`, `onEvent`, `maxSubscriptions`. Les options de
+route et de transport de la 1.x (`basePath`, `maxDuration`, `disableSse`, `redisUrl`…) n'existent
+plus : le handler ne lit pas le pathname, c'est le dossier `src/app/api/mcp/` qui fixe l'URL ;
+`maxDuration` est l'export Next de la route. `GET` et `DELETE` répondent 405 ; `/api/sse` et
+`/api/message` n'existent plus (404 de Next).
 
-1. Provisionner un Redis (Upstash/Vercel KV compatible) → `REDIS_URL`.
-2. Dans `src/app/api/[transport]/route.ts` : retirer `disableSse: true` et ajouter
-   `redisUrl: process.env.REDIS_URL` (bloc prêt en commentaire dans le fichier).
-3. Figer le choix par ADR dans `docs/decisions/` (obligatoire — mcp-patterns §7). L'ADR note
-   aussi les conséquences : coût Redis, pas de scale-to-zero pur, invalidation de session.
+Un besoin de sessions `Mcp-Session-Id` ou de notifications server→client (subscriptions de
+resources, push hors requête) passe par le transport Node du SDK (`@modelcontextprotocol/node`)
+et se fige par ADR dans `docs/decisions/` (obligatoire, mcp-patterns §7).
 
 Ne PAS introduire de push/subscriptions en restant stateless : c'est l'ADR qui arbitre.
 
@@ -77,13 +83,13 @@ Ne PAS introduire de push/subscriptions en restant stateless : c'est l'ADR qui a
 Le canal démarre **auth désactivée** (dev local, MCP Inspector sans token). Tant qu'elle l'est, un
 garde-fou de la route (`anonymousGuard`) fait répondre `/api/mcp` en **401** + `WWW-Authenticate` en
 production ; `next dev` reste ouvert, et `MCP_ALLOW_ANONYMOUS=true` le lève pour le smoke local
-uniquement. L'activation est un bloc commenté dans `src/app/api/[transport]/route.ts`
+uniquement. L'activation est un bloc commenté dans `src/app/api/mcp/route.ts`
 (`withMcpAuth` + `verifyToken` de `src/mcp/auth.ts`) :
 
 1. Installer le starter `.method/starters/supabase-auth/` (Supabase = authorization server OAuth 2.1, DCR activé).
 2. Décommenter le bloc auth de la route en supprimant `anonymousGuard` et son export, décommenter
-   les blocs `supabase` de `src/mcp/auth.ts`, puis appeler `requireAuthContext(extra)` en tête de
-   chaque tool et passer le contexte au service (`TODO(S01)` dans `src/mcp/tools/get-status.ts`).
+   les blocs `supabase` de `src/mcp/auth.ts`, puis appeler `requireAuthContext(ctx)` (2e paramètre
+   du handler, lit `ctx.http?.authInfo`) en tête de chaque tool et passer le contexte au service (`TODO(S01)` dans `src/mcp/tools/get-status.ts`).
 3. Dashboard Supabase : activer OAuth Server + DCR, déclarer l'Authorization Path
    `/oauth/consent` (page installée par le starter), autoriser les redirect URIs
    `https://claude.ai/api/mcp/auth_callback` et `https://chatgpt.com/connector/oauth/*`.
@@ -100,7 +106,8 @@ uniquement. L'activation est un bloc commenté dans `src/app/api/[transport]/rou
 1. `pnpm verify` — `tests/unit/mcp-server.test.ts` (triple méta, 2 resources, structuredContent)
    et `tests/unit/mcp-route.test.ts` (401 en production sans auth) doivent passer.
 2. `pnpm widgets:build` — bundles single-file générés + `generated.ts` régénéré.
-3. `pnpm build` puis `pnpm mcp:smoke` — initialize + tools/list + get_status en HTTP réel.
+3. `pnpm build` puis `pnpm mcp:smoke` — initialize + tools/list + get_status + corps illisible
+   (400 `-32700`) en HTTP réel.
 4. `pnpm dev` puis `pnpm mcp:inspect` → connecter `http://localhost:3000/api/mcp` :
    tool `get_status` visible, resources `ui://widgets/status-card.html` (profile=mcp-app)
    ET `…-skybridge.html` listées.
@@ -119,8 +126,8 @@ produit à poser (`src/mcp/config.ts`, `src/lib/services/status-service.ts`, `wi
 La page d'onboarding `/connect` (`src/app/(dashboard)/connect/page.tsx`, cible de
 `resource_documentation`) se personnalise en même temps : nom du produit, prompts d'exemple (§9).
 
-> Pièges déjà payés (ne pas re-déboguer) : route dans `src/app/api/[transport]` et PAS `api/mcp/[transport]`
-> (404 avec token valide sinon) ; mimeType `text/html;profile=mcp-app` obligatoire (sinon Claude
+> Pièges déjà payés (ne pas re-déboguer) : la route est le dossier `src/app/api/mcp/` (mcp-handler 2
+> ne lit pas le pathname : un sous-segment en plus change l'URL donnée aux hosts) ; mimeType `text/html;profile=mcp-app` obligatoire (sinon Claude
 > rejette la resource) ; bridge = SDK officiel ext-apps (un `ui/initialize` fait main avec
 > `clientInfo` au lieu d'`appInfo` = widget vide, sans erreur) ; ChatGPT = variante skybridge
 > ET updates via le CustomEvent `openai:set_globals` (pas postMessage — sinon loader infini) ;

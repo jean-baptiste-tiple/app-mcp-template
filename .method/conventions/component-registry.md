@@ -8,13 +8,13 @@
 | Composant | Path | Notes |
 |-----------|------|-------|
 | Accordion | `src/components/ui/accordion.tsx` | Radix, animation chevron |
-| Alert | `src/components/ui/alert.tsx` | default, destructive |
+| Alert | `src/components/ui/alert.tsx` | default, destructive. Gabarit Shadcn v4 réinstallé par la CLI (2026-11-06) : `AlertTitle` rendu en `div` (`data-slot="alert-title"`, `line-clamp-1`), plus de `h5` qui cassait la hiérarchie des titres ; bordure neutre pour `destructive` (icône + texte portent l'erreur). Seule personnalisation : description `destructive` en `text-destructive` plein (`/90` tombe à 4,49:1 sur `bg-card`, sous AA), à reposer à chaque réinstallation |
 | AlertDialog | `src/components/ui/alert-dialog.tsx` | Confirmation modale |
 | Avatar | `src/components/ui/avatar.tsx` | Image + fallback initiales |
 | Badge | `src/components/ui/badge.tsx` | 6 variants (default, secondary, destructive, outline, success, warning) |
 | Breadcrumb | `src/components/ui/breadcrumb.tsx` | Fil d'ariane avec separateurs |
 | Button | `src/components/ui/button.tsx` | 6 variants, 4 sizes, asChild ; `link` en `text-primary-dark` |
-| Calendar | `src/components/ui/calendar.tsx` | react-day-picker v9 |
+| Calendar | `src/components/ui/calendar.tsx` | react-day-picker 10, gabarit Shadcn v4 réinstallé par la CLI (2026-11-06). Seule personnalisation : locale `fr` par défaut (prop `locale` surchargeable). Exporte aussi `CalendarDayButton`. Rendu dans `/design-system` (Formulaires) |
 | Card | `src/components/ui/card.tsx` | Header, Title, Description, Content, Footer |
 | Checkbox | `src/components/ui/checkbox.tsx` | Radix Checkbox |
 | Command | `src/components/ui/command.tsx` | Palette de commandes (cmdk) |
@@ -42,6 +42,23 @@
 | ToggleGroup | `src/components/ui/toggle-group.tsx` | Groupe de toggles |
 | Tooltip | `src/components/ui/tooltip.tsx` | Info-bulle |
 
+### Réinstaller un composant (`pnpm dlx shadcn@latest add <nom> --overwrite`)
+
+Le registry « new-york-v4 » de shadcn (novembre 2026) déclare ses composants avec le paquet npm
+`cn` (son remplaçant de clsx + tailwind-merge) et le méta-paquet `radix-ui`, et écrit
+`import { cn } from "cn"` en dur, quel que soit `aliases.utils` de `components.json`. Le template
+garde `src/lib/utils/cn.ts` et les `@radix-ui/react-*` individuels. Après chaque `add` :
+
+1. lancer d'abord `--dry-run` et refuser l'écrasement de `button.tsx` (personnalisé : `link` en
+   `text-primary-dark`) ; sinon le restaurer depuis git ;
+2. remettre `import { cn } from "@/lib/utils/cn"` dans le fichier régénéré ;
+3. retirer `cn` et `radix-ui` de `package.json` et relancer `pnpm install` ;
+4. reposer la seule personnalisation du composant si elle existe (ex. `locale = fr` de
+   `calendar.tsx`) et mettre à jour sa ligne ici.
+
+Adopter `cn` et `radix-ui` (direction prise par shadcn) est une décision de `tech-stack.md`, pas
+un effet de bord d'un `add`.
+
 ## Icones animees (lucide-animated)
 
 Registry shadcn distinct de celui de Shadcn/ui, meme commande. Les fichiers atterrissent dans
@@ -57,8 +74,8 @@ de piloter l'animation depuis le parent.
 
 | Composant | Path | Notes |
 |-----------|------|-------|
-| DeleteIcon | `src/components/ui/delete.tsx` | Poubelle, couvercle qui se souleve. Client component |
-| SettingsIcon | `src/components/ui/settings.tsx` | Engrenage qui tourne. Client component |
+| DeleteIcon | `src/components/ui/delete.tsx` | Poubelle, couvercle qui se souleve. Client component. Rendu dans `/design-system` (Buttons) |
+| SettingsIcon | `src/components/ui/settings.tsx` | Engrenage qui tourne. Client component. Rendu dans `/design-system` (Buttons). N'honore pas `prefers-reduced-motion` (vendored, `motion` 14) : usage décoratif seulement, jamais porteur d'information |
 
 Ces composants rendent un `<div>` decoratif, sans role ni label : l'appelant porte
 l'accessibilite — `<button aria-label="...">` autour, `aria-hidden` sur l'icone
@@ -71,7 +88,7 @@ l'accessibilite — `<button aria-label="...">` autour, `aria-hidden` sur l'icon
 | ThemeProvider | `src/components/theme-provider.tsx` | children, attribute, defaultTheme | Provider next-themes (client) |
 | ThemeToggle | `src/components/theme-toggle.tsx` | — | Bouton toggle light/dark, icones Phosphor (client) |
 | PageContainer | `src/components/page-container.tsx` | heading?, description?, children | Wrapper page max-w-7xl |
-| EmptyState | `src/components/empty-state.tsx` | icon?, heading, description?, action? | Etat vide (listes, tables) |
+| EmptyState | `src/components/empty-state.tsx` | icon?, heading, description?, action?, headingLevel? (2 \| 3) | Etat vide (listes, tables). `headingLevel` 2 par défaut (directement sous le `h1` de la page), 3 sous un titre de section `h2` : aucun niveau de titre sauté (Lighthouse `heading-order`) |
 | StatCard | `src/components/stat-card.tsx` | label, value, description?, icon?, trend? | KPI card pour dashboards |
 | DataTable | `src/components/data-table.tsx` | columns, data, emptyMessage? | Table generique typee |
 | CopyButton | `src/components/copy-button.tsx` | value, label?, size?, variant? | Copie presse-papiers + feedback 2s, annonce `role="status"` (client) |

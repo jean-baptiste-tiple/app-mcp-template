@@ -1,7 +1,7 @@
 // Tool DÉMO — montre la forme canonique d'un tool (mcp-patterns §1, §3, §4) :
 // adaptateur FIN (validation → service → mise en forme), zéro logique métier ici.
 // À remplacer par les vrais tools du projet ; garder 1 fichier par tool.
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import type { McpServer } from "@modelcontextprotocol/server"
 
 import { getStatusInputSchema } from "@/lib/schemas/status"
 import { getStatus } from "@/lib/services/status-service"
@@ -22,7 +22,7 @@ export function registerGetStatusTool(server: McpServer) {
     {
       title: "État du service", // langue des utilisateurs (affiché dans les UI hosts)
       description: GET_STATUS_DESC,
-      inputSchema: getStatusInputSchema.shape,
+      inputSchema: getStatusInputSchema, // objet zod (2.x : la forme `.shape` est dépréciée)
       annotations: {
         readOnlyHint: true,
         idempotentHint: true,
@@ -33,7 +33,7 @@ export function registerGetStatusTool(server: McpServer) {
     },
     async (input) => {
       try {
-        // TODO(S01) avec auth : const ctx = requireAuthContext(extra) — 2e param du handler
+        // TODO(S01) avec auth : const auth = requireAuthContext(ctx) — `ctx` = 2e param du handler
         const result = await getStatus(null, input)
 
         return toToolResult({

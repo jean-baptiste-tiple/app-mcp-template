@@ -134,6 +134,7 @@ export function EmptyStateSection() {
     <Section title="Empty State">
       <EmptyState
         icon={<UploadSimple className="h-6 w-6" aria-hidden="true" />}
+        headingLevel={3}
         heading="Aucun fichier"
         description="Commencez par importer vos premiers fichiers pour les voir apparaître ici."
         action={

@@ -126,6 +126,13 @@ accessibility, best-practices et SEO seulement (même exemption qu'en
 `coding-standards.md § Complexité`). L'accessibilité, elle, n'est **jamais** exemptée : un
 composant du catalogue sans nom accessible l'est aussi dans les pages qui l'utilisent.
 
+**Si `pnpm audit:lh` échoue sous Windows avec `Lighthouse failed with exit code 1` et des erreurs
+`taskkill` de chrome-launcher** (vu le 2026-11-06, LHCI 0.15 / Lighthouse 12.6 / Chrome 156) alors
+que le rapport JSON est produit : l'audit a tourné, c'est l'arrêt de Chrome qui échoue. Mesurer
+alors directement sur `next start` : `npx lighthouse@12 http://localhost:3000/ --output=json
+--only-categories=performance,accessibility,best-practices,seo --chrome-flags="--headless=new"`,
+et comparer les scores aux seuils de `lighthouserc.json` à la main.
+
 **Ce que l'audit local ne couvre pas** — tout ce qui dépend de l'hébergeur : compression, cache
 `immutable`, HTTP/2+, chaînes de redirection. Ça se vérifie sur l'URL déployée
 (`deployment-patterns.md § Contrôles post-déploiement`).

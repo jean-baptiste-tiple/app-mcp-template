@@ -9,7 +9,7 @@ import { defineConfig } from "vite"
 import { viteSingleFile } from "vite-plugin-singlefile"
 
 const WIDGET = process.env.WIDGET ?? "status-card"
-const root = __dirname
+const root = import.meta.dirname
 
 export default defineConfig({
   root,
@@ -31,10 +31,10 @@ export default defineConfig({
     emptyOutDir: false,
     cssCodeSplit: false,
     assetsInlineLimit: 100_000_000,
-    // Une seule entrée par build → inlineDynamicImports OK (chunk unique, tout inliné).
-    rollupOptions: {
+    // Une seule entrée par build → codeSplitting: false OK (chunk unique, tout inliné).
+    rolldownOptions: {
       input: resolve(root, WIDGET, "index.html"),
-      output: { inlineDynamicImports: true, entryFileNames: `${WIDGET}.js` },
+      output: { codeSplitting: false, entryFileNames: `${WIDGET}.js` },
     },
     // Budget §5.3 : cible < 300 Ko ; jusqu'à ~600 Ko assumé avec le SDK ext-apps + polices.
     chunkSizeWarningLimit: 3000,

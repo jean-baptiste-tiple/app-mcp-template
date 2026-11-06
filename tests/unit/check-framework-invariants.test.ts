@@ -33,12 +33,6 @@ function allErrorsFor(files: Record<string, string>, warnings: string[] = []): s
   return errors
 }
 
-function errorsFor(files: string[]): string[] {
-  return allErrorsFor(Object.fromEntries(files.map((f) => [f, "export {}\n"]))).filter((m) =>
-    m.includes("api/mcp/route.ts")
-  )
-}
-
 /** Erreurs remontées pour un seul fichier .tsx d'une ligne (les autres invariants sont ignorés). */
 function uiErrorsFor(path: string, line: string): string[] {
   return allErrorsFor({ [path]: `${line}\n` }).filter((m) => m.startsWith(`${path}:`))
@@ -46,20 +40,6 @@ function uiErrorsFor(path: string, line: string): string[] {
 
 afterEach(() => {
   for (const r of roots.splice(0)) rmSync(r, { recursive: true, force: true })
-})
-
-describe("verifierInvariants — collision du MCP Otomata", () => {
-  it("should fail when api/mcp/route.ts and api/[transport]/ coexist", () => {
-    expect(errorsFor(["src/app/api/mcp/route.ts", "src/app/api/[transport]/route.ts"])).toHaveLength(1)
-  })
-
-  it("should pass with the template MCP alone", () => {
-    expect(errorsFor(["src/app/api/[transport]/route.ts"])).toHaveLength(0)
-  })
-
-  it("should pass with the Otomata MCP alone", () => {
-    expect(errorsFor(["src/app/api/mcp/route.ts"])).toHaveLength(0)
-  })
 })
 
 describe("verifierInvariants — invariants UI", () => {

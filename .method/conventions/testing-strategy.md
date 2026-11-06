@@ -2,7 +2,8 @@
 
 ## Setup
 
-- `vitest.config.ts` avec `@vitejs/plugin-react`, resolve alias `@/`
+- `vitest.config.mts` avec `@vitejs/plugin-react`, resolve alias `@/` (`.mts` : ESM natif, sans
+  avertissement du chargeur de config de Vite 8)
 - `@testing-library/react` + `@testing-library/jest-dom`
 - Playwright installé avec `npx playwright install`
 
@@ -10,7 +11,7 @@
 
 - **Quoi :** Server Actions (mock Supabase), Zod schemas (edge cases), hooks custom, utils
 - **Où :** `tests/unit/`. La colocalisation (`fichier.test.ts` à côté du code) est tolérée par
-  `vitest.config.ts` mais **ne doit pas être utilisée** : un fichier de test placé sous `src/`
+  `vitest.config.mts` mais **ne doit pas être utilisée** : un fichier de test placé sous `src/`
   matche en plus les globs `registry`, `a11y` et `nextjs`, donc charge des conventions qui ne le
   concernent pas ; et l'exemption `max-lines` d'`eslint.config.mjs` ne couvre que `tests/**`.
 - **Mock Supabase :** `vi.mock("@/lib/supabase/server")` → retourner des réponses fake

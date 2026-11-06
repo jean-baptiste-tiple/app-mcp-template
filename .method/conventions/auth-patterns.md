@@ -14,7 +14,7 @@ Browser                    Next.js Server              Supabase
   │◄── Set cookies ────────────┤                         │
   │                            │                         │
   ├── Navigate /dashboard ─────┤                         │
-  │                            ├── middleware: refresh ───┤
+  │                            ├── proxy: refresh ───────┤
   │                            │◄── valid session ───────┤
   │◄── Page HTML ──────────────┤                         │
 ```
@@ -136,16 +136,20 @@ export async function GET(request: Request) {
 }
 ```
 
-## Middleware
+## Proxy (ex-middleware)
+
+Next 16 renomme `middleware.ts` en `proxy.ts` et l'export `middleware` en `proxy` ; le proxy
+tourne en runtime `nodejs` (pas d'Edge). Un `middleware.ts` est encore accepté mais déprécié.
+Le starter `supabase-auth` fournit `src/proxy.ts`.
 
 ```typescript
-// src/middleware.ts
+// src/proxy.ts
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
 const PUBLIC_ROUTES = ["/login", "/signup", "/forgot-password", "/auth/callback"]
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -227,7 +231,7 @@ export type SignupData = z.infer<typeof signupSchema>
 - **Rate limiting :** 5 tentatives de login / minute / IP
 - **Tokens de reset :** expirent après 1h (géré par Supabase)
 - **Sessions :** cookie `httpOnly`, `secure`, `sameSite=lax`
-- **Vérifier l'auth dans CHAQUE Server Action** — le middleware ne suffit pas
+- **Vérifier l'auth dans CHAQUE Server Action** — le proxy ne suffit pas
 
 ## OAuth (si applicable)
 

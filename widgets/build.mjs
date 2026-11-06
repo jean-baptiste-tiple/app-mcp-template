@@ -1,5 +1,5 @@
 // Orchestrateur de build des widgets MCP Apps (mcp-patterns §5.3).
-// Pour chaque widget : `vite build` (config widgets/vite.config.ts) piloté par l'env WIDGET,
+// Pour chaque widget : `vite build` (config widgets/vite.config.mts) piloté par l'env WIDGET,
 // produisant un HTML single-file. Puis regénère src/mcp/widgets/generated.ts avec les bundles
 // INLINÉS (contrat Partial<Record<WidgetName,string>>) — servis en mémoire par le serveur MCP,
 // zéro lecture fs à runtime, zéro souci de tracing Vercel. Idempotent, zéro requête réseau.
@@ -23,7 +23,7 @@ const WIDGET_NAMES = ["status-card"]
 // lancer. On exécute le JS du binaire avec le node courant : chemin de `bin.vite` dans
 // node_modules/vite/package.json.
 const viteBin = resolve(repoRoot, "node_modules/vite/bin/vite.js")
-const configPath = resolve(here, "vite.config.ts")
+const configPath = resolve(here, "vite.config.mts")
 
 // Repart propre.
 rmSync(distDir, { recursive: true, force: true })

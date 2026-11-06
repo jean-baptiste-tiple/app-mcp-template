@@ -5,6 +5,8 @@ interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
   heading: string
   description?: string
   action?: React.ReactNode
+  /** 2 sous le h1 de la page, 3 sous un titre de section (h2) : aucun niveau sauté. */
+  headingLevel?: 2 | 3
 }
 
 export function EmptyState({
@@ -12,9 +14,11 @@ export function EmptyState({
   heading,
   description,
   action,
+  headingLevel = 2,
   className,
   ...props
 }: EmptyStateProps) {
+  const Heading = headingLevel === 3 ? "h3" : "h2"
   return (
     <div
       className={cn(
@@ -28,7 +32,7 @@ export function EmptyState({
           {icon}
         </div>
       )}
-      <h3 className="text-lg font-semibold text-foreground">{heading}</h3>
+      <Heading className="text-lg font-semibold text-foreground">{heading}</Heading>
       {description && (
         <p className="mt-1 max-w-sm text-sm text-muted-foreground">{description}</p>
       )}

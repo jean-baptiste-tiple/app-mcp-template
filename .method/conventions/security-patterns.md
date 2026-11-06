@@ -8,7 +8,7 @@
 1. **Ne jamais faire confiance au client.** Toute donnée du navigateur est suspecte.
 2. **Valider côté serveur en premier.** La validation client est du confort UX, pas de la sécurité.
 3. **Principe du moindre privilège.** RLS, roles, permissions — accorder le minimum nécessaire.
-4. **Défense en profondeur.** Plusieurs couches : middleware + action + RLS.
+4. **Défense en profondeur.** Plusieurs couches : proxy (`src/proxy.ts`) + action + RLS.
 
 ## Validation des inputs
 
@@ -159,8 +159,8 @@ $$ LANGUAGE sql SECURITY DEFINER;
 
 ## Auth Security Checklist
 
-- [ ] Middleware vérifie le token sur toutes les routes protégées
-- [ ] Chaque Server Action revérifie l'auth (ne pas se fier au middleware seul)
+- [ ] Le proxy (`src/proxy.ts`) vérifie la session sur toutes les routes protégées
+- [ ] Chaque Server Action revérifie l'auth (ne pas se fier au proxy seul)
 - [ ] Les mots de passe ont une longueur minimum (8+ caractères)
 - [ ] Les messages d'erreur ne révèlent pas si un email existe ("Identifiants invalides", pas "Email non trouvé")
 - [ ] Les tokens de reset expirent (1h max)

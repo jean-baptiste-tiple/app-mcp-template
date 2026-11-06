@@ -37,7 +37,9 @@ export function loginRedirectFor(method: string, pathname: string, search: strin
   return "/login"
 }
 
-export async function middleware(request: NextRequest) {
+// Next 16 : `proxy.ts` + export `proxy` remplacent `middleware.ts` + `middleware` ; runtime nodejs
+// uniquement (pas d'Edge), ce que `@supabase/ssr` accepte.
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   })

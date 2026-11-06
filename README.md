@@ -7,7 +7,7 @@
 Pour démarrer un **SaaS ou un ERP interne** que les équipes utilisent à la fois dans le navigateur
 et depuis leur assistant (Claude, ChatGPT), sans réinventer à chaque projet :
 
-- **Un socle qui tourne dès le clone** : Next.js 15, design system neutre, serveur MCP câblé de bout
+- **Un socle qui tourne dès le clone** : Next.js 16, design system neutre, serveur MCP câblé de bout
   en bout (tool, widget, test, smoke HTTP).
 - **Une qualité qui ne dépend pas de la mémoire** : conventions chargées depuis les fichiers
   touchés, review adossée à des règles écrites, commit bloqué par un hook tant que les 4 checks ne
@@ -61,7 +61,7 @@ Détail : section [Plateforme Otomata (option)](#plateforme-otomata-option).
 
 Template Git réutilisable pour bootstrapper une **app MCP-first** avec la Tiple Method : structure,
 templates de documents, checklists, conventions techniques routées, et skills Claude Code
-auto-déclenchés. Stack de base : Next.js 15 + TypeScript strict + Tailwind + Shadcn/ui, **canal
+auto-déclenchés. Stack de base : Next.js 16 + TypeScript strict + Tailwind + Shadcn/ui, **canal
 MCP installé** (Claude + ChatGPT, widgets MCP Apps). Base de données et auth optionnelles via
 starter (Supabase Cloud, ou self-hosted souverain sur Scaleway ou ailleurs).
 
@@ -162,12 +162,13 @@ métier de l'ERP. Sans ce besoin, le MCP du template suffit. La décision se pre
 
 ### Ce que l'activation change dans ce template
 
-Le paquet sert `/api/mcp` en dur : activé, il **remplace** `src/mcp/`, `src/app/api/[transport]/` et
+Le paquet sert `/api/mcp` en dur : activé, il **remplace** `src/mcp/`, `src/app/api/mcp/route.ts` et
 `widgets/` (ADR-001, `docs/decisions/`). Les conventions `mcp-patterns.md` sur les instructions, le
 design de tools et les widgets ne s'appliquent plus ; la parité par services, le « zéro IA
-serveur » et les golden queries restent dus. Le template est déjà aligné sur les peers du paquet :
-`@hookform/resolvers` ^5, schémas en `zod/v4` (zod 3.25 conservé, ESLint refuse `"zod"`), et
-`pnpm check:framework` refuse les deux routes MCP ensemble. Montées de version par Renovate,
+serveur » et les golden queries restent dus. Les schémas sont en `zod/v4` (ESLint refuse `"zod"`),
+le format qu'attend `defineErpFunction`. Depuis le passage du template en zod 4, Next 16, vite 8
+et SDK MCP 2 (ADR-002), activer l'option exige une version du paquet alignée sur ces majeures,
+sinon la story de setup rétrograde six paquets (`tech-stack.md § Option plateforme Otomata`). Montées de version par Renovate,
 migrations recopiées par `oto-platform migrations sync` à chaque version.
 
 ## Quick Start
@@ -324,7 +325,7 @@ dépasse 400 lignes, si une checklist n'est appelée par rien, si un composant d
 ├── src/
 │   ├── app/
 │   │   ├── (dashboard)/         # Layout principal + page servant `/`
-│   │   ├── api/[transport]/     # Endpoint MCP `/api/mcp`
+│   │   ├── api/mcp/             # Endpoint MCP `/api/mcp` (mcp-handler 2)
 │   │   ├── .well-known/         # Metadata OAuth (RFC 9728)
 │   │   └── design-system/       # Preview du design system
 │   ├── components/

@@ -116,7 +116,8 @@ export function DeleteProjectDialog({
 défaut HAUTE (`CLAUDE.md` règle absolue n°3 — vérifier le registry avant de créer).
 
 Props réelles : `icon?: ReactNode` · `heading: string` · `description?: string` ·
-`action?: ReactNode`.
+`action?: ReactNode` · `headingLevel?: 2 | 3` (2 par défaut, sous le `h1` de la page ; 3 sous un
+`h2` de section : la hiérarchie des titres ne saute aucun niveau).
 
 ```tsx
 <EmptyState

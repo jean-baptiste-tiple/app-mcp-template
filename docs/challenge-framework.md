@@ -16,7 +16,7 @@ Tu challenges **le framework lui-même** — pas le code applicatif qu'il encadr
 
 Objet de l'audit : `CLAUDE.md`, `.claude/skills/`, `.claude/hooks/`, `.claude/settings.json`,
 `scripts/`, `.method/conventions/`, `.method/checklists/`, `.method/templates/`, la config
-(`package.json`, `eslint.config.mjs`, `vitest.config.ts`, CI), et le `README.md`.
+(`package.json`, `eslint.config.mjs`, `vitest.config.mts`, CI), et le `README.md`.
 
 Trois angles, non interchangeables :
 

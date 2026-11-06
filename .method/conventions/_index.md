@@ -28,11 +28,11 @@ déduits des globs — c'est le seul moyen d'activer les tags marqués **non rou
 | `forms` | `forms-patterns.md` | `src/lib/schemas/**`, `src/components/**/*form*.tsx` | RHF + Zod, formulaires progressifs, validation async |
 | `tables` | `tables-patterns.md` | `src/components/**/*table*.tsx`, `src/components/**/*list*.tsx` | Tri, filtres, sélection, actions groupées |
 | `uploads` | `uploads-patterns.md` | `src/components/**/*upload*.tsx`, `src/components/**/*dropzone*.tsx`, `src/lib/actions/*upload*.ts` | Upload, taille, mime, chemins de storage |
-| `auth` | `auth-patterns.md` | `src/middleware.ts`, `src/app/(auth)/**`, `src/lib/actions/auth*.ts` | Signup, login, reset, session, OAuth |
+| `auth` | `auth-patterns.md` | `src/proxy.ts`, `src/middleware.ts`, `src/app/(auth)/**`, `src/lib/actions/auth*.ts` | Signup, login, reset, session, OAuth |
 | `database` | `database-patterns.md` | `supabase/migrations/**`, `supabase/seed.sql`, `src/types/database.ts` | Migrations, RLS, index, transactions, soft delete |
 | `supabase` | `supabase-patterns.md` | `src/lib/supabase/**`, `supabase/**`, `src/lib/actions/**` | Storage, RLS avancé, realtime, codes d'erreur, RPC |
 | `realtime` | `supabase-patterns.md` | `src/hooks/**realtime**`, `src/hooks/**subscription**`, `src/hooks/**presence**` | Subscriptions, presence, cleanup |
-| `security` | `security-patterns.md` | `src/lib/actions/**`, `src/app/api/**`, `src/middleware.ts`, `.env.example` | XSS, CSRF, rate limiting, secrets, idempotence |
+| `security` | `security-patterns.md` | `src/lib/actions/**`, `src/app/api/**`, `src/proxy.ts`, `src/middleware.ts`, `.env.example` | XSS, CSRF, rate limiting, secrets, idempotence |
 | `nextjs` | `nextjs-patterns.md` | `src/app/**/page.tsx`, `src/app/**/layout.tsx`, `src/app/**/loading.tsx`, `src/app/**/error.tsx`, `src/app/**/not-found.tsx`, `src/app/**/template.tsx`, `src/app/**/global-error.tsx`, `src/app/**/unauthorized.tsx`, `src/app/**/forbidden.tsx`, `src/app/**/route.ts`, `next.config.ts` | App Router, fichiers spéciaux, frontières d'autorisation |
 | `state` | `state-management.md` | `src/hooks/**`, `src/components/**/*provider*.tsx`, `src/components/**/*filter*.tsx`, `src/app/**/page.tsx` | URL state, contexte, hiérarchie de state |
 | `feedback` | `feedback-patterns.md` | `src/components/**/*dialog*.tsx`, `src/components/**/*confirm*.tsx`, `src/components/**/*delete*.tsx`, `src/components/**/*toast*.tsx`, `src/components/ui/sonner.tsx` | Toasts, dialogs, confirmations, empty states |
@@ -45,11 +45,11 @@ déduits des globs — c'est le seul moyen d'activer les tags marqués **non rou
 | `seo` | `seo-patterns.md` | `src/app/layout.tsx`, `src/app/**/page.tsx`, `src/app/**/sitemap.ts`, `src/app/**/robots.ts`, `src/app/**/opengraph-image.*` | Metadata API, Open Graph, sitemap, JSON-LD |
 | `monitoring` | `monitoring-patterns.md` | `instrumentation.ts`, `src/instrumentation.ts`, `sentry.*.config.ts`, `src/app/**/error.tsx`, `src/app/**/global-error.tsx`, `src/app/api/health/**` | Error tracking, analytics, health checks, logs |
 | `deploy` | `deployment-patterns.md` | `.github/workflows/**`, `.github/dependabot.yml`, `vercel.json`, `.env.example`, `supabase/config.toml` | Environnements, rollback, migrations, secrets |
-| `testing` | `testing-strategy.md` | `tests/**`, `**/*.test.ts`, `**/*.test.tsx`, `vitest.config.ts`, `playwright.config.ts` | Unit, integ, E2E, mocks, fixtures |
+| `testing` | `testing-strategy.md` | `tests/**`, `**/*.test.ts`, `**/*.test.tsx`, `vitest.config.mts`, `playwright.config.ts` | Unit, integ, E2E, mocks, fixtures |
 | `datetime` | `datetime-patterns.md` | `src/lib/utils/*date*.ts`, `src/lib/utils/*format*.ts`, `src/lib/utils/*currency*.ts` | Dates, timezones, formatage, devises |
-| `i18n` | `i18n-patterns.md` | `messages/**`, `src/i18n/**`, `src/middleware.ts` | Traductions, pluriels, locale, RTL |
+| `i18n` | `i18n-patterns.md` | `messages/**`, `src/i18n/**`, `src/proxy.ts`, `src/middleware.ts` | Traductions, pluriels, locale, RTL |
 | `flags` | `feature-flags-patterns.md` | `src/lib/flags/**`, `src/lib/*flag*.ts` | Feature flags, A/B testing, rollouts |
-| `mcp` | `mcp-patterns.md` | `src/mcp/**`, `src/app/api/[transport]/**`, `src/app/.well-known/**`, `src/lib/services/**`, `widgets/**`, `scripts/smoke-mcp.mjs` | Tools MCP, parité par services partagés, AX et découverte par les hosts, résultats, widgets dual-host, OAuth, transport, golden queries |
+| `mcp` | `mcp-patterns.md` | `src/mcp/**`, `src/app/api/mcp/**`, `src/app/.well-known/**`, `src/lib/services/**`, `widgets/**`, `scripts/smoke-mcp.mjs` | Tools MCP, parité par services partagés, AX et découverte par les hosts, résultats, widgets dual-host, OAuth, transport, golden queries |
 | `selfhost` | `deployment-scaleway.md` | `.github/workflows/supabase-migrations.yml`, `src/mcp/auth.ts`, `src/mcp/config.ts`, `.env.example` | Supabase self-hosted souverain (Scaleway ou autre) : socle, OAuth 2.1 sur GoTrue, adaptations |
 
 ### Tags non routables par chemin

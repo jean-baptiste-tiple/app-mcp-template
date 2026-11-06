@@ -3,7 +3,7 @@
 ## Projet
 <!-- À REMPLIR : nom du projet, description en 1 ligne -->
 
-Stack : Next.js 15 (App Router) · TypeScript strict · Tailwind · Shadcn/ui.
+Stack : Next.js 16 (App Router) · TypeScript strict · Tailwind · Shadcn/ui.
 Canal MCP **installé par défaut** (Claude, ChatGPT) : `src/mcp/`, endpoint `/api/mcp`, widgets dans
 `widgets/` ; mode d'emploi `src/mcp/README.md`, règles dans le tag `mcp`. Un produit sans serveur
 MCP est un écart, décidé au cadrage.
@@ -235,7 +235,7 @@ déduisent d'aucun chemin de fichier.
 1. **Server Components par défaut.** `"use client"` seulement pour state, effets ou event handlers, et poussé le plus bas possible dans l'arbre.
 2. **Server Actions pour les mutations.** Pas de Route Handler sauf webhook ou cron. Chaque action : auth → Zod → exécution → revalidation → `{data}` ou `{error}`.
 3. **Un schema Zod = une source de vérité**, partagé entre le formulaire et l'action.
-4. **RLS activée sur toute table**, sans exception non documentée par un ADR. Auth revérifiée dans chaque Server Action — le middleware ne suffit pas.
+4. **RLS activée sur toute table**, sans exception non documentée par un ADR. Auth revérifiée dans chaque Server Action — le proxy Next (ex-middleware, fourni par le starter `supabase-auth`) ne suffit pas.
 5. **Parité web ↔ MCP par services partagés.** Toute capacité métier = une fonction dans `src/lib/services/`, appelée par le canal web (Server Action pour une mutation, Server Component pour une lecture) ET par le tool MCP, adaptateurs fins. Jamais de logique métier dans un tool ni dans une action.
 
 Route groups : un groupe (`(dashboard)`) avec un `layout.tsx` doit avoir au moins un `page.tsx`,

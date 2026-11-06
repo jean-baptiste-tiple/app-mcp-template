@@ -1,4 +1,4 @@
-# Coding Standards — Next.js 15 + Supabase
+# Coding Standards — Next.js 16 + Supabase
 
 ## Naming
 
@@ -46,7 +46,7 @@ src/
 ├── types/                        # Types TypeScript partagés
 │   ├── database.ts               # Types générés depuis Supabase (npx supabase gen types)
 │   └── index.ts                  # Types métier custom
-└── middleware.ts                  # Auth middleware (redirect si non connecté)
+└── proxy.ts                       # Proxy auth (ex-middleware, Next 16) : refresh de session, redirect si non connecté
 ```
 
 ## Server Components vs Client Components
@@ -63,7 +63,7 @@ trois traitements contradictoires du même cas (throw / return / redirect).
 
 - Pattern Server Action, type de retour, `redirect()` dans un `try` → `api-patterns.md`
 - Client browser / server / service_role, RLS, codes d'erreur → `supabase-patterns.md`
-- Middleware et flows d'authentification → `auth-patterns.md`
+- Proxy (ex-middleware) et flows d'authentification → `auth-patterns.md`
 
 ## DRY
 
@@ -78,8 +78,8 @@ trois traitements contradictoires du même cas (throw / return / redirect).
 
 ## Imports
 
-Alias `@/` vers `src/`. L'ordre des groupes est appliqué par la règle ESLint `import/order` —
-ne pas le vérifier à la main.
+Alias `@/` vers `src/`. L'ordre des groupes est appliqué par la règle ESLint `import-x/order`
+(`eslint-plugin-import-x`, le seul compatible ESLint 10) — ne pas le vérifier à la main.
 
 ## Error Handling
 

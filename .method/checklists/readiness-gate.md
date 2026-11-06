@@ -43,7 +43,7 @@
 
 ## Ce qui n'est PAS dans ce gate
 
-L'infrastructure (`pnpm install`, `.env.local`, serveur qui démarre, clés Supabase, middleware
+L'infrastructure (`pnpm install`, `.env.local`, serveur qui démarre, clés Supabase, proxy
 auth) **ne peut pas** être vérifiée ici : `/plan` s'interdit toute commande système et toute
 création de fichier non-Markdown. Exiger ces points au gate de cadrage créait une dépendance
 circulaire — le gate ne pouvait pas passer honnêtement.

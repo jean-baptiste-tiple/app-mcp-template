@@ -4,6 +4,9 @@ node_modules/
 # Next.js
 .next/
 out/
+# Régénéré par `next typegen` (lancé par `pnpm type-check`), `next dev` et `next build` ;
+# son contenu alterne entre .next/dev/types et .next/types selon la dernière commande.
+next-env.d.ts
 dist/
 build/
 
@@ -19,6 +22,8 @@ build/
 test-results/
 playwright-report/
 coverage/
+# Cache de Vitest 5
+.vitest/
 # Captures locales lues par la review (pnpm ui:shots), jamais versionnées
 .ui-shots/
 

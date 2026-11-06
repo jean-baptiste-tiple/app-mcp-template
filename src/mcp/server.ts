@@ -1,6 +1,6 @@
 // Assemblage du serveur MCP — partagé entre la route /api/mcp (mcp-handler) et les tests
 // unit (InMemoryTransport). C'est le SEUL endroit qui liste tools, widgets et instructions.
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import type { McpServer } from "@modelcontextprotocol/server"
 
 import { MCP_SERVER_INFO } from "./config"
 import { registerGetStatusTool } from "./tools/get-status"

@@ -3,7 +3,7 @@
 // appelée comme Next l'appelle, avec une Request, et l'environnement est piloté par vi.stubEnv.
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { POST } from "@/app/api/[transport]/route"
+import { POST } from "@/app/api/mcp/route"
 
 function initializeRequest(): Request {
   return new Request("http://localhost:3000/api/mcp", {
