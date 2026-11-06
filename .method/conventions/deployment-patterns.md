@@ -67,7 +67,8 @@ NEXT_PUBLIC_SITE_URL=
 # 2. pnpm lint
 # 3. pnpm test
 # Puis commit + push si tout passe.
-# Pas de CI GitHub pour les checks — tout se fait en local.
+# Sur main, la CI ne rejoue pas ces checks (build seulement) ; sur une pull request, elle
+# les rejoue tous : c'est le seul gate d'une PR Dependabot (§ Dependabot).
 ```
 
 ### Pre-deploy checklist
@@ -79,6 +80,37 @@ NEXT_PUBLIC_SITE_URL=
 - [ ] Pas de `console.log` oublié
 - [ ] Pas de secrets dans le code
 - [ ] `pnpm audit:lh` vert (seuils de `performance-patterns.md § Audit Lighthouse`)
+- [ ] `pnpm audit --prod` sans vulnérabilité `high` ou `critical` (§ Dependabot : les alertes GitHub peuvent manquer)
+
+## Dependabot
+
+Config : `.github/dependabot.yml`, écosystèmes `npm` (couvre pnpm) et `github-actions`.
+Politique du template, contrôlée par `pnpm check:framework` :
+
+- **Majeures ignorées globalement.** Une majeure est une décision : ligne de `tech-stack.md`
+  avec sa raison, ADR si un invariant bouge, puis mise à jour à la main. Jamais une PR
+  hebdomadaire : zod 4, Next 16 ou vite 8 cassent des pins liés entre eux (ext-apps, resolvers,
+  plateforme Otomata).
+- **Tout pin exact ou tilde de `package.json` a son entrée `ignore` sur les mineures** dans
+  `dependabot.yml` ; les patchs restent proposés. Un pin ajouté sans son entrée fait échouer
+  `check:framework`. `@modelcontextprotocol/sdk` ignore aussi les patchs : peer exact de
+  `mcp-handler`, il bouge avec lui.
+- **Une PR groupée par semaine** (lundi 07:00 Paris), mineures et patchs, après 7 jours de
+  recul par version (`cooldown`), même esprit que `minimumReleaseAge` de pnpm (1440 min par
+  défaut). Les mises à jour de sécurité ne subissent ni le délai ni le groupe.
+- **Le gate d'une PR Dependabot est la CI** : `ci.yml` lance les 4 checks (`check:framework`,
+  `type-check`, `lint`, `test`) puis le build sur toute pull request. Merge depuis GitHub quand
+  tout est vert ; `pnpm verify` local n'est pas exigé pour ces PR. Si un check échoue, ne pas
+  adapter le code dans la PR : corriger sur `main` (ajouter le pin et son entrée `ignore`, ou la
+  ligne de `tech-stack.md`) et laisser Dependabot rebaser.
+- **Actions GitHub** : les majeures d'actions (`actions/checkout@v7`…) sont proposées et se
+  mergent comme les autres, la CI verte faisant foi.
+- **Alertes de sécurité** : activées sur le dépôt (`vulnerability-alerts` et
+  `automated-security-fixes`, via `gh api -X PUT`). Limite connue : pnpm 12 avec `packageManager`
+  écrit `pnpm-lock.yaml` en deux documents YAML, que le dependency graph de GitHub ne lit pas ;
+  les alertes npm peuvent donc manquer. D'où `pnpm audit --prod` dans la checklist ci-dessus.
+- **Projet dérivé** : garder le fichier et enrichir `ignore` à chaque pin ajouté. Le supprimer
+  vaut « pas de mise à jour automatique » : le check l'avertit, il ne l'interdit pas.
 
 ## Rollback
 

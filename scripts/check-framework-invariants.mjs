@@ -20,6 +20,7 @@ export function verifierInvariants({ ROOT, read, walk, err, warn }) {
   invariantsDeCode({ ROOT, read, walk, err })
   invariantsUi({ ROOT, read, walk, err })
   chaineDApplication({ ROOT, read, err, warn })
+  invariantsDependabot({ ROOT, read, err, warn })
 }
 
 /** Tables créées par une migration sans que la même migration active la RLS. */
@@ -223,5 +224,72 @@ function chaineDApplication({ ROOT, read, err, warn }) {
     warn(".githooks/pre-commit absent — un `git commit` lancé depuis un script n'est contrôlé par rien.")
   } else if (!/verify-receipt/.test(read(preCommit))) {
     err('.githooks/pre-commit ne vérifie plus le reçu.')
+  }
+}
+
+// ------------------------------- un pin de package.json est-il protégé de Dependabot ?
+// `versioning-strategy: increase` réécrit la plage : un pin exact ou tilde sans entrée `ignore`
+// sur les mineures reçoit chaque semaine une PR qui le casse, et la raison du pin (tech-stack.md)
+// n'est relue par personne au moment du merge.
+const DEPENDABOT = 'deployment-patterns.md § Dependabot'
+
+/**
+ * Entrées `ignore` de l'écosystème npm, sans dépendance YAML. Parseur minimal pour le format
+ * écrit par le template : une entrée commence par `- dependency-name:` (valeur avec ou sans
+ * guillemets, commentaire de fin de ligne toléré) et sa ligne `update-types: [...]` suit.
+ * Une syntaxe YAML plus libre (liste multi-ligne, ancres) n'est pas lue.
+ */
+function ignoresNpm(yaml) {
+  const entrees = []
+  let ecosysteme = null
+  let courante = null
+  for (const l of yaml.split(/\r?\n/)) {
+    const eco = /^\s*-\s*package-ecosystem:\s*["']?([\w-]+)/.exec(l)
+    if (eco) {
+      ecosysteme = eco[1]
+      courante = null
+      continue
+    }
+    if (ecosysteme !== 'npm') continue
+    const nom = /^\s*-\s*dependency-name:\s*(?:"([^"]+)"|'([^']+)'|([^\s#]+))/.exec(l)
+    const types = /^\s*update-types:\s*\[([^\]]*)\]/.exec(l)
+    if (nom) {
+      courante = { nom: nom[1] ?? nom[2] ?? nom[3], types: [] }
+      entrees.push(courante)
+    } else if (types && courante) {
+      courante.types = types[1].split(',').map((t) => t.trim().replace(/^["']|["']$/g, ''))
+      courante = null
+    }
+  }
+  return entrees
+}
+
+function invariantsDependabot({ ROOT, read, err, warn }) {
+  const pkgPath = join(ROOT, 'package.json')
+  if (!existsSync(pkgPath)) return
+  const pkg = JSON.parse(read(pkgPath))
+  const pins = Object.entries({ ...pkg.dependencies, ...pkg.devDependencies }).filter(([, spec]) =>
+    /^[\d~]/.test(spec)
+  )
+
+  const configPath = join(ROOT, '.github/dependabot.yml')
+  if (!existsSync(configPath)) {
+    warn(`Dependabot non configuré (.github/dependabot.yml absent) : aucune mise à jour de dépendance n'est proposée (${DEPENDABOT}).`)
+    return
+  }
+  const entrees = ignoresNpm(read(configPath))
+  const ignore = (nom, type) => entrees.some((e) => e.nom === nom && e.types.includes(type))
+
+  for (const [nom, spec] of pins) {
+    if (!ignore(nom, 'version-update:semver-minor')) {
+      err(
+        `package.json : \`${nom}\` épinglé en \`${spec}\` sans entrée \`ignore\` sur les mineures dans .github/dependabot.yml — Dependabot proposera de casser le pin (${DEPENDABOT}).`
+      )
+    }
+  }
+  if (!ignore('*', 'version-update:semver-major')) {
+    err(
+      `.github/dependabot.yml : les majeures ne sont pas ignorées globalement ; une majeure est une décision de tech-stack.md, pas une PR hebdomadaire (${DEPENDABOT}).`
+    )
   }
 }

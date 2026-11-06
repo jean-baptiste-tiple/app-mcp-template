@@ -13,9 +13,9 @@
 | Zod | 3.25.x, import `zod/v4` | Validation | Schemas partagés front/back, inférence TypeScript. API v4 par le sous-chemin `zod/v4` : seul format accepté par `@otomata_tech/oto_platform` (ADR-001), et zod 4 reste exclu par `@modelcontextprotocol/ext-apps` 1.7.4 |
 | React Hook Form | 7.x + `@hookform/resolvers` 5 | Formulaires | Performance, intégration Zod via resolver ; resolvers 5 lit les schémas `zod/v4` et est le peer exigé par la plateforme Otomata |
 | Vitest | latest | Tests unit/integ | Rapide, compatible ESM, API Jest-like |
-| Testing Library | latest | Tests composants | Test du comportement user, pas de l'implémentation |
+| Testing Library | latest ; `@testing-library/jest-dom` **6.9.1 exacte** | Tests composants | Test du comportement user, pas de l'implémentation. jest-dom 6.10.0 est dépréciée par ses mainteneurs (« incorrect minor release with breaking changes ») : la ligne 6.x s'arrête à 6.9.1, la suite est la majeure 7 |
 | Playwright | latest | Tests E2E, captures `pnpm ui:shots` (`scripts/ui-shots.mjs`) | Cross-browser, fiable, auto-wait. Trois projets : `chromium`, `mobile` (Pixel 7), `dark` |
-| @axe-core/playwright | ^4.13.0 | Accessibilité par règle dans le smoke e2e | Liste les éléments en violation (`serious`/`critical`), là où Lighthouse ne donne qu'un score global sur un build de prod |
+| @axe-core/playwright | ^4.14.0 | Accessibilité par règle dans le smoke e2e | Liste les éléments en violation (`serious`/`critical`), là où Lighthouse ne donne qu'un score global sur un build de prod |
 | pnpm | 12.4.1 (`packageManager`) | Package manager | Rapide, strict, disk-efficient. `minimumReleaseAge` actif par défaut en 12 : une version publiée trop récemment est refusée (exclusion par paquet dans `pnpm-workspace.yaml`). Si corepack échoue à le télécharger : `npm i -g pnpm@12.4.1` |
 
 <!-- PERSONNALISER : ajouter les libs spécifiques au projet (ex: @tanstack/query, date-fns, etc.) -->
@@ -24,12 +24,15 @@
 
 > Code : `src/mcp/`, `src/app/api/[transport]/`, `widgets/` — mode d'emploi : `src/mcp/README.md`.
 > Versions exactes (`package.json` sans `^`) : une majeure suivante casse le type-check (raison par ligne).
+> Tout pin exact ou tilde de ce fichier a son entrée `ignore` sur les mineures dans
+> `.github/dependabot.yml` (`deployment-patterns.md § Dependabot`, contrôlé par `check:framework`) :
+> les patchs arrivent par Dependabot, les mineures et majeures se décident ici.
 
 | Techno | Version | Rôle | Justification |
 |--------|---------|------|---------------|
 | @modelcontextprotocol/sdk | 1.26.0 exacte | Serveur MCP (tools, resources) | SDK TypeScript officiel — épinglé sur le peer exact de `mcp-handler` 1.1.0 |
 | mcp-handler | 1.1.0 exacte | Endpoint MCP dans Next.js (`/api/mcp`) | Transport Streamable HTTP sur route handler (`src/app/api/[transport]`), stateless par défaut, stateful via `redisUrl` — compatible Vercel. En 2.x, `createMcpHandler` ne prend plus que deux arguments |
 | MCP Apps (GA 2026-01-26) — resources `ui://` | via SDK | Widgets visuels dans Claude/ChatGPT | Bundles `ui://` en `text/html;profile=mcp-app` + variante `-skybridge` (`text/html+skybridge`, ChatGPT), triple méta (`ui.resourceUri` + alias plat déprécié + `openai/outputTemplate`). Pas de dépendance `@mcp-ui/*` |
-| @modelcontextprotocol/ext-apps | 1.7.4 exacte (2.x exige zod 4, le template est en zod 3) | SDK officiel côté widget (bridge MCP Apps) | Le bridge `widgets/shared/bridge.ts` en dépend entièrement (handshake `ui/initialize`, tool-result, thème, autoResize) — ne PAS réimplémenter le protocole. Entrée `app-with-deps` (évite le conflit de peer avec le SDK serveur) |
-| Vite + vite-plugin-singlefile | 7.3.1 et 2.3.3 exactes (Vite 8 n'est accepté ni par `@vitejs/plugin-react` 4 ni par le typage de `vitest.config.ts`) | Build des widgets en HTML single-file (`widgets/build.mjs` → `generated.ts` inliné) | CSP des hosts = zéro requête externe, zéro fs à runtime |
-| jose | 6.2.12 exacte | Validation JWT (JWKS Supabase) dans `src/mcp/auth.ts` | OAuth 2.1 resource server, RLS au JWT utilisateur |
+| @modelcontextprotocol/ext-apps | 1.7.5 exacte (2.x exige zod 4, le template est en zod 3) | SDK officiel côté widget (bridge MCP Apps) | Le bridge `widgets/shared/bridge.ts` en dépend entièrement (handshake `ui/initialize`, tool-result, thème, autoResize) — ne PAS réimplémenter le protocole. Entrée `app-with-deps` (évite le conflit de peer avec le SDK serveur) |
+| Vite + vite-plugin-singlefile | 7.3.7 et 2.3.4 exactes (Vite 8 n'est accepté ni par `@vitejs/plugin-react` 4 ni par le typage de `vitest.config.ts`) | Build des widgets en HTML single-file (`widgets/build.mjs` → `generated.ts` inliné) | CSP des hosts = zéro requête externe, zéro fs à runtime |
+| jose | 6.2.15 exacte | Validation JWT (JWKS Supabase) dans `src/mcp/auth.ts` | OAuth 2.1 resource server, RLS au JWT utilisateur |

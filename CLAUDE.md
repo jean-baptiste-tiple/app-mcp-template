@@ -225,7 +225,7 @@ exclus du reçu de vérification : les éditer n'invalide pas des checks déjà 
 - **Pour commiter :** skill `commit-push`. Il lance `pnpm verify:cached`, qui ne rejoue les checks que si le code a bougé depuis le dernier passage.
 - **C'est un gate appliqué, pas une convention.** `.claude/hooks/enforce-git-gate.mjs` bloque tout `git commit` / `git push` direct, et refuse un commit dont le reçu ne couvre pas l'état exact du code. `--no-verify` et `--force` sont bloqués sans échappement possible.
 - **Worktree.** Le gate juge un commit sur le reçu du dépôt que la commande vise (`cd <dir> &&` en tête, ou `git -C <dir>`) : lancer `pnpm verify` puis `git commit` DANS le worktree. Le hook qui s'exécute est celui du checkout de la session : si sa copie est antérieure à ce correctif, ouvrir la session dans le worktree. Pour une branche sans commit, avancer par `git stash -u` → `git reset --hard main` → `git stash pop`.
-- La CI ne lance que `pnpm build` — validation Vercel et erreurs spécifiques à Linux. Pas de duplication avec le local.
+- La CI : `pnpm build` sur `main` (validation Vercel, erreurs spécifiques à Linux), sans duplication avec le local. Sur une pull request, elle ajoute les 4 checks : seul gate des PR Dependabot, qui ne passent jamais par `pnpm verify` (`deployment-patterns.md § Dependabot`).
 
 ## Invariants techniques
 
