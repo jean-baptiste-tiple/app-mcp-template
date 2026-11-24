@@ -66,6 +66,7 @@ beforeEach(() => {
   })
   mkdirSync(join(tpl, "scripts"), { recursive: true })
   copyFileSync(SCRIPT, join(tpl, "scripts/sync-method.mjs"))
+  copyFileSync(join(process.cwd(), "scripts/sync-method-merge.mjs"), join(tpl, "scripts/sync-method-merge.mjs"))
   ecrire(cible, {
     ".method/conventions/coding-standards.md": "ligne 1\r\nligne 2\r\n",
     ".method/conventions/ui-patterns.md": "ui v1\n",
@@ -187,10 +188,64 @@ describe("sync-method — --exclude", () => {
     expect(tampon().files).not.toHaveProperty(".claude/skills/dev/SKILL.md")
   })
 
-  it("should refuse --exclude without --apply, or on a file the template does not provide", () => {
-    expect(sync(cible, "--exclude", ".claude/skills/dev/SKILL.md").code).toBe(1)
+  it("should refuse --exclude on a file the template does not provide", () => {
     expect(sync(cible, "--apply", "--exclude", "src/app/page.tsx").code).toBe(1)
     expect(existsSync(join(cible, ".method/sync-state.json"))).toBe(false)
+  })
+
+  it("should imply --apply with --exclude alone", () => {
+    const { code } = sync(cible, "--exclude", ".claude/skills/dev/SKILL.md")
+    expect(code).toBe(0)
+    expect(tampon()).toMatchObject({ exclude: [".claude/skills/dev/SKILL.md"] })
+    expect(lire(".method/conventions/ui-patterns.md")).toBe("ui v1\n")
+  })
+})
+
+describe("sync-method — --take", () => {
+  it("should imply --apply with --take alone", () => {
+    const { code } = sync(cible, "--take", ".method/conventions/ui-patterns.md")
+    expect(code).toBe(0)
+    expect(lire(".method/conventions/ui-patterns.md")).toBe("ui v2\n")
+    expect(lire(".claude/skills/dev/SKILL.md")).toBe("dev v2\n")
+  })
+
+  it("should report a merge file without project lines and let --take write the template version", () => {
+    ecrire(cible, { "CLAUDE.md": "# Méthode\r\n\r\n## Projet\r\n" })
+    expect(sync(cible).out).toContain("CLAUDE.md : merge sans part projet")
+    const { code } = sync(cible, "--take", "CLAUDE.md")
+    expect(code).toBe(0)
+    expect(lire("CLAUDE.md")).toBe("# Méthode\n\n## Projet\n\n## Nouvelle section\n")
+  })
+
+  it("should refuse --take on a merge file that has project lines", () => {
+    const { code, out } = sync(cible, "--take", "CLAUDE.md")
+    expect(code).toBe(1)
+    expect(out).toContain("ni « merge sans part projet »")
+    expect(lire("CLAUDE.md")).toBe("# Méthode\n\n## Projet\n\nPart du projet.\n")
+  })
+})
+
+describe("sync-method — doublons et rappels", () => {
+  it("should report an original copy left at the old path of a moved owned file, same content CRLF-normalised", () => {
+    ecrire(cible, { "docs/decisions/ADR-001-socle.md": "ADR du template\r\n" })
+    const { out } = sync(cible)
+    expect(out).toContain("doublon à supprimer à la main (1)\n  docs/decisions/ADR-001-socle.md  (même contenu que docs/decisions/socle/ADR-001-socle.md)")
+    sync(cible, "--apply")
+    expect(existsSync(join(cible, "docs/decisions/ADR-001-socle.md"))).toBe(true)
+  })
+
+  it("should not report as duplicate an old-path file the project has changed", () => {
+    ecrire(cible, { "docs/decisions/ADR-001-socle.md": "ADR amendé par le projet\n" })
+    expect(sync(cible).out).not.toContain("## doublon à supprimer à la main")
+  })
+
+  it("should remind to install chromium only when @playwright/test differs", () => {
+    const rappel = "pnpm exec playwright install chromium"
+    ecrire(tpl, { "package.json": JSON.stringify({ name: "t", devDependencies: { "@playwright/test": "1.64.0" } }) })
+    ecrire(cible, { "package.json": JSON.stringify({ name: "c", devDependencies: { "@playwright/test": "1.60.0" } }) })
+    expect(sync(cible).out).toContain(rappel)
+    ecrire(cible, { "package.json": JSON.stringify({ name: "c", devDependencies: { "@playwright/test": "1.64.0" } }) })
+    expect(sync(cible).out).not.toContain(rappel)
   })
 })
 
@@ -209,6 +264,12 @@ describe("sync-method — --diff", () => {
     expect(sync(cible, "--diff", "src/app/page.tsx").code).toBe(1)
     expect(sync(cible, "--apply", "--diff", "CLAUDE.md").code).toBe(1)
   })
+
+  it("should refuse --diff combined with --take or --exclude, which imply writing", () => {
+    expect(sync(cible, "--take", ".method/conventions/ui-patterns.md", "--diff", "CLAUDE.md").code).toBe(1)
+    expect(sync(cible, "--exclude", ".claude/skills/dev/SKILL.md", "--diff", "CLAUDE.md").code).toBe(1)
+    expect(lire(".method/conventions/ui-patterns.md")).toBe("ui v1\n")
+  })
 })
 
 describe("verifierManifeste", () => {
@@ -224,5 +285,25 @@ describe("verifierManifeste", () => {
     ecrire(tpl, { ".method/conventions/nouvelle.md": "x\n" })
     verifierManifeste(tpl, (m: string) => errors.push(m))
     expect(errors).toEqual([expect.stringContaining("`.method/conventions/nouvelle.md` n'est ni owned ni merge")])
+  })
+
+  it("should flag a travelling document that cites a template-only path (manifest, ADR before its move)", () => {
+    const errors: string[] = []
+    ecrire(tpl, {
+      "CLAUDE.md": "Selon `.method/sync-manifest.json`.\n",
+      ".claude/skills/dev/SKILL.md": "Voir `docs/decisions/ADR-001-socle.md`.\n",
+    })
+    verifierManifeste(tpl, (m: string) => errors.push(m))
+    expect(errors).toEqual([
+      expect.stringContaining(".claude/skills/dev/SKILL.md : cite `docs/decisions/ADR-001-socle.md`"),
+      expect.stringContaining("CLAUDE.md : cite `.method/sync-manifest.json`"),
+    ])
+  })
+
+  it("should accept a travelling document that cites a template ADR by its number alone", () => {
+    const errors: string[] = []
+    ecrire(tpl, { "CLAUDE.md": "Le manifeste `sync-manifest.json` du template ; ADR-001.\n" })
+    verifierManifeste(tpl, (m: string) => errors.push(m))
+    expect(errors).toEqual([])
   })
 })

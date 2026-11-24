@@ -47,6 +47,8 @@ const bashRules = (command: string, extra?: Record<string, unknown>) =>
 
 const BLOCKED = 2
 const ALLOWED = 0
+// Gate + reçu : plusieurs process git par test ; 45 s observées sous charge (synchro 99deco).
+const GIT_TIMEOUT = 60_000
 
 
 function receipt(action: "write" | "check" | "clear"): number {
@@ -66,7 +68,7 @@ describe("enforce-git-gate", () => {
   // Le gate exige un reçu couvrant l'arbre courant pour laisser passer un commit marqué.
   beforeEach(() => {
     receipt("write")
-  })
+  }, GIT_TIMEOUT)
 
   it("bloque un commit et un push nus", () => {
     expect(gate("git push")).toBe(BLOCKED)
@@ -80,7 +82,7 @@ describe("enforce-git-gate", () => {
     expect(gate("cd /tmp && git push")).toBe(BLOCKED)
   })
 
-  it("n'accepte le marqueur qu'en fin de commande, jamais dans un message ou une description", () => {
+  it("n'accepte le marqueur qu'en fin de commande, jamais dans un message ou une description", { timeout: GIT_TIMEOUT }, () => {
     expect(gate('git commit -m "docs: expliquer checks-ok"')).toBe(BLOCKED)
     expect(gate("git push", { description: "voir checks-ok" })).toBe(BLOCKED)
     expect(gate(`git commit -m "feat: x" ${MARKER}`)).toBe(ALLOWED)
@@ -101,7 +103,7 @@ describe("enforce-git-gate", () => {
     expect(gate("ls -la", { description: "prepare le git push" })).toBe(ALLOWED)
   })
 
-  it("ne bloque pas un message de commit qui contient le texte d'un flag interdit", () => {
+  it("ne bloque pas un message de commit qui contient le texte d'un flag interdit", { timeout: GIT_TIMEOUT }, () => {
     expect(gate(`git commit -m "fix: gerer --force" ${MARKER}`)).toBe(ALLOWED)
   })
 
@@ -122,7 +124,7 @@ describe("enforce-git-gate", () => {
     expect(gate(`git push -uf origin main ${MARKER}`)).toBe(BLOCKED)
   })
 
-  it("exige un reçu de tout verbe qui produit un commit, mais pas du push", () => {
+  it("exige un reçu de tout verbe qui produit un commit, mais pas du push", { timeout: GIT_TIMEOUT }, () => {
     expect(receipt("clear")).toBe(0)
     expect(gate(`git merge feature/x ${MARKER}`)).toBe(BLOCKED)
     expect(gate(`git cherry-pick abc1234 ${MARKER}`)).toBe(BLOCKED)
@@ -137,7 +139,7 @@ describe("enforce-git-gate", () => {
     expect(gate(`git merge feature/x ${MARKER}`)).toBe(ALLOWED)
   })
 
-  it("refuse un reçu qui ne déclare pas les 4 checks", () => {
+  it("refuse un reçu qui ne déclare pas les 4 checks", { timeout: GIT_TIMEOUT }, () => {
     // Le champ `checks` était écrit puis jamais relu : le reçu prouvait l'identité de l'arbre,
     // pas que quoi que ce soit avait été vérifié.
     execFileSync("node", [RECEIPT_SCRIPT, "write", "test"], { stdio: "pipe", env: RECEIPT_ENV })

@@ -6,8 +6,7 @@ Ajoute à l'application la plateforme MCP d'entreprise d'Otomata : pages, tablea
 
 **Quand l'activer :** l'ERP doit héberger des contenus éditables (procédures, pages, tableaux)
 lus par les assistants, ou servir ses fonctions métier par un MCP au catalogue partagé. Décision
-de cadrage (`/plan`), jamais par défaut. **Il remplace le MCP du template** :
-`docs/decisions/ADR-001-oto-platform-remplace-mcp-template.md`.
+de cadrage (`/plan`), jamais par défaut. **Il remplace le MCP du template** : ADR-001.
 
 Source qui fait foi : le `README.md` et `peerDependencies` du paquet installé
 (`node_modules/@otomata_tech/oto_platform/`), et l'application de base du dépôt

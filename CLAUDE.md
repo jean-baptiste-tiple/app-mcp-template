@@ -275,30 +275,40 @@ se **mutualisent** : un seul run, au bon moment, pour tout le monde.
 ## Mettre à jour un projet dérivé
 
 Les projets dérivés n'ont pas l'historique du template : la méthode les atteint par
-`scripts/sync-method.mjs`, depuis le template, selon `.method/sync-manifest.json` (`owned` : le
-template fait foi ; `merge` : contenu mixte, jamais écrit ; le reste appartient au projet).
+`scripts/sync-method.mjs`, depuis le template, selon le manifeste `sync-manifest.json` du
+template (`owned` : le template fait foi ; `merge` : contenu mixte, jamais écrit sans `--take` ;
+le reste appartient au projet).
 
 1. **Rapport** : `node scripts/sync-method.mjs <dépôt-dérivé>`, rien n'est écrit. Statuts des
    fichiers `owned` : `nouveau`, `à jour sûr` (inchangé depuis la dernière synchro, empreinte du
    tampon `sync-state.json` écrit dans le `.method/` du dérivé), `modifié par le projet`,
    `exclu par le projet`, `retiré du template` (noté par la synchro précédente, jamais supprimé :
    à retirer à la main), `propre au projet` (ajouté par le dérivé sous un dossier owned, jamais
-   touché) ; pour les fichiers `merge`, sections, lignes de tableau, scripts, hooks et lignes
-   `.gitignore` que le template a et pas le dérivé. `--diff <chemin>` (répétable) affiche le diff
-   unifié template → dérivé d'un fichier owned ou merge, CRLF normalisé, sans rien écrire.
+   touché), `doublon à supprimer à la main` (copie d'origine, même contenu, d'un fichier que le
+   template écrit ailleurs : ADR directement sous `docs/decisions/`) ; pour les fichiers `merge`,
+   sections, lignes de tableau, scripts, hooks et lignes `.gitignore` que le template a et pas
+   le dérivé, et le statut `merge sans part projet` (toutes les lignes non vides du dérivé
+   existent dans le template : version antérieure ou égale, rien de propre). `--diff <chemin>`
+   (répétable) affiche le diff unifié template → dérivé d'un fichier owned ou merge, CRLF
+   normalisé, sans rien écrire. Le rapport finit par le rappel `pnpm exec playwright install
+   chromium` quand `@playwright/test` diffère entre template et dérivé.
 2. **Écriture** : `--apply` écrit `nouveau` et `à jour sûr`, et le tampon. `--take <chemin>`
-   (répétable) écrase un fichier `modifié par le projet` : **seulement après avoir lu son diff**
-   (`--diff`), sinon la part du projet est perdue. `--exclude <chemin>` (répétable) refuse
-   durablement un fichier du template (convention retirée volontairement par le dérivé) : noté
-   dans le tampon, il n'est plus jamais écrit, aux synchros suivantes aussi.
+   (répétable) écrase un fichier `modifié par le projet` ou `merge sans part projet` : **seulement
+   après avoir lu son diff** (`--diff`), sinon la part du projet est perdue ; sur tout autre
+   fichier `merge`, il est refusé. `--exclude <chemin>` (répétable) refuse durablement un fichier
+   du template (convention retirée volontairement par le dérivé) : noté dans le tampon, il n'est
+   plus jamais écrit, aux synchros suivantes aussi. `--take` et `--exclude` impliquent `--apply` ;
+   `--diff` ne se combine avec aucun des trois.
 3. **ADR du template** : ils arrivent dans le sous-dossier `socle/` des `docs/decisions/` du
-   dérivé, qui fait foi. Ceux que le dérivé avait déjà directement sous `docs/decisions/` (copie
-   d'origine) se suppriment à la main après la première synchro.
+   dérivé, qui fait foi. Les copies d'origine signalées `doublon à supprimer à la main` se
+   suppriment à la main. Un document qui voyage cite un ADR du template par son numéro seul
+   (« ADR-001 »), jamais par son chemin.
 4. **Fusion manuelle** des fichiers `merge` listés, dans le dérivé.
 5. **`pnpm verify` dans le dérivé**, puis son propre `commit-push`.
 
 Un fichier ajouté au template qui doit voyager s'ajoute au manifeste : `check:framework` refuse
-un glob `owned` qui ne matche rien et une convention ni `owned` ni `merge`.
+un glob `owned` qui ne matche rien, une convention ni `owned` ni `merge`, et un document `owned`
+ou `merge` qui cite le chemin du manifeste ou d'un ADR du template (chemins absents d'un dérivé).
 
 ## Invariants techniques
 

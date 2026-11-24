@@ -55,6 +55,15 @@ function longRun(args: string[], command: string): Promise<{ code: number; stamp
   })
 }
 
+/** Attente active, bornée, que le premier run tienne le verrou : un délai fixe ne suffit pas sous charge. */
+async function attendreVerrou(limiteMs = 15_000) {
+  const fin = Date.now() + limiteMs
+  while (!existsSync(join(dir, "lock.json"))) {
+    if (Date.now() > fin) throw new Error(`lock.json absent après ${limiteMs} ms`)
+    await new Promise((r) => setTimeout(r, 20))
+  }
+}
+
 beforeEach(() => {
   dir = mkdtempSync(join(tmpdir(), "long-run-"))
 })
@@ -105,7 +114,7 @@ describe("long-run", () => {
   it("runs two long commands one after the other, never together", async () => {
     const sleep = "Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,800)"
     const first = longRun(["build"], sleep)
-    await new Promise((r) => setTimeout(r, 300))
+    await attendreVerrou()
     const second = longRun(["test:e2e"], sleep)
     const [a, b] = await Promise.all([first, second])
     expect(a.code).toBe(0)

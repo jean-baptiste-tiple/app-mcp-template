@@ -9,7 +9,7 @@
     ".method/templates/**",
     ".method/starters/**",
     ".method/conventions/{accessibility-patterns,api-patterns,auth-patterns,coding-standards,database-patterns,datetime-patterns,deployment-patterns,deployment-scaleway,feature-flags-patterns,feedback-patterns,forms-patterns,i18n-patterns,mcp-patterns,monitoring-patterns,nextjs-patterns,performance-patterns,security-patterns,seo-patterns,state-management,supabase-patterns,tables-patterns,testing-strategy,typescript-patterns,ui-patterns,uploads-patterns}.md",
-    "scripts/{check-framework,check-framework-invariants,verify-receipt,long-run,ui-shots,sync-method}.mjs",
+    "scripts/{check-framework,check-framework-invariants,verify-receipt,long-run,ui-shots,sync-method,sync-method-merge}.mjs",
     "tests/unit/{hooks,check-framework-invariants,long-run,sync-method}.test.ts",
     ".github/dependabot.yml",
     { "glob": "docs/decisions/ADR-*.md", "dest": "docs/decisions/socle/" }
