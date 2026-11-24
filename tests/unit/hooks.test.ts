@@ -337,6 +337,8 @@ describe("verify-receipt", () => {
       writeFileSync(join(repo, "recu-ok"), "")
       expect(gate(`cd ${repo} && git commit -m "x" ${MARKER}`)).toBe(ALLOWED)
       expect(gate(`git -C "${repo}" commit -m "x" ${MARKER}`)).toBe(ALLOWED)
+      // Un message qui cite `git -C …` ne déplace pas le dépôt visé (bo-my, 2026-11-24).
+      expect(gate(`cd ${repo} && git commit -m "fix: gate cd/git -C et dépôt hors méthode" ${MARKER}`)).toBe(ALLOWED)
       // Le marqueur reste exigé, et les interdits absolus aussi.
       expect(gate(`cd ${repo} && git commit -m "x"`)).toBe(BLOCKED)
       expect(gate(`cd ${repo} && git commit --no-verify -m "x" ${MARKER}`)).toBe(BLOCKED)

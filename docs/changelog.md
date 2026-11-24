@@ -11,7 +11,7 @@
 -->
 
 ## [2026-11-24] — Gate : un dérivé est jugé par son propre script de reçu
-**Quoi :** un commit visé dans un autre dépôt de la méthode (`cd <dir> &&`, `git -C`) est jugé par le `scripts/verify-receipt.mjs check` de ce dépôt, plus par l'algorithme du template.
+**Quoi :** un commit visé dans un autre dépôt de la méthode (`cd <dir> &&`, `git -C`) est jugé par le `scripts/verify-receipt.mjs check` de ce dépôt, plus par l'algorithme du template. Un message de commit qui cite `git -C …` ne déplace plus le dépôt visé (texte entre quotes masqué).
 **Pourquoi :** bo-my a adapté son reçu (npm, exclusions) : son `verify` vert était refusé par le gate de la session dev-framework.
 **Fichiers :** `.claude/hooks/enforce-git-gate.mjs`, `tests/unit/hooks.test.ts`, `CLAUDE.md`
 

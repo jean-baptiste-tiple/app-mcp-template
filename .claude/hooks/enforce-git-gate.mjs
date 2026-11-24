@@ -42,10 +42,21 @@ function racineVisee(command, cwd) {
   // Git Bash écrit `/c/apps/…` ; git.exe lancé par Node attend `c:/apps/…`.
   const natif = (p) => (process.platform === 'win32' ? p.replace(/^\/([a-zA-Z])(?=\/|$)/, '$1:') : p)
   const ARG = `(?:"([^"]+)"|'([^']+)'|([^\\s;&|]+))`
+  // Le motif se cherche sur une copie où le texte entre quotes est masqué à longueur égale :
+  // un message de commit qui cite `git -C …` ne doit pas déplacer le dépôt visé (bo-my,
+  // 2026-11-24). L'argument retenu se relit ensuite dans la commande brute, aux mêmes positions.
+  const masque = command.replace(/"(?:\\.|[^"\\])*"|'[^']*'/g, (m) => m[0] + 'x'.repeat(m.length - 2) + m[m.length - 1])
+  const trouver = (re) => {
+    const m = new RegExp(re, 'd').exec(masque)
+    const i = m?.indices?.slice(1).findIndex(Boolean)
+    if (!m || i === undefined || i < 0) return undefined
+    const [debut, fin] = m.indices[i + 1]
+    return [undefined, command.slice(debut, fin)]
+  }
   let dir = cwd
-  const cd = chemin(new RegExp(`^\\s*cd\\s+${ARG}\\s*&&`).exec(command))
+  const cd = chemin(trouver(`^\\s*cd\\s+${ARG}\\s*&&`))
   if (cd) dir = resolve(dir, natif(cd))
-  const c = chemin(new RegExp(`\\bgit\\s+(?:-{1,2}[^\\s]+(?:\\s+[^-\\s][^\\s]*)?\\s+)*?-C\\s+${ARG}`).exec(command))
+  const c = chemin(trouver(`\\bgit\\s+(?:-{1,2}[^\\s]+(?:\\s+[^-\\s][^\\s]*)?\\s+)*?-C\\s+${ARG}`))
   if (c) dir = resolve(dir, natif(c))
   if (!cd && !c) return undefined
   try {
