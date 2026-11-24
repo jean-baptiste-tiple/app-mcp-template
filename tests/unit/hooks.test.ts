@@ -321,6 +321,30 @@ describe("verify-receipt", () => {
     }
   })
 
+  it("juge un autre dépôt de la méthode avec SON script de reçu, pas celui du template", { timeout: 30_000 }, () => {
+    // Un dérivé peut avoir adapté `verify-receipt.mjs` (exclusions, empreinte) : jugé avec
+    // l'algorithme du template, son reçu valide était refusé (bo-my, 2026-11-24).
+    const repo = join(tmpdir(), `derived-repo-${process.pid}`)
+    rmSync(repo, { recursive: true, force: true })
+    execFileSync("git", ["init", "--quiet", repo], { stdio: "pipe" })
+    try {
+      mkdirSync(join(repo, "scripts"))
+      writeFileSync(
+        join(repo, "scripts/verify-receipt.mjs"),
+        "import { existsSync } from 'node:fs'\nprocess.exit(process.argv[2] === 'check' && existsSync('recu-ok') ? 0 : 1)\n"
+      )
+      expect(gate(`cd ${repo} && git commit -m "x" ${MARKER}`)).toBe(BLOCKED)
+      writeFileSync(join(repo, "recu-ok"), "")
+      expect(gate(`cd ${repo} && git commit -m "x" ${MARKER}`)).toBe(ALLOWED)
+      expect(gate(`git -C "${repo}" commit -m "x" ${MARKER}`)).toBe(ALLOWED)
+      // Le marqueur reste exigé, et les interdits absolus aussi.
+      expect(gate(`cd ${repo} && git commit -m "x"`)).toBe(BLOCKED)
+      expect(gate(`cd ${repo} && git commit --no-verify -m "x" ${MARKER}`)).toBe(BLOCKED)
+    } finally {
+      rmSync(repo, { recursive: true, force: true })
+    }
+  })
+
   it("laisse passer un commit dans un dépôt qui n'utilise pas cette méthode", { timeout: 30_000 }, () => {
     // Une session ouverte ici travaille aussi dans d'autres dépôts (C:\apps\…) qui ont leur
     // propre gate. Le hook leur appliquait celui-ci, sans reçu possible : tout commit y était

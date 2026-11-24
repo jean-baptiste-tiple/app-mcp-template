@@ -27,6 +27,7 @@
 import { execFileSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const MARKER = /#\s*checks-ok\s*$/
 
@@ -165,11 +166,28 @@ process.stdin.on('end', async () => {
   // double exécution que le reçu existe pour supprimer.
   if (!motif(VERBES_COMMIT).test(bare)) process.exit(0)
 
+  // Autre dépôt de la méthode qui a son propre `verify-receipt.mjs` : il est jugé par SON
+  // script. Un dérivé peut l'avoir adapté (exclusions, empreinte) ; l'algorithme du template
+  // refusait alors un reçu valide (bo-my, 2026-11-24).
+  const racineSession = resolve(fileURLToPath(new URL('../..', import.meta.url)))
+  const meme = (a, b) =>
+    process.platform === 'win32' ? resolve(a).toLowerCase() === resolve(b).toLowerCase() : resolve(a) === resolve(b)
+  if (vise !== undefined && !meme(vise, racineSession) && existsSync(join(vise, 'scripts/verify-receipt.mjs'))) {
+    try {
+      execFileSync('node', [join(vise, 'scripts/verify-receipt.mjs'), 'check'], { cwd: vise, stdio: 'pipe' })
+      process.exit(0)
+    } catch (e) {
+      deny(
+        `BLOQUÉ: marqueur posé mais le reçu de ${vise} ne couvre pas son arbre.\n\n` +
+          `${String(e.stdout ?? '')}${String(e.stderr ?? '')}`.trim() +
+          `\n\nLancer la vérification de CE dépôt (son \`verify\`), puis relancer la commande.`
+      )
+    }
+  }
+
   let receipt
   try {
-    receipt = await import('../../scripts/verify-receipt.mjs').then((m) =>
-      m.checkReceipt(racineVisee(command, cwd))
-    )
+    receipt = await import('../../scripts/verify-receipt.mjs').then((m) => m.checkReceipt(vise))
   } catch {
     process.exit(0) // outillage absent ou illisible : ne pas bloquer sur le framework lui-même
   }

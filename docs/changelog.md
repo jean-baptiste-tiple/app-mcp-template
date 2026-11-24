@@ -10,6 +10,11 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-11-24] — Gate : un dérivé est jugé par son propre script de reçu
+**Quoi :** un commit visé dans un autre dépôt de la méthode (`cd <dir> &&`, `git -C`) est jugé par le `scripts/verify-receipt.mjs check` de ce dépôt, plus par l'algorithme du template.
+**Pourquoi :** bo-my a adapté son reçu (npm, exclusions) : son `verify` vert était refusé par le gate de la session dev-framework.
+**Fichiers :** `.claude/hooks/enforce-git-gate.mjs`, `tests/unit/hooks.test.ts`, `CLAUDE.md`
+
 ## [2026-11-24] — `.gitattributes` voyage avec la méthode
 **Quoi :** `.gitattributes` passe au manifeste (`merge`, comparé ligne à ligne comme `.gitignore`).
 **Pourquoi :** sans `*.mjs text eol=lf`, `sync-method.mjs` extrait en CRLF garde un shebang illisible et ses tests tombent (mon-espace-luciole).
