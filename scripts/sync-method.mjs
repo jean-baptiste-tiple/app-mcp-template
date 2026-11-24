@@ -36,6 +36,7 @@ export const STATUTS = {
   identique: 'identique',
   sur: 'à jour sûr',
   modifie: 'modifié par le projet',
+  revu: 'modifié par le projet, template inchangé',
   retire: 'retiré du template',
   propre: 'propre au projet',
   exclu: 'exclu par le projet',
@@ -150,7 +151,10 @@ function statutOwned(srcHash, cible, dest, tampon) {
   if (!existsSync(abs)) return { statut: STATUTS.nouveau }
   const h = empreinte(readFileSync(abs))
   if (h === srcHash) return { statut: STATUTS.identique }
-  return { statut: tampon.files?.[dest] === h ? STATUTS.sur : STATUTS.modifie }
+  if (tampon.files?.[dest] === h) return { statut: STATUTS.sur }
+  // Version du template contre laquelle le projet a gardé sa part (`bases`, noté à l'--apply) :
+  // tant que le template n'a pas bougé, il n'y a rien à refusionner (44 fichiers dans bo-my).
+  return { statut: tampon.bases?.[dest] === srcHash ? STATUTS.revu : STATUTS.modifie }
 }
 
 /**
@@ -226,15 +230,18 @@ function commitDuTemplate(template) {
  * Écrit `nouveau`, `à jour sûr`, les `modifié par le projet` et les `merge sans part projet`
  * cités par `--take` ; jamais un autre fichier merge. Le tampon note l'empreinte de chaque fichier owned désormais égal au template ;
  * un fichier modifié laissé en place garde son empreinte précédente, pour qu'un retour du projet
- * à l'état synchronisé redevienne « à jour sûr ».
+ * à l'état synchronisé redevienne « à jour sûr ». `bases` note, pour chaque fichier modifié laissé
+ * en place, la version du template à laquelle il a été confronté : `--apply` vaut « diffs lus ».
  */
 export function appliquer(template, cible, lignes, { takes, exclus, merge = [] }) {
   const ancien = lireTampon(cible)
   const files = {}
+  const bases = {}
   const ecrits = []
   for (const l of lignes) {
     if (!l.src || l.statut === STATUTS.exclu) continue
-    const ecrire = l.statut === STATUTS.nouveau || l.statut === STATUTS.sur || (l.statut === STATUTS.modifie && takes.has(l.dest))
+    const modifie = l.statut === STATUTS.modifie || l.statut === STATUTS.revu
+    const ecrire = l.statut === STATUTS.nouveau || l.statut === STATUTS.sur || (modifie && takes.has(l.dest))
     if (ecrire) {
       mkdirSync(dirname(join(cible, l.dest)), { recursive: true })
       writeFileSync(join(cible, l.dest), readFileSync(join(template, l.src)))
@@ -242,6 +249,7 @@ export function appliquer(template, cible, lignes, { takes, exclus, merge = [] }
     }
     if (ecrire || l.statut === STATUTS.identique) files[l.dest] = l.hash
     else if (ancien.files?.[l.dest]) files[l.dest] = ancien.files[l.dest]
+    if (!ecrire && modifie) bases[l.dest] = l.hash
   }
   for (const m of merge) {
     if (m.statut !== MERGE_SANS_PART || !takes.has(m.chemin)) continue
@@ -250,7 +258,7 @@ export function appliquer(template, cible, lignes, { takes, exclus, merge = [] }
   }
   const nom = JSON.parse(readFileSync(join(template, 'package.json'), 'utf8')).name
   const meta = { template: nom, commit: commitDuTemplate(template), date: new Date().toISOString() }
-  const tampon = { ...meta, exclude: [...exclus].sort(), files }
+  const tampon = { ...meta, exclude: [...exclus].sort(), files, bases }
   writeFileSync(join(cible, TAMPON), `${JSON.stringify(tampon, null, 2)}\n`)
   return ecrits
 }
@@ -285,6 +293,8 @@ function imprimer(cible, owned, merge) {
     }
   }
   console.log(`\n## identique (${owned.filter((l) => l.statut === STATUTS.identique).length}) : non listés`)
+  const revus = owned.filter((l) => l.statut === STATUTS.revu).length
+  if (revus) console.log(`## ${STATUTS.revu} (${revus}) : non listés, rien à refusionner depuis la dernière synchro`)
   console.log('\n## fichiers merge (jamais écrits : fusion manuelle)')
   for (const m of merge) {
     console.log(`  ${m.chemin} : ${m.statut}${m.stat ? ` (${m.stat})` : ''}`)
@@ -299,7 +309,7 @@ function resume(owned, merge) {
   const differents = merge.filter((m) => m.statut.startsWith('différent') || m.statut.startsWith('absent')).length
   return (
     `owned : ${owned.length - n(STATUTS.doublon)} — nouveau ${n(STATUTS.nouveau)}, identique ${n(STATUTS.identique)}, ` +
-    `à jour sûr ${n(STATUTS.sur)}, modifié par le projet ${n(STATUTS.modifie)}, exclu ${n(STATUTS.exclu)}, ` +
+    `à jour sûr ${n(STATUTS.sur)}, modifié par le projet ${n(STATUTS.modifie)} (+${n(STATUTS.revu)} template inchangé), exclu ${n(STATUTS.exclu)}, ` +
     `retiré du template ${n(STATUTS.retire)}, propre au projet ${n(STATUTS.propre)}, doublon à supprimer ${n(STATUTS.doublon)} · ` +
     `merge : ${merge.length} — à fusionner ${differents}, sans part projet ${merge.filter((m) => m.statut === MERGE_SANS_PART).length}`
   )
@@ -351,7 +361,7 @@ function controlerChemins(args, owned, manifeste, merge) {
   const duTemplate = new Set(owned.filter((l) => l.src).map((l) => l.dest))
   const sansPart = merge.filter((m) => m.statut === MERGE_SANS_PART).map((m) => m.chemin)
   const regles = [
-    [args.takes, new Set([...parStatut(STATUTS.modifie), ...sansPart]), '--take sur un fichier ni « modifié par le projet » ni « merge sans part projet »'],
+    [args.takes, new Set([...parStatut(STATUTS.modifie), ...parStatut(STATUTS.revu), ...sansPart]), '--take sur un fichier ni « modifié par le projet » ni « merge sans part projet »'],
     [args.excludes, duTemplate, '--exclude sur un fichier que le template ne fournit pas'],
     [args.diffs, new Set([...duTemplate, ...manifeste.merge]), '--diff sur un fichier ni owned ni merge'],
   ]

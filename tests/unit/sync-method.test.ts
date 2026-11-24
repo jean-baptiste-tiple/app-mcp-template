@@ -142,6 +142,21 @@ describe("sync-method — --apply", () => {
     expect(lire(".method/conventions/ui-patterns.md")).toBe("ui v1\n")
   })
 
+  it("should stop reporting a kept project file until the template changes it again", () => {
+    // bo-my : 44 fichiers adaptés au projet, relus à chaque synchro alors que le template n'avait
+    // pas bougé. Le tampon note la version du template confrontée à l'--apply.
+    sync(cible, "--apply")
+    const ensuite = sync(cible).out
+    expect(ensuite).toContain("modifié par le projet, template inchangé (2)")
+    expect(ensuite).not.toContain("## modifié par le projet (")
+    ecrire(tpl, { ".method/conventions/ui-patterns.md": "ui v3\n" })
+    const apres = sync(cible).out
+    expect(apres).toContain("## modifié par le projet (1)")
+    expect(apres).toContain("modifié par le projet, template inchangé (1)")
+    expect(sync(cible, "--take", ".claude/skills/verify/SKILL.md").code).toBe(0)
+    expect(lire(".claude/skills/verify/SKILL.md")).toBe("verify v2\n")
+  })
+
   it("should overwrite a modified file named by --take", () => {
     sync(cible, "--apply", "--take", ".method/conventions/ui-patterns.md")
     expect(lire(".method/conventions/ui-patterns.md")).toBe("ui v2\n")

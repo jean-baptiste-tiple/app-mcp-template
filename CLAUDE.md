@@ -282,7 +282,8 @@ le reste appartient au projet).
 1. **Rapport** : `node scripts/sync-method.mjs <dépôt-dérivé>`, rien n'est écrit. Statuts des
    fichiers `owned` : `nouveau`, `à jour sûr` (inchangé depuis la dernière synchro, empreinte du
    tampon `sync-state.json` écrit dans le `.method/` du dérivé), `modifié par le projet`,
-   `exclu par le projet`, `retiré du template` (noté par la synchro précédente, jamais supprimé :
+   `modifié par le projet, template inchangé` (part projet gardée à une synchro précédente,
+   template identique depuis : compté, pas listé), `exclu par le projet`, `retiré du template` (noté par la synchro précédente, jamais supprimé :
    à retirer à la main), `propre au projet` (ajouté par le dérivé sous un dossier owned, jamais
    touché), `doublon à supprimer à la main` (copie d'origine, même contenu, d'un fichier que le
    template écrit ailleurs : ADR directement sous `docs/decisions/`) ; pour les fichiers `merge`,
@@ -292,7 +293,9 @@ le reste appartient au projet).
    (répétable) affiche le diff unifié template → dérivé d'un fichier owned ou merge, CRLF
    normalisé, sans rien écrire. Le rapport finit par le rappel `pnpm exec playwright install
    chromium` quand `@playwright/test` diffère entre template et dérivé.
-2. **Écriture** : `--apply` écrit `nouveau` et `à jour sûr`, et le tampon. `--take <chemin>`
+2. **Écriture** : `--apply` écrit `nouveau` et `à jour sûr`, et le tampon ; il y note la version
+   du template confrontée à chaque fichier modifié laissé en place : **`--apply` vaut « diffs
+   lus »**, un fichier non revu se fusionne avant le commit, pas à la synchro suivante. `--take <chemin>`
    (répétable) écrase un fichier `modifié par le projet` ou `merge sans part projet` : **seulement
    après avoir lu son diff** (`--diff`), sinon la part du projet est perdue ; sur tout autre
    fichier `merge`, il est refusé. `--exclude <chemin>` (répétable) refuse durablement un fichier

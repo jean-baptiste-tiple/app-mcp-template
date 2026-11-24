@@ -10,6 +10,12 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-11-24] — sync-method : une part projet revue n'est plus relistée
+**Quoi :** le tampon note (`bases`) la version du template confrontée à chaque fichier modifié laissé en place à l'`--apply` ; tant que le template ne change pas ce fichier, la synchro suivante le compte en `modifié par le projet, template inchangé` sans le lister.
+**Pourquoi :** bo-my et app-pmo gardent plus de 40 fichiers adaptés : chaque synchro les relistait tous, et les vraies nouveautés du template s'y noyaient.
+**Porter sur un dérivé :** rien ; le statut apparaît à partir de la deuxième synchro.
+**Fichiers :** `scripts/sync-method.mjs`, `tests/unit/sync-method.test.ts`, `CLAUDE.md`
+
 ## [2026-11-24] — Worktree : jamais de `node_modules` relié
 **Quoi :** `CLAUDE.md § Vérifier, commiter, pousser` (Worktree) : un worktree fait son propre `pnpm install`, jamais de jonction vers le `node_modules` d'un autre checkout.
 **Pourquoi :** un sous-agent a relié le `node_modules` de dev-sofrani à un worktree d'essai ; pnpm l'a vidé au `verify` suivant et la session qui y travaillait a été cassée quelques minutes.
