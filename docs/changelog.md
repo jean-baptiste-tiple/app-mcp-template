@@ -10,6 +10,12 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-11-24] — Gate de commit : les autres dépôts suivent leur propre gate
+
+**Quoi :** `.claude/hooks/enforce-git-gate.mjs` laisse passer un commit ou un push visé (`cd <dir> &&`, `git -C <dir>`) dans un dépôt qui n'utilise pas cette méthode (ni `scripts/verify-receipt.mjs`, ni reçu) ; `--no-verify` et `--force` restent interdits partout, le dépôt de la session et ses worktrees restent gardés. Test qui reproduisait le blocage, écrit avant le correctif (`tests/unit/hooks.test.ts`). Garde : `CLAUDE.md § Vérifier, commiter, pousser` (« Autre dépôt » : jamais de contournement par un autre outil, un blocage légitime est un défaut du hook).
+**Pourquoi :** une session ouverte dans dev-framework ne pouvait pas commiter dans web-framework-template, dont le gate est sa propre commande `/commit-push` : aucun reçu n'y est possible, la seule issue était de contourner le hook.
+**Fichiers :** `.claude/hooks/enforce-git-gate.mjs`, `tests/unit/hooks.test.ts`, `CLAUDE.md`, `docs/changelog.md`.
+
 ## [2026-11-24] — Plusieurs sessions sur le même checkout : file d'attente, gel et mutualisation des runs longs
 
 **Quoi :** `scripts/long-run.mjs` enveloppe `verify`, `build`, `test:e2e`, `ui:shots`, `mcp:smoke` et `audit:lh` (scripts de `package.json`) : un seul run long à la fois sur le checkout (verrou atomique `.claude/.long-run/lock.json`, repris si son process est mort), attente au lieu d'un run parallèle, et un `verify` qui a attendu celui d'une autre session ne rejoue rien si le reçu couvre l'arbre. `verify` et `build` **gèlent** : ils attendent que les autres sessions aient cessé d'écrire depuis 30 s (5 min au plus), et pendant le run le hook `.claude/hooks/coordinate-sessions.mjs` refuse les `Edit`/`Write` des autres sessions (il enregistre aussi les sessions actives et laquelle lance un run). `long-run.mjs wait` et `status` pour les sessions gelées. `CLAUDE.md § Plusieurs sessions sur le même checkout` pose la convention de messages (prévenir avant, « inclus-moi », résultat envoyé après, un seul run) ; skills `verify` et `commit-push` y renvoient. `check:framework` exige que le nouveau hook bloque encore quelque chose. 11 tests (`tests/unit/long-run.test.ts`).

@@ -25,7 +25,8 @@
  */
 
 import { execFileSync } from 'node:child_process'
-import { resolve } from 'node:path'
+import { existsSync } from 'node:fs'
+import { join, resolve } from 'node:path'
 
 const MARKER = /#\s*checks-ok\s*$/
 
@@ -119,6 +120,16 @@ process.stdin.on('end', async () => {
 
   if (!motif(VERBES).test(bare)) process.exit(0)
 
+  // Dépôt visé qui n'utilise pas cette méthode (ni `scripts/verify-receipt.mjs`, ni reçu) : une
+  // session ouverte ici travaille aussi dans d'autres dépôts, qui ont leur propre gate. Leur
+  // appliquer celui-ci, sans reçu possible, refusait tout commit et ne laissait que le contournement
+  // (2026-11-24). Les interdits absolus (--no-verify, --force) restent appliqués partout ; le dépôt
+  // de la session, lui, est toujours gardé.
+  const vise = racineVisee(command, cwd)
+  const methode = (root) =>
+    existsSync(join(root, 'scripts/verify-receipt.mjs')) || existsSync(join(root, '.claude/.verify-receipt.json'))
+  const etranger = vise !== undefined && !methode(vise)
+
   if (/\s--no-verify\b/.test(bare)) {
     deny(
       'BLOQUÉ: --no-verify est interdit, sans échappement possible. Les hooks git font partie du gate.'
@@ -136,6 +147,8 @@ process.stdin.on('end', async () => {
       "BLOQUÉ: --amend interdit sans demande explicite de l'utilisateur. Si l'utilisateur l'a demandé et que `pnpm verify` est passé, ajouter ' # checks-ok' en fin de commande."
     )
   }
+
+  if (etranger) process.exit(0)
 
   if (!marked) deny(BLOCK_MESSAGE)
 

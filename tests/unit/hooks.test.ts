@@ -311,6 +311,25 @@ describe("verify-receipt", () => {
     }
   })
 
+  it("laisse passer un commit dans un dépôt qui n'utilise pas cette méthode", { timeout: 30_000 }, () => {
+    // Une session ouverte ici travaille aussi dans d'autres dépôts (C:\apps\…) qui ont leur
+    // propre gate. Le hook leur appliquait celui-ci, sans reçu possible : tout commit y était
+    // refusé, et la seule issue était de contourner le hook (2026-11-24, web-framework-template).
+    const repo = join(tmpdir(), `foreign-repo-${process.pid}`)
+    rmSync(repo, { recursive: true, force: true })
+    execFileSync("git", ["init", "--quiet", repo], { stdio: "pipe" })
+    try {
+      expect(gate(`cd ${repo} && git commit -m "x"`)).toBe(ALLOWED)
+      expect(gate(`git -C "${repo}" push origin HEAD:main`)).toBe(ALLOWED)
+      // Les interdits absolus restent, quel que soit le dépôt.
+      expect(gate(`cd ${repo} && git push --force origin main`)).toBe(BLOCKED)
+      // Le dépôt de la session reste gardé.
+      expect(gate(`git commit -m "x"`)).toBe(BLOCKED)
+    } finally {
+      rmSync(repo, { recursive: true, force: true })
+    }
+  })
+
   it("le gate refuse un commit marqué si aucun reçu ne couvre le code", () => {
     expect(run(["clear"])).toBe(0)
     expect(gate(`git commit -m "feat: x" ${MARKER}`)).toBe(BLOCKED)
