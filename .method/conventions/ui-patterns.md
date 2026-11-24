@@ -12,8 +12,13 @@ BASSE, donc jamais corrigés. Les règles marquées *(mécanisé)* sont vérifi�
 
 ## Lecture de design
 
-Avant la première ligne d'un écran nouveau ou d'un composant visible, écrire **une ligne** dans
-le plan (ou la story, section « Implémentation ») :
+**Dès l'échelle Standard**, tout changement visible (écran nouveau, fonctionnalité intégrée à un
+écran existant, écran repensé) passe par le skill `design` : un brief écrit par le sous-agent
+`designer` avant le code (`.method/templates/design-brief.tmpl.md`), puis une critique sur
+captures par le sous-agent `design-critic` (`checklists/design-review.md`). La ligne ci-dessous
+ne suffit qu'en **Micro** (libellé, espacement, couleur d'un composant existant).
+
+Avant la première ligne d'un changement visible Micro, écrire **une ligne** dans le plan :
 
 > Lecture : `<type d'écran>` pour `<persona>`, densité `<aérée | standard | dense>`, layout
 > `<famille>`, réutilise `<composants du registry>`, sous `md` : `<comportement>`.
@@ -25,6 +30,62 @@ le plan (ou la story, section « Implémentation ») :
   question (`AskUserQuestion`), elle ne se tranche pas en silence.
 - Pas de lecture écrite = pas d'arbitrage rendu : la review le traite comme
   `code-review.md § Arbitrage de complexité`.
+
+## Intégrer une fonctionnalité
+
+Le défaut d'un agent qui code une fonctionnalité est de lui trouver une place sur l'écran, pas de
+se demander si l'écran la supporte encore. Répété N fois, cela produit un écran Frankenstein :
+une boîte de plus à chaque story, plus personne ne sait à quoi sert la page.
+
+- **Partir de l'écran réel** : captures avant (`pnpm ui:shots <route>`) et inventaire de ce que
+  l'écran fait déjà (tâche principale, action primaire, zones, composants) avant toute
+  proposition. Une route neuve se compare à l'écran voisin le plus proche.
+- **Zoom arrière** : la question n'est pas « où caser le bouton » mais « l'écran dit-il encore en
+  une phrase à quoi il sert, une fois la fonctionnalité ajoutée ». Le brief rend un verdict :
+  - `ajouter` : la fonctionnalité est une variante d'une action ou d'une donnée existante ; elle
+    entre dans une zone ou un composant existant (colonne, filtre, entrée de menu, champ) ;
+  - `réorganiser l'encart` : la zone d'accueil franchit un seuil ci-dessous ; la zone est
+    redessinée, pas complétée ;
+  - `repenser l'écran` : l'écran franchit un seuil, ou la fonctionnalité change sa tâche
+    principale ; l'écran est redessiné, et ce verdict se pose en question à l'utilisateur
+    (`AskUserQuestion`, coût et alternative), jamais en silence.
+- **Seuils qui imposent de réorganiser**, contrôlables sur capture :
+  - plus d'une action primaire visible dans l'écran ou dans une zone autonome ;
+  - plus de 5 actions au même niveau dans une barre ou une rangée : regrouper (menu `…`, onglets) ;
+  - plus de 7 champs sans regroupement : sections ou étapes ;
+  - l'action principale hors du premier écran à 1280 ;
+  - une zone nouvelle qui affiche une donnée déjà présente ailleurs sur l'écran ;
+  - une card ou une section dont le titre ne décrit plus tout son contenu.
+- **L'option la plus petite est toujours évaluée** : passer par un composant existant, ou ne
+  rien ajouter de visible (raccourci, action contextuelle, valeur par défaut). Le brief l'écrit,
+  même pour l'écarter.
+- **Intégrer, c'est aussi retirer** : le brief dit ce qui est déplacé, fusionné ou retiré. Une
+  intégration qui n'enlève jamais rien empile.
+- **Coller à l'existant** : un même concept garde la même représentation partout (composant,
+  libellé, icône, position relative). Avant d'introduire un pattern, chercher celui de l'app
+  (`rg` sur le composant ou le concept) et celui de `/design-system`.
+
+## Principes UX
+
+La grille de base que le `designer` applique et que le `design-critic` vérifie
+(`checklists/design-review.md`).
+
+- **Une tâche principale par écran, une action primaire** (`Button` variant `default`) ; le reste
+  en `secondary`, `ghost` ou menu.
+- **Ordre de lecture = ordre d'usage** : ce qui sert la tâche fréquente vient en premier et pèse
+  le plus ; le rare, l'avancé et le destructif se replient (menu, accordion, sheet).
+- **Proximité** : un label avec son champ, une action à côté de l'objet qu'elle modifie, des
+  éléments liés groupés et séparés des autres par de l'espace plutôt que par des boîtes.
+- **Reconnaissance plutôt que rappel** : valeurs et choix visibles, défauts pertinents
+  pré-remplis, aucun identifiant technique à mémoriser.
+- **Prévenir avant de signaler** : contraintes de saisie, action désactivée avec sa raison
+  visible, confirmation réservée à l'irréversible (`feedback-patterns.md`).
+- **Retour immédiat** de chaque action, à l'endroit où l'utilisateur regarde.
+- **Le vide, le premier usage et l'erreur se conçoivent** comme des écrans : texte utile et
+  action pour en sortir.
+- **Coût d'interaction proportionnel à la fréquence** : la tâche fréquente en un geste, la rare
+  peut en demander plusieurs.
+- **Le vocabulaire est celui de l'utilisateur**, pas celui du modèle de données ni du code.
 
 ## Design system verrouillé
 

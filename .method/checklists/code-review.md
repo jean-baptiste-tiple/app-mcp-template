@@ -41,6 +41,7 @@ règles de composition sont dans `ui-patterns.md` ; cette rubrique ne vérifie q
 - [ ] `pnpm ui:shots <routes touchées>` a tourné et le rapport cite les chemins des captures lues (375, 768, 1280 ; clair et sombre). Diff UI sans capture citée = review incomplète, verdict ❌
 - [ ] Ce que les captures montrent est écrit en une phrase par largeur : débordement, lisibilité en sombre, bouton principal visible, titres sur deux lignes maximum
 - [ ] La lecture de design (plan ou story) correspond à ce que les captures montrent ; un écart est un finding sourcé `ui-patterns.md § Lecture de design`
+- [ ] (Standard+ avec changement visible) Un brief de design existe (story § Design ou plan) et le sous-agent `design-critic` a rendu `APPROVED` sur les captures après, en deux cycles au plus, ou les findings restants ont été posés à l'utilisateur ; le rapport porte la ligne `Design :` (skill `design`). Sans brief ni critique : verdict ❌
 
 ## Conformité à la demande
 

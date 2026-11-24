@@ -78,8 +78,10 @@ lecture « en entier » devient une fiction. Découper par **frontière techniqu
 - `tests/**` + config — filet de sécurité et outillage
 
 Chaque lot est **indépendant** : il refait le routing des conventions et produit son propre
-rapport. Un lot peut être confié à un agent séparé. Ne jamais supposer qu'un autre lot a déjà
-vérifié quelque chose.
+rapport. Un lot peut être confié à un agent séparé : c'est toujours l'agent `auditor`
+(`subagent_type: "auditor"`), un par lot, lancés dans le même message pour tourner en parallèle,
+avec le lot et le chemin de son rapport. Ne jamais supposer qu'un autre lot a déjà vérifié
+quelque chose.
 
 ### Lots qui exercent le produit : UI/UX et AX
 

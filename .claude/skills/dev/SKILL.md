@@ -104,20 +104,26 @@ live. Quatre items, tous observables (`CLAUDE.md § Avant de coder`) :
 4. **Refacto** — proposé ou écarté. Proposé ⇒ `AskUserQuestion` avec coût et conséquence de ne
    pas le faire. Le refacto reste non fait sans accord ; il n'est jamais tu.
 
-Micro en est exempt (1-2 fichiers, aucune surface nouvelle). Un sous-agent produit ce rayon dans
-son rapport et **remonte** l'item 4 sans le trancher.
+Micro en est exempt (1-2 fichiers, aucune surface nouvelle). Un lot délégué l'est toujours à
+l'agent `implementer` (`subagent_type: "implementer"`, `CLAUDE.md § Les sous-agents de la
+méthode`) : il produit ce rayon dans son rapport et **remonte** l'item 4 sans le trancher.
 
 ### 3. Implémenter
 
 Ordre quand plusieurs couches sont touchées : migration DB → schemas Zod → Server Actions +
 tests unit → composants + tests unit → page + tests d'intégration → E2E si demandé.
 
-**Tag `ui` actif** (composant, page, layout, widget) : écrire la **lecture de design** d'une
-ligne avant le premier composant, dans le plan ou la story (`ui-patterns.md § Lecture de
-design`), en lisant `docs/design/system.md` § Direction et § Patterns de page. Une fois
-l'écran rendu : `pnpm ui:shots <routes touchées>`, ouvrir les captures 375 et 1280 en clair et
-en sombre, corriger ce qu'elles montrent **avant** la review. Les captures sont ce que `revue`
-relit (`code-review.md § Preuve visuelle`).
+**Tag `ui` actif** (composant, page, layout, widget) :
+
+- **Standard ou Module avec un changement visible** (écran nouveau, fonctionnalité ajoutée à un
+  écran existant, écran repensé) : skill `design` **avant la première ligne**. Le sous-agent
+  `designer` écrit le brief (story § Design, ou plan en mode live) ; le code suit le brief, et
+  tout écart se justifie dans le rapport. Une fois l'écran rendu, le sous-agent `design-critic`
+  juge les captures ; ses HAUTE et MOYENNE se corrigent avant `revue` (deux cycles au plus).
+- **Micro** : la **lecture de design** d'une ligne suffit (`ui-patterns.md § Lecture de design`).
+- Dans les deux cas, une fois l'écran rendu : `pnpm ui:shots <routes touchées>`, ouvrir les
+  captures 375 et 1280 en clair et en sombre, corriger ce qu'elles montrent **avant** la review.
+  Les captures sont ce que `revue` relit (`code-review.md § Preuve visuelle`).
 
 Placement des tests (`testing-strategy.md`) : `tests/unit/` · `tests/integration/` · `tests/e2e/`.
 

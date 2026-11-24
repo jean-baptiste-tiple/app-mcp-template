@@ -203,6 +203,7 @@ reste invocable explicitement en `/<nom>` quand tu veux forcer le passage.
 | Skill | Déclenchement | Description |
 |-------|---------------|-------------|
 | `dev` | auto — avant toute modif de `src/`, `tests/`, `supabase/` | 2 modes (lecture / écriture), 3 échelles (Micro / Standard / Module). |
+| `design` | auto — changement visible dès l'échelle Standard, « repense », « intègre au mieux » | Sous-agent `designer` : brief avant le code (existant capturé, zoom arrière, options dont la plus petite). Sous-agent `design-critic` à contexte neuf : critique sur captures après, jusqu'à APPROVED (2 cycles). |
 | `revue` | auto — dès l'échelle Standard, « review », « relis » | Route les conventions par globs sur le diff et confronte le code aux règles lues. |
 | `verify` | auto — « vérifie », « ça compile ? », après un fix | `check:framework` + `type-check` + `lint` + `test`. |
 | `commit-push` | auto — « commit », « push », « envoie » | Les 4 checks + changelog + commit + push. **Seul chemin autorisé** (gate par hook). |
@@ -213,6 +214,22 @@ reste invocable explicitement en `/<nom>` quand tu veux forcer le passage.
 
 `plan` est le seul à ne jamais s'auto-déclencher : un cadrage réécrit PRD, architecture et
 stories. Claude le **propose** face à un besoin produit large, il ne le lance pas.
+
+### Les sous-agents (`.claude/agents/`)
+
+Quand le travail est délégué, il l'est toujours à un agent nommé, dont le fichier fixe le modèle
+(Opus), les outils et la méthode : le pilote ne transmet que la tâche.
+
+| Agent | Rôle | Peut modifier le code |
+|-------|------|-----------------------|
+| `implementer` | Écrit un lot (session Fable, ou lot parallélisable) | oui |
+| `designer` | Brief de design avant le code (skill `design`) | non |
+| `design-critic` | Critique sur captures après le rendu, à contexte neuf | non |
+| `reviewer` | Relecture de code à contexte neuf, dès l'échelle Module | non |
+| `auditor` | Un lot d'audit de l'existant | non (rapport seulement) |
+
+Penser, coder et juger restent séparés par l'outillage : seul l'`implementer` écrit, et un agent
+qui juge ne reçoit jamais le raisonnement de celui qui a produit.
 
 ### `revue` et `audit`
 

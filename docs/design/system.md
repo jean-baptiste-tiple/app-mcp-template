@@ -40,8 +40,9 @@
 
 ## Patterns de page
 
-Chaque type d'écran a un pattern et un comportement mobile décidé une fois. La « lecture de
-design » (`ui-patterns.md § Lecture de design`) nomme le type ; le code suit le pattern.
+Chaque type d'écran a un pattern et un comportement mobile décidé une fois. Le brief du skill
+`design` (ou, en Micro, la lecture de design, `ui-patterns.md § Lecture de design`) nomme le
+type ; le code suit le pattern.
 
 | Type | Desktop (≥ md) | Mobile (< md) | Composants |
 |------|----------------|---------------|------------|

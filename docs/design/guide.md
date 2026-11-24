@@ -85,8 +85,8 @@
 | `data-error` | Ce que l'état en erreur affiche | `"Alert inline"`, `"toast"` |
 
 `data-mobile` est dû sur tout `<Section>`, `<Table>` ou `<Card>` disposé en colonnes : une
-maquette sans lui laisse le collapse mobile au hasard, et la story ne peut pas le reprendre
-dans son champ **Sous `md`**.
+maquette sans lui laisse le collapse mobile au hasard, et le brief de design de la story ne
+peut pas le reprendre dans sa spécification mobile.
 
 ## Exemple complet
 

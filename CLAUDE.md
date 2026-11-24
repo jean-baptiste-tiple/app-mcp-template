@@ -159,6 +159,7 @@ Tout vit dans `.claude/skills/`. Un skill se déclenche **sur l'intention** et r
 | Skill | Déclenchement | Rôle |
 |-------|---------------|------|
 | `dev` | auto — modification de `src/`, `tests/`, `supabase/`, config | 2 modes (lecture / écriture) × 3 échelles |
+| `design` | auto — changement visible dès l'échelle Standard | Brief avant code (sous-agent `designer`), critique sur captures après (sous-agent `design-critic`) |
 | `revue` | auto — fin d'implémentation dès l'échelle Standard | Conventions routées, confrontées au diff |
 | `verify` | auto — « vérifie », « ça compile ? », après un fix | `pnpm verify` : 4 checks + reçu |
 | `commit-push` | auto — « commit », « push », « envoie » | Checks (sans les rejouer) + changelog + commit + push |
@@ -178,24 +179,38 @@ architecture et stories. Face à un besoin produit large, le **proposer** et att
 Le **modèle de la session** décide du rôle, pas la taille de la demande.
 
 - **Session Fable** — Fable ne modifie **jamais** `src/` ni `tests/` lui-même. Il découpe le
-  travail en lots indépendants, écrit pour chacun les critères vérifiables, lance des `Agent`
-  avec `model: "opus"` — tous dans le même message quand les lots ne se touchent pas, pour
+  travail en lots indépendants, écrit pour chacun les critères vérifiables, lance un
+  `implementer` par lot — tous dans le même message quand les lots ne se touchent pas, pour
   qu'ils tournent en parallèle — puis relit les diffs, arbitre, et porte la finalisation :
   review, changelog, registry, `commit-push`. Restent à sa main : `docs/`, `.method/`, les
   vérifications, les décisions.
-- **Session Opus** — pas de délégation imposée : Opus écrit lui-même, et délègue quand un lot
-  est réellement parallélisable, pas par principe.
-- **`model: "opus"` s'écrit explicitement** sur chaque `Agent` lancé depuis une session Fable :
-  sans ce champ le sous-agent hérite du modèle du parent, et le pilotage ne sert à rien.
-- **Un sous-agent reçoit la méthode, pas seulement la tâche** : échelle annoncée, conventions
-  routées à charger, critères de succès, interdiction de commiter, **interdiction de trancher un
-  arbitrage** — il s'arrête et le remonte, le pilote pose la question via `AskUserQuestion`
-  (§ Avant de coder). Dès l'échelle Standard, il produit son **rayon d'impact** dans son rapport.
-  Le commit reste au pilote.
-- **Un lot UI reçoit en plus** : la convention `ui-patterns.md` et `docs/design/system.md`
-  (§ Direction, § Patterns de page) à lire, le registry, les AC par largeur d'écran, et
-  l'obligation de lancer `pnpm ui:shots <routes>` et de décrire chaque capture (375 et 1280,
-  clair et sombre) dans son rapport. Un rapport de lot UI sans captures décrites est incomplet.
+- **Session Opus** — pas de délégation imposée : Opus écrit lui-même, et délègue à un
+  `implementer` quand un lot est réellement parallélisable, pas par principe.
+
+### Les sous-agents de la méthode
+
+Tout sous-agent est un **agent nommé de `.claude/agents/`** : son fichier fixe le modèle (Opus),
+ses outils et la méthode qu'il applique. Le pilote ne transmet que la tâche ; il ne lance jamais
+un agent générique pour un rôle de cette liste. `check:framework` vérifie que chaque agent cité
+par un skill existe.
+
+| Agent | Lancé par | Outils | Rôle |
+|-------|-----------|--------|------|
+| `implementer` | le pilote (session Fable, ou lot parallélisable) | tous | Écrit un lot selon la méthode : conventions, rayon d'impact, tests, `verify`, captures UI |
+| `designer` | skill `design`, avant le code | lecture + captures | Brief de design : existant, zoom arrière, options, spécification |
+| `design-critic` | skill `design`, après le rendu | lecture + captures | Critique à contexte neuf sur captures, `checklists/design-review.md` |
+| `reviewer` | skill `revue`, dès l'échelle Module | lecture + commandes | Relecture de code à contexte neuf, protocole de `revue` |
+| `auditor` | skill `audit`, un lot par agent | lecture + rapport | Audit d'un lot de l'existant |
+
+- **Le pilote transmet la tâche, pas la méthode** : échelle, critères de succès vérifiables,
+  fichiers en jeu, story et brief s'ils existent. La méthode (conventions routées, rayon
+  d'impact dès Standard, tests, interdiction de commiter, **interdiction de trancher un
+  arbitrage**) est dans le fichier de l'agent : il s'arrête et remonte, le pilote pose la question
+  via `AskUserQuestion` (§ Avant de coder). Le commit reste au pilote.
+- **Penser, coder et juger restent des agents distincts.** Seul l'`implementer` écrit ; les
+  quatre autres n'ont pas les outils pour modifier le code. Un agent qui juge ne reçoit jamais le
+  raisonnement de celui qui a produit : le `design-critic` reçoit le brief, les routes et les
+  captures avant ; le `reviewer` la demande, le périmètre et le récap des surfaces nouvelles.
 
 ## Modifications documentaires
 
@@ -225,6 +240,35 @@ exclus du reçu de vérification : les éditer n'invalide pas des checks déjà 
 - **Pour commiter :** skill `commit-push`. Il lance `pnpm verify:cached`, qui ne rejoue les checks que si le code a bougé depuis le dernier passage.
 - **C'est un gate appliqué, pas une convention.** `.claude/hooks/enforce-git-gate.mjs` bloque tout `git commit` / `git push` direct, et refuse un commit dont le reçu ne couvre pas l'état exact du code. `--no-verify` et `--force` sont bloqués sans échappement possible.
 - **Worktree.** Le gate juge un commit sur le reçu du dépôt que la commande vise (`cd <dir> &&` en tête, ou `git -C <dir>`) : lancer `pnpm verify` puis `git commit` DANS le worktree. Le hook qui s'exécute est celui du checkout de la session : si sa copie est antérieure à ce correctif, ouvrir la session dans le worktree. Pour une branche sans commit, avancer par `git stash -u` → `git reset --hard main` → `git stash pop`.
+### Plusieurs sessions sur le même checkout
+
+Plusieurs conversations travaillent souvent en même temps dans ce dossier. Les commandes longues
+se **mutualisent** : un seul run, au bon moment, pour tout le monde.
+
+**Ce que l'outillage garantit** (`scripts/long-run.mjs`, hook `.claude/hooks/coordinate-sessions.mjs`) :
+- `verify`, `build`, `test:e2e`, `ui:shots`, `mcp:smoke`, `audit:lh` tournent **un à la fois** :
+  une commande lancée pendant une autre attend sa fin au lieu de tourner en parallèle.
+- `verify` et `build` **gèlent** le checkout : avant de partir, ils attendent que les autres
+  sessions aient cessé d'écrire depuis 30 s (5 min au plus) ; pendant le run, le hook refuse les
+  `Edit`/`Write` des autres sessions. Une session bloquée attend avec `node scripts/long-run.mjs
+  wait`, puis réessaie ; elle ne contourne pas par Bash.
+- Un `verify` qui a attendu celui d'une autre session **ne rejoue rien** si le reçu couvre déjà
+  l'arbre. `node scripts/long-run.mjs status` montre le run en cours et les sessions actives.
+
+**Ce que chaque session fait** (convention, par messages entre sessions) :
+1. **Avant un run long** : `ListAgents`, puis `SendMessage` aux sessions qui travaillent dans ce
+   dossier : « je gèle pour `verify` (+ `build`…) dans ~1 min : finissez l'écriture en cours,
+   répondez si vous devez attendre, ou si vous voulez que j'inclue votre travail ». Attendre les
+   réponses ou ~1 min.
+2. **Une session qui a besoin du même run ne relance pas** : elle répond « inclus-moi » et attend
+   le résultat.
+3. **Après le run** : envoyer le résultat aux sessions prévenues : OK avec le reçu écrit (elles
+   passent par `commit-push`, dont `verify:cached` réutilise le reçu), ou KO avec les erreurs
+   attribuées aux fichiers de chacune. Chaque session corrige les siennes ; un seul nouveau run
+   ensuite.
+4. **Commiter** : chacune ses fichiers (`git add` explicite), seulement si ils ne dépendent pas du
+   travail non fini d'une autre session.
+
 - La CI : `pnpm build` sur `main` (validation Vercel, erreurs spécifiques à Linux), sans duplication avec le local. Sur une pull request, elle ajoute les 4 checks : seul gate des PR Dependabot, qui ne passent jamais par `pnpm verify` (`deployment-patterns.md § Dependabot`).
 
 ## Invariants techniques
@@ -251,6 +295,7 @@ Thème **neutre, à personnaliser par projet** : bloc « THÈME PROJET » de `sr
 
 - **Réutiliser avant de créer** : `.method/conventions/component-registry.md` puis `src/components/ui/`.
 - **Classes sémantiques uniquement** (`bg-primary`, `text-muted-foreground`, `border-border`). Aucune couleur Tailwind numérotée (`bg-emerald-500`), aucun hex, aucun `dark:` de couleur dans `src/` (`check:framework`).
+- **Penser le produit avant de coder l'écran.** Dès l'échelle Standard, tout changement visible passe par le skill `design` : brief du sous-agent `designer` (existant capturé, zoom arrière « l'écran supporte-t-il encore la fonctionnalité ? », options dont la plus petite, verdict ajouter / réorganiser l'encart / repenser l'écran), puis critique du sous-agent `design-critic` sur captures (`checklists/design-review.md`). Un verdict « repenser l'écran » se pose en question. Règles : `ui-patterns.md § Intégrer une fonctionnalité` et `§ Principes UX`.
 - **Mobile d'abord, trois largeurs, deux thèmes.** Un écran est terminé quand ses captures à 375, 768 et 1280 px, en clair et en sombre (`pnpm ui:shots <route>`), ont été lues et citées en review. Composition, responsive, texte et signatures IA : convention `ui-patterns.md`, tag `ui`, routée sur tout composant et toute page.
 - **Aucun tiret cadratin dans une chaîne visible** (`check:framework`). *(Décision JB 2026-10-09.)*
 

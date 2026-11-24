@@ -12,9 +12,14 @@ Chaque problème remonté doit pointer une règle existante dans `.method/conven
 `CLAUDE.md` ou dans les critères d'acceptation de la story. Sans source citée, ce n'est pas
 un défaut — c'est une suggestion, et elle ne bloque pas.
 
-Cette review tourne dans le contexte courant (pas d'agent isolé). La contrepartie de cette
-perte de recul est **la mécanique** : on ne demande pas au reviewer d'avoir des idées, on lui
-demande de dérouler des règles lues juste avant. Ne jamais reviewer de mémoire.
+**Qui relit.** À l'échelle Standard, cette review tourne dans le contexte courant. La
+contrepartie de cette perte de recul est **la mécanique** : on ne demande pas au reviewer
+d'avoir des idées, on lui demande de dérouler des règles lues juste avant. **Dès l'échelle
+Module**, ou sur demande, le pilote lance l'agent `reviewer` (`subagent_type: "reviewer"`) qui
+déroule ce même protocole à contexte neuf ; il lui transmet le périmètre, la demande ou la
+story, et le récap des surfaces nouvelles, jamais le raisonnement de l'implémenteur. Son rapport
+est le rapport de cette review ; les étapes 8 (suite) restent au pilote. Ne jamais reviewer de
+mémoire.
 
 **Échelle.** Ce protocole complet s'applique à partir de l'échelle Standard (≥ 3 fichiers, ou
 création d'une surface : route, table, Server Action, composant, fonction exportée). Sur un
@@ -75,6 +80,13 @@ au minimum 375 et 1280 px en clair et en sombre. Noter en une phrase par capture
 montre. Sans capture, la review d'un diff UI est incomplète et le verdict est ❌
 (`code-review.md § Preuve visuelle`).
 
+**Si le changement visible est Standard ou Module** : la critique design est due. Si le skill
+`design` ne l'a pas déjà rendue, lancer l'agent `design-critic` (`subagent_type: "design-critic"`) avec le
+brief, les routes et les captures avant. Ses findings HAUTE et MOYENNE entrent dans le tableau
+de cette review avec leur source (`checklists/design-review.md § <section>`, `ui-patterns.md
+§ <section>` ou un critère d'acceptation design du brief). Pas de brief du tout : finding HAUTE
+`code-review.md § Preuve visuelle`.
+
 ## Étape 5 — Confrontation règle par règle
 
 Pour **chaque fichier de conventions chargé**, dérouler ses règles et les confronter aux
@@ -121,6 +133,7 @@ Périmètre   : <n> fichiers
 Conventions : <liste>
 Arbitrage   : <option d'un cran plus simple écartée> — <raison de l'écarter>
 Captures    : <chemins .ui-shots/ lus, une phrase par largeur> — ou « tag ui inactif »
+Design      : <verdict du design-critic>, <n> cycle(s), brief en <story § Design | plan> — ou « Micro » / « rien de visible »
 
 ### Problèmes
 

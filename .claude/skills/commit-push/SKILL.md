@@ -16,6 +16,11 @@ Un `git commit` ou `git push` lancé hors de ce skill est **bloqué par le hook*
 pnpm verify:cached
 ```
 
+**D'autres sessions dans ce dossier ?** Si `verify:cached` doit rejouer les checks, il gèle le
+checkout : appliquer d'abord `CLAUDE.md § Plusieurs sessions sur le même checkout` (prévenir,
+proposer d'inclure leur travail, envoyer le résultat). Si une autre session vient de faire passer
+les checks sur l'arbre courant, `verify:cached` le constate et ne rejoue rien.
+
 **Une seule commande, et surtout : ne pas rejouer ce qui vient de passer.** `verify:cached`
 compare l'état exact du code au reçu laissé par le dernier `pnpm verify`. Identique → il
 affiche « checks déjà passés » et rend la main immédiatement. Différent → il enchaîne les 4

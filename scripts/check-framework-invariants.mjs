@@ -199,7 +199,7 @@ function chaineDApplication({ ROOT, read, err, warn }) {
 
   // Un hook déclaré mais vidé de sa substance est pire qu'un hook absent : il donne l'illusion
   // d'une garantie. On ne valide pas le contenu ligne à ligne, seulement qu'il refuse quelque chose.
-  for (const f of ['enforce-git-gate.mjs', 'enforce-bash-rules.mjs']) {
+  for (const f of ['enforce-git-gate.mjs', 'enforce-bash-rules.mjs', 'coordinate-sessions.mjs']) {
     const p = join(ROOT, '.claude/hooks', f)
     if (!existsSync(p)) {
       err(`.claude/hooks/${f} absent — la garantie qu'il porte n'existe plus.`)

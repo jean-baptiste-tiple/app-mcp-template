@@ -107,8 +107,10 @@ Dans les trois cas, remplir **`docs/design/system.md § Direction`** (audience, 
 références, interdits, autorisations, pages marketing) : c'est ce que `dev` et les sous-agents
 lisent avant de dessiner un écran, et ce qui autorise ou non un écart à `ui-patterns.md`.
 Vide, la direction est celle du thème neutre : le dire plutôt que laisser le tableau en
-gabarit. Chaque story avec écran renseigne ensuite ses champs **Lecture de design**,
-**Sous `md`** et **États UI** (`.method/templates/story.tmpl.md`).
+gabarit. Chaque story avec écran porte une section **Design** : le brief du skill `design`
+(sous-agent `designer`, `.method/templates/design-brief.tmpl.md`). Le cadrage peut le produire
+pour les stories prioritaires ; sinon `dev` le lance avant de coder (`story-ready.md`). Ses
+arbitrages (verdict `repenser l'écran`, options divergentes) se posent ici via `AskUserQuestion`.
 
 L'absence de maquette n'est jamais un blocage : les stories portent alors une description
 textuelle ou `N/A`.

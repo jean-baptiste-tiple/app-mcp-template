@@ -14,9 +14,7 @@
 | **Statut** | ⬜ Draft / 🟢 Ready / 🔵 In Progress / ✅ Done |
 | **Priorité** | Must / Should / Could |
 | **Référence UI** | _Fichier JSX, lien Figma, wireframe, description texte, ou N/A_ |
-| **Lecture de design** | _type d'écran · densité · layout · composants réutilisés (`ui-patterns.md § Lecture de design`), ou N/A si rien de visible_ |
-| **Sous `md`** | _comportement mobile de chaque zone multi-colonnes : empilement, scroll, Sheet… ou N/A_ |
-| **États UI** | _loading / vide / erreur / pending : ce que chacun affiche, ou N/A_ |
+| **Design** | _brief en section « Design » (skill `design`), ou N/A si rien de visible_ |
 | **Conventions** | auth, database, forms, security (tags depuis `.method/conventions/_index.md`) |
 | **Estimation** | S / M / L |
 
@@ -37,6 +35,15 @@
 - [ ] **Given** [contexte] **When** [action] **Then** [résultat attendu]
 - [ ] (story avec écran) **Given** un viewport de 375 px **When** la page s'affiche **Then** aucun débordement horizontal, [zone multi-colonnes] est [empilée / en scroll / dans un Sheet], le bouton principal est visible
 - [ ] (story avec écran) **Given** le thème sombre **When** la page s'affiche **Then** [éléments] restent lisibles (captures `pnpm ui:shots`)
+
+## Design
+
+<!-- Story avec écran : brief du sous-agent `designer` (skill `design`), selon
+     `.method/templates/design-brief.tmpl.md` : existant capturé, zoom arrière et verdict
+     d'intégration (ajouter / réorganiser l'encart / repenser l'écran), options dont la plus
+     petite, spécification (hiérarchie, retraits, composants, états, mobile, texte exact),
+     critères d'acceptation design, arbitrages tranchés par l'utilisateur.
+     Rien de visible : « N/A » et la raison. -->
 
 ## Implémentation
 

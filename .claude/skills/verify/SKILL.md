@@ -9,6 +9,14 @@ when_to_use: "Quand l'utilisateur demande d'EXÉCUTER les vérifications : 'vér
 Utilisable seul (debug local) ou appelé par `revue` (après application des fix) et par
 `commit-push` (étape 1).
 
+## Avant de lancer : d'autres sessions travaillent-elles ici ?
+
+`pnpm verify` gèle le checkout et passe par une file d'attente (`scripts/long-run.mjs`). Avant de
+le lancer, appliquer `CLAUDE.md § Plusieurs sessions sur le même checkout` : prévenir les autres
+sessions du dossier, leur proposer d'inclure leur travail, puis leur envoyer le résultat. Si une
+autre session vient d'annoncer un `verify`, ne pas en lancer un second : lui demander d'inclure
+ce travail et attendre son résultat.
+
 ## Une seule commande
 
 ```

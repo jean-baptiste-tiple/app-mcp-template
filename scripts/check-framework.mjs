@@ -48,7 +48,7 @@ if (!existsSync(INDEX)) {
 
 const indexSrc = read(INDEX)
 const BASE_CONVENTIONS = ['coding-standards.md']
-const WORKFLOW_SKILLS = ['dev', 'plan', 'revue', 'verify', 'wrap-up', 'commit-push']
+const WORKFLOW_SKILLS = ['dev', 'design', 'plan', 'revue', 'verify', 'wrap-up', 'commit-push']
 const STANDALONE_SKILLS = ['conventions', 'audit']
 
 // ------------------------------------------------- 1. parsing de _index.md
@@ -185,11 +185,39 @@ for (const dir of skillDirs) {
     warn(`Skill ${dir} : description très courte (${desc.length} car.) — déclenchement peu fiable.`)
 
   if (![...WORKFLOW_SKILLS, ...STANDALONE_SKILLS].includes(dir)) {
-    err(`Skill ${dir} : inconnu. Les skills sont les 6 de workflow + ${STANDALONE_SKILLS.join(', ')} ; le routing des conventions passe par les globs de _index.md, pas par un skill par tag.`)
+    err(`Skill ${dir} : inconnu. Les skills sont les 7 de workflow + ${STANDALONE_SKILLS.join(', ')} ; le routing des conventions passe par les globs de _index.md, pas par un skill par tag.`)
   }
 }
 for (const s of [...WORKFLOW_SKILLS, ...STANDALONE_SKILLS]) {
   if (!skillDirs.includes(s)) err(`Skill manquant : ${s}`)
+}
+
+// Sous-agents : un skill qui lance `subagent_type: "x"` sans `.claude/agents/x.md` retombe sur
+// l'agent généraliste, sans erreur — le designer ou le critique disparaîtrait en silence. Et un
+// agent qu'aucun skill ne lance n'est plus maintenu par personne : il dérive comme une checklist
+// orpheline.
+const AGENTS = join(ROOT, '.claude/agents')
+const agentsCites = new Set()
+for (const dir of skillDirs) {
+  const file = join(SKILLS, dir, 'SKILL.md')
+  if (!existsSync(file)) continue
+  for (const m of read(file).matchAll(/subagent_type:\s*"([\w-]+)"/g)) {
+    agentsCites.add(m[1])
+    const agentFile = join(AGENTS, `${m[1]}.md`)
+    if (!existsSync(agentFile)) {
+      err(`Skill ${dir} : sous-agent \`${m[1]}\` sans .claude/agents/${m[1]}.md.`)
+      continue
+    }
+    const fm = /^---\n([\s\S]*?)\n---\n/.exec(read(agentFile))
+    const name = fm && /^name:\s*(.+)$/m.exec(fm[1])?.[1].trim()
+    if (name !== m[1]) err(`.claude/agents/${m[1]}.md : \`name\` absent ou différent du fichier — le sous-agent ne sera pas trouvé.`)
+  }
+}
+for (const f of existsSync(AGENTS) ? readdirSync(AGENTS) : []) {
+  const agent = f.replace(/\.md$/, '')
+  if (f.endsWith('.md') && !agentsCites.has(agent)) {
+    err(`Agent orphelin : .claude/agents/${f} n'est lancé par aucun skill (\`subagent_type: "${agent}"\`).`)
+  }
 }
 
 // ------------------------------------- 5. commandes / skills / checklists référencés
