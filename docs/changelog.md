@@ -10,6 +10,11 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-11-24] — Gate : une commande par dépôt
+**Quoi :** une commande dont les `git` ne visent pas tous le même dépôt (un `-C` plus un autre `git`, ou un second `cd`) n'est plus exemptée comme « autre dépôt » : elle est jugée comme un commit de la session.
+**Pourquoi :** `git -C <dépôt hors méthode> push && git commit -m x` faisait partir le commit de la session sans gate (relevé par la synchro d'app-pmo-luciole).
+**Fichiers :** `.claude/hooks/enforce-git-gate.mjs`, `tests/unit/hooks.test.ts`, `CLAUDE.md`
+
 ## [2026-11-24] — Caractères de contrôle refusés dans la méthode
 **Quoi :** `check:framework` refuse un caractère de contrôle (hors tabulation, CR, LF) dans les `.md` de `.method/`, `.claude/` et `CLAUDE.md` ; `CLAUDE.md § Avant de coder` : un texte à antislashs s'écrit par Edit ou Write, jamais par un heredoc ou un `-c`.
 **Pourquoi :** deux octets BEL dans `database-patterns.md` de treso-luciole (chemin Windows décodé), puis le même accident sur `check-framework-invariants.mjs` pendant l'écriture de ce contrôle.

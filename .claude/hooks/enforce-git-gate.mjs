@@ -59,6 +59,12 @@ function racineVisee(command, cwd) {
   const c = chemin(trouver(`\\bgit\\s+(?:-{1,2}[^\\s]+(?:\\s+[^-\\s][^\\s]*)?\\s+)*?-C\\s+${ARG}`))
   if (c) dir = resolve(dir, natif(c))
   if (!cd && !c) return undefined
+  // Un seul dépôt visé, ou rien : avec plusieurs `git` dont un `-C`, ou un second `cd`, les
+  // verbes ne visent pas tous le même dépôt (`git -C <autre> push && git commit` faisait partir
+  // le commit de la session sans gate, relevé dans app-pmo-luciole le 2026-11-24).
+  const gits = masque.match(/(?:^|[\s;&|(])git\s/g)?.length ?? 0
+  const cds = masque.match(/(?:^|[;&|(]\s*)cd\s/g)?.length ?? 0
+  if (cds > 1 || (c && gits > 1)) return undefined
   try {
     return execFileSync('git', ['-C', dir, 'rev-parse', '--show-toplevel'], {
       encoding: 'utf8',

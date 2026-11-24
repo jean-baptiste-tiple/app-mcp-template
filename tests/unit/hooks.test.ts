@@ -361,6 +361,12 @@ describe("verify-receipt", () => {
       expect(gate(`cd ${repo} && git push --force origin main`)).toBe(BLOCKED)
       // Le dépôt de la session reste gardé.
       expect(gate(`git commit -m "x"`)).toBe(BLOCKED)
+      // Une commande dont les git ne visent pas tous le même dépôt n'est pas exemptée : le
+      // commit de la session partait sans gate (relevé dans app-pmo-luciole, 2026-11-24).
+      expect(gate(`git -C "${repo}" push origin HEAD && git commit -m "x"`)).toBe(BLOCKED)
+      expect(gate(`cd ${repo} && git status && cd .. && git commit -m "x"`)).toBe(BLOCKED)
+      // Plusieurs git dans le même dépôt visé par `cd` en tête restent exemptés.
+      expect(gate(`cd ${repo} && git add a && git commit -m "x"`)).toBe(ALLOWED)
     } finally {
       rmSync(repo, { recursive: true, force: true })
     }
