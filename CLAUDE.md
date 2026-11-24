@@ -286,7 +286,7 @@ le reste appartient au projet).
    à retirer à la main), `propre au projet` (ajouté par le dérivé sous un dossier owned, jamais
    touché), `doublon à supprimer à la main` (copie d'origine, même contenu, d'un fichier que le
    template écrit ailleurs : ADR directement sous `docs/decisions/`) ; pour les fichiers `merge`,
-   sections, lignes de tableau, scripts, hooks et lignes `.gitignore` que le template a et pas
+   sections, lignes de tableau, scripts, hooks et lignes `.gitignore` / `.gitattributes` que le template a et pas
    le dérivé, et le statut `merge sans part projet` (toutes les lignes non vides du dérivé
    existent dans le template : version antérieure ou égale, rien de propre). `--diff <chemin>`
    (répétable) affiche le diff unifié template → dérivé d'un fichier owned ou merge, CRLF

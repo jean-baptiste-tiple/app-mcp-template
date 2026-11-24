@@ -38,7 +38,7 @@ function ajoutsDuTemplate(chemin, tpl, cib) {
   if (chemin === '.claude/settings.json') {
     return absents(commandesDeHooks(tpl), commandesDeHooks(cib)).map((c) => `hook « ${c} »`)
   }
-  if (chemin === '.gitignore') {
+  if (chemin === '.gitignore' || chemin === '.gitattributes') {
     const lignes = (s) => s.split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#'))
     return absents(lignes(tpl), lignes(cib)).map((l) => `ligne « ${l} »`)
   }

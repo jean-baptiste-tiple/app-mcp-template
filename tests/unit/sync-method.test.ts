@@ -107,6 +107,19 @@ describe("sync-method — rapport", () => {
     expect(out).toContain("ligne de tableau « `mcp` »")
     expect(out).not.toContain("ligne de tableau « `ui` »")
   })
+
+  it("should list .gitattributes lines absent from the target", () => {
+    // Sans `*.mjs text eol=lf`, un script à shebang extrait en CRLF ne se charge plus
+    // (mon-espace-luciole, 2026-11-24) : la ligne doit apparaître au rapport.
+    ecrire(tpl, {
+      ".method/sync-manifest.json": JSON.stringify({ ...MANIFESTE, merge: [...MANIFESTE.merge, ".gitattributes"] }),
+      ".gitattributes": "# commentaire\n*.mjs text eol=lf\n*.sh text eol=lf\n",
+    })
+    ecrire(cible, { ".gitattributes": "*.sh text eol=lf\n" })
+    const { out } = sync(cible)
+    expect(out).toContain("ligne « *.mjs text eol=lf »")
+    expect(out).not.toContain("ligne « *.sh text eol=lf »")
+  })
 })
 
 describe("sync-method — --apply", () => {

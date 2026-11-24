@@ -22,6 +22,7 @@
     ".claude/settings.json",
     "package.json",
     ".gitignore",
+    ".gitattributes",
     "README.md"
   ]
 }

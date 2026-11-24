@@ -10,6 +10,11 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-11-24] — `.gitattributes` voyage avec la méthode
+**Quoi :** `.gitattributes` passe au manifeste (`merge`, comparé ligne à ligne comme `.gitignore`).
+**Pourquoi :** sans `*.mjs text eol=lf`, `sync-method.mjs` extrait en CRLF garde un shebang illisible et ses tests tombent (mon-espace-luciole).
+**Fichiers :** `.method/sync-manifest.json`, `scripts/sync-method-merge.mjs`, `tests/unit/sync-method.test.ts`, `CLAUDE.md`
+
 ## [2026-11-24] — Lighthouse retiré du template d'app ; gate et `git merge-file`
 **Quoi :** suppression de `pnpm audit:lh`, de `lighthouserc.json` et de la section « Audit Lighthouse » ; `performance-patterns.md § Mesurer` (First Load JS de `pnpm build`, Web Vitals dans DevTools) ; le contraste passe par axe dans `pnpm test:e2e` (accessibility, ui, deployment, design system). Gate : un verbe de commit ne se termine plus sur un tiret (`git merge-file`, `git merge-base` passent), `git commit-tree` est couvert.
 **Pourquoi :** une app vit derrière une authentification, un score Lighthouse de page publique n'y mesure rien ; l'outil reste au socle web (décision JB). Le gate bloquait `git merge-file` pendant la synchro d'app-fnr-luciole.
