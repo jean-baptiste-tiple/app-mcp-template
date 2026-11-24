@@ -29,6 +29,7 @@ activée, elle **remplace** le MCP du template, et les capacités métier devien
 - **Critères de succès vérifiables d'abord.** Reformuler la tâche en checks concrets : test qui reproduit le bug, assertion qui valide la feature, type-check qui passe. Pas de « make it work » flou.
 - **Push back quand c'est justifié.** Approche plus simple disponible ou dette évidente créée : le dire avant d'exécuter.
 - **Base à jour avant un chantier documentaire.** `git fetch` et écart avec `origin/main` constatés avant d'écrire dans `docs/`, `.method/` ou `CLAUDE.md`. Une règle écrite sur une base périmée cite des chemins morts.
+- **Un texte qui contient des antislashs s'écrit par l'outil Edit ou Write**, ou par un script écrit avec Write puis lancé : jamais par un heredoc ni un `-c` en ligne de commande, qui réinterprètent les échappements (`C:\apps` y devient `C:` + BEL + `pps`, `'\n'` un vrai saut de ligne). Vu deux fois le 2026-11-24 (treso-luciole, `check-framework-invariants.mjs`). Contrôlable : `check:framework` refuse un caractère de contrôle dans `.method/`, `.claude/` et `CLAUDE.md`, `node --check` un script cassé.
 
 ## Justifier une surface nouvelle
 

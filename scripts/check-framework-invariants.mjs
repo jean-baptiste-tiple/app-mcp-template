@@ -10,7 +10,7 @@
  * documentation est parfaite.
  */
 import { existsSync, readdirSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, relative } from 'node:path'
 import { verifierManifeste } from './sync-method.mjs'
 
 /**
@@ -23,6 +23,24 @@ export function verifierInvariants({ ROOT, read, walk, err, warn }) {
   chaineDApplication({ ROOT, read, err, warn })
   invariantsDependabot({ ROOT, read, err, warn })
   verifierManifeste(ROOT, err)
+  caracteresDeControle({ ROOT, read, walk, err })
+}
+
+/**
+ * Un chemin Windows écrit par un outil qui interprète les échappements (`C:\apps` devient `C:`,
+ * BEL, `pps`) laisse des octets invisibles à la relecture dans la méthode (treso-luciole,
+ * 2026-11-24). Tabulation, CR et LF exceptés.
+ */
+function caracteresDeControle({ ROOT, read, walk, err }) {
+  const racines = ['.method', '.claude'].map((d) => join(ROOT, d)).filter((d) => existsSync(d))
+  const fichiers = [...racines.flatMap((d) => walk(d)), join(ROOT, 'CLAUDE.md')]
+  for (const f of fichiers.filter((f) => f.endsWith('.md') && existsSync(f))) {
+    read(f).split('\n').forEach((ligne, i) => {
+      if (/[\x00-\x08\x0B\x0C\x0E-\x1F]/.test(ligne)) {
+        err(`${relative(ROOT, f).replace(/\\/g, '/')}:${i + 1} : caractère de contrôle invisible (chemin Windows décodé ?).`)
+      }
+    })
+  }
 }
 
 /** Tables créées par une migration sans que la même migration active la RLS. */

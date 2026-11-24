@@ -10,6 +10,11 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-11-24] — Caractères de contrôle refusés dans la méthode
+**Quoi :** `check:framework` refuse un caractère de contrôle (hors tabulation, CR, LF) dans les `.md` de `.method/`, `.claude/` et `CLAUDE.md` ; `CLAUDE.md § Avant de coder` : un texte à antislashs s'écrit par Edit ou Write, jamais par un heredoc ou un `-c`.
+**Pourquoi :** deux octets BEL dans `database-patterns.md` de treso-luciole (chemin Windows décodé), puis le même accident sur `check-framework-invariants.mjs` pendant l'écriture de ce contrôle.
+**Fichiers :** `scripts/check-framework-invariants.mjs`, `tests/unit/check-framework-invariants.test.ts`, `CLAUDE.md`
+
 ## [2026-11-24] — Hooks : PowerShell surveillé comme Bash
 **Quoi :** `.claude/settings.json` branche le gate, les règles shell et la coordination des sessions sur `Bash|PowerShell` ; `check:framework` refuse un de ces hooks qui ne voit pas les deux outils ; `coordinate-sessions` note aussi l'intention d'un run long lancé de PowerShell.
 **Pourquoi :** un `git commit` lancé par l'outil PowerShell passait sans gate, et un verify lancé de PowerShell gelait la session qui l'avait lancé (app-pmo-luciole).

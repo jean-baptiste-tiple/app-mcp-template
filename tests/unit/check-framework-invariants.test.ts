@@ -238,3 +238,20 @@ describe("verifierInvariants — hooks branchés sur PowerShell", () => {
     expect(erreursSettings("Bash|PowerShell")).toHaveLength(0)
   })
 })
+
+describe("verifierInvariants — caractères de contrôle dans la méthode", () => {
+  const controles = (files: Record<string, string>) =>
+    allErrorsFor(files).filter((m) => m.includes("caractère de contrôle"))
+
+  it("should fail on a control byte in a convention (a Windows path decoded as an escape)", () => {
+    // `C:\apps\app-pmo` écrit par un outil qui interprète `\a` : deux octets BEL dans
+    // database-patterns.md de treso-luciole, invisibles à la relecture (2026-11-24).
+    const errors = controles({ ".method/conventions/database-patterns.md": "Dossier `C:\u0007pps\u0007pp-pmo`\n" })
+    expect(errors).toHaveLength(1)
+    expect(errors[0]).toContain(".method/conventions/database-patterns.md:1")
+  })
+
+  it("should accept tabs and CRLF", () => {
+    expect(controles({ "CLAUDE.md": "a\tb\r\nc\n", ".claude/skills/dev/SKILL.md": "ok\n" })).toHaveLength(0)
+  })
+})
