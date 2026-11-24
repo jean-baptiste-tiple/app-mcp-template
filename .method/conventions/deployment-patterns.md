@@ -116,6 +116,13 @@ Politique du template, contrôlée par `pnpm check:framework` :
   `minimumReleaseAgeExclude` dans `pnpm-workspace.yaml` pour contourner le délai de publication,
   ce qui installe une version de moins de 24 h sans décision. Si la seule version corrigée est
   hors des plages déclarées, c'est une majeure de `tech-stack.md`, pas un override.
+- **PR de sécurité refusée par `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`** (preview Vercel ou CI
+  en échec sur `pnpm install`) : la mise à jour de sécurité, qui ignore le `cooldown`, a
+  résolu une transitive publiée depuis moins de 24 h (`caniuse-lite`, `electron-to-chromium`
+  sortent presque chaque jour). Ce n'est pas un défaut du dépôt : ne pas merger, ne pas
+  ajouter de `minimumReleaseAgeExclude`. Après 24 h, relancer le build **du même commit**
+  (Redeploy de la preview, re-run du job CI). Pas de `@dependabot recreate` : il re-résout vers
+  les versions du jour et retombe sur le même refus. *(website-tiple, PR browserslist, 2026-11-24.)*
 - **Projet dérivé** : garder le fichier et enrichir `ignore` à chaque pin ajouté. Le supprimer
   vaut « pas de mise à jour automatique » : le check l'avertit, il ne l'interdit pas.
 
