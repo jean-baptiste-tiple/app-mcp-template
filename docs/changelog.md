@@ -10,6 +10,11 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-11-24] — Worktree : jamais de `node_modules` relié
+**Quoi :** `CLAUDE.md § Vérifier, commiter, pousser` (Worktree) : un worktree fait son propre `pnpm install`, jamais de jonction vers le `node_modules` d'un autre checkout.
+**Pourquoi :** un sous-agent a relié le `node_modules` de dev-sofrani à un worktree d'essai ; pnpm l'a vidé au `verify` suivant et la session qui y travaillait a été cassée quelques minutes.
+**Fichiers :** `CLAUDE.md`
+
 ## [2026-11-24] — Gate : un dérivé est jugé par son propre script de reçu
 **Quoi :** un commit visé dans un autre dépôt de la méthode (`cd <dir> &&`, `git -C`) est jugé par le `scripts/verify-receipt.mjs check` de ce dépôt, plus par l'algorithme du template. Un message de commit qui cite `git -C …` ne déplace plus le dépôt visé (texte entre quotes masqué).
 **Pourquoi :** bo-my a adapté son reçu (npm, exclusions) : son `verify` vert était refusé par le gate de la session dev-framework.
