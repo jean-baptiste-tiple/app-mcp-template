@@ -80,8 +80,9 @@ const git = (args, options = {}, root = ROOT) =>
   )
 
 /**
- * Empreinte de tout ce qui est susceptible de faire échouer un check :
- * le HEAD, le diff complet (indexé et non indexé), et le contenu des fichiers non suivis.
+ * Empreinte de tout ce qui est susceptible de faire échouer un check : le contenu de l'arbre
+ * (blob de chaque chemin suivi ou non suivi, modifications indexées ou non comprises), hors
+ * documents écrits après les checks. Indépendante de HEAD : un commit du même arbre la garde.
  */
 export function worktreeHash(root = ROOT) {
   const g = (args, options) => git(args, options, root)
@@ -169,11 +170,25 @@ export function worktreeHash(root = ROOT) {
   }
 
   const hashes = hashEnLot(uniques.filter((path) => !supprimes.has(path)))
-  const entries = uniques.map((path) =>
-    supprimes.has(path) ? `${path}:supprimé` : `${path}:${hashes.get(path) ?? 'illisible'}`
-  )
 
-  return createHash('sha256').update([head, ...entries].join('\n')).digest('hex')
+  // L'empreinte porte sur le CONTENU de l'arbre (chemin → blob), pas sur HEAD + diff : un commit
+  // du même arbre la laisse inchangée. Sinon le commit invalidait le reçu sans changer une ligne,
+  // et le rebase sur un `main` qui avait bougé exigeait de rejouer tous les checks (2026-11-24).
+  // Les fichiers inchangés depuis HEAD prennent le blob de `ls-tree`, sans rien hacher.
+  const contenu = new Map()
+  if (head !== 'sans-commit') {
+    for (const line of lines(g(['ls-tree', '-r', '--full-tree', 'HEAD']))) {
+      const [meta, path] = line.split('\t')
+      if (path && !estExclu(path)) contenu.set(path, meta.split(' ')[2])
+    }
+  }
+  for (const path of uniques) {
+    if (supprimes.has(path)) contenu.delete(path)
+    else contenu.set(path, hashes.get(path) ?? 'illisible')
+  }
+  const entries = [...contenu].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([p, h]) => `${p}:${h}`)
+
+  return createHash('sha256').update(entries.join('\n')).digest('hex')
 }
 
 function readReceipt(path = RECEIPT) {

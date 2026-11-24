@@ -177,10 +177,7 @@ process.stdin.on('end', async () => {
   //
   // `push` en est exclu, et ce n'est pas un trou : il ne publie que du déjà-commité, et chaque
   // verbe capable de produire un commit passe désormais lui-même par ce contrôle — c'est ce qui
-  // manquait en v2, où seul `commit` était couvert. L'exiger aussi du push le rendrait de toute
-  // façon impossible à satisfaire : le commit qui vient d'avoir lieu change HEAD, donc invalide
-  // le reçu. Il faudrait relancer `pnpm verify` entre le commit et le push — soit exactement la
-  // double exécution que le reçu existe pour supprimer.
+  // manquait en v2, où seul `commit` était couvert.
   if (!motif(VERBES_COMMIT).test(bare)) process.exit(0)
 
   // Autre dépôt de la méthode qui a son propre `verify-receipt.mjs` : il est jugé par SON

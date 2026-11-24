@@ -10,6 +10,11 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-11-24] — Le reçu survit au commit du même arbre
+**Quoi :** l'empreinte du reçu porte sur le contenu de l'arbre (chemin → blob), plus sur HEAD + diff : un commit sans changement de code ne l'invalide plus, et un `git rebase origin/main # checks-ok` passe sans rejouer les checks. Skill `commit-push` : marche à suivre quand le push est refusé.
+**Pourquoi :** sur bo-my, app-fnr, app-pmo et mon-espace, un commit de synchro de schéma arrivait sur `main` entre le commit et le push : il fallait rejouer 10 à 37 min de checks sur un code identique pour avoir le droit de rebaser.
+**Fichiers :** `scripts/verify-receipt.mjs`, `.claude/hooks/enforce-git-gate.mjs`, `.claude/skills/commit-push/SKILL.md`, `tests/unit/hooks.test.ts`
+
 ## [2026-11-24] — Gate : une commande par dépôt
 **Quoi :** une commande dont les `git` ne visent pas tous le même dépôt (un `-C` plus un autre `git`, ou un second `cd`) n'est plus exemptée comme « autre dépôt » : elle est jugée comme un commit de la session.
 **Pourquoi :** `git -C <dépôt hors méthode> push && git commit -m x` faisait partir le commit de la session sans gate (relevé par la synchro d'app-pmo-luciole).

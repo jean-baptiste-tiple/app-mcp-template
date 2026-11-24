@@ -117,5 +117,10 @@ Un `git rebase --continue` au milieu d'une résolution de conflit est concerné 
 voulu : c'est exactement le moment où l'arbre a bougé sans que rien ne l'ait revérifié.
 
 Le `push` de l'étape 5 est le seul verbe qui exige le marqueur **sans** exiger un reçu valide :
-le commit qui vient d'avoir lieu a changé `HEAD`, donc invalidé le reçu. Il ne publie que du
-déjà-commité, et chaque commit est passé par le contrôle ci-dessus.
+il ne publie que du déjà-commité, et chaque commit est passé par le contrôle ci-dessus.
+
+**Push refusé parce que la branche distante a bougé** : `git fetch`, puis `git rebase
+origin/<branche> # checks-ok`. Le reçu porte sur le contenu de l'arbre : le commit qui vient
+d'avoir lieu ne l'a pas invalidé, le rebase passe sans rejouer les checks. Si les commits de
+l'amont touchent du code, relancer `pnpm verify` sur l'arbre rebasé avant le push est le choix
+prudent ; s'ils ne touchent que de la documentation, le push suffit.

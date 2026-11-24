@@ -259,6 +259,46 @@ describe("verify-receipt", () => {
     }
   })
 
+  it("reste valide après le commit du même arbre, s'invalide quand l'amont change le code", () => {
+    // Après un commit, `main` distant a souvent bougé (commit de synchro de schéma) : le rebase
+    // exigeait un reçu, que le commit venait d'invalider sans changer une ligne. Il fallait
+    // rejouer 10 à 37 min de checks sur le même code (bo-my, app-fnr, app-pmo, 2026-11-24).
+    const repo = join(tmpdir(), `commit-repo-${process.pid}`)
+    rmSync(repo, { recursive: true, force: true })
+    const g = (...args: string[]) => execFileSync("git", args, { cwd: repo, stdio: "pipe" })
+    execFileSync("git", ["init", "--quiet", repo], { stdio: "pipe" })
+    try {
+      g("config", "user.email", "test@test")
+      g("config", "user.name", "test")
+      writeFileSync(join(repo, "a.ts"), "export const a = 1\n")
+      g("add", "a.ts")
+      g("commit", "--quiet", "--no-verify", "-m", "init")
+      const env = { ...process.env, VERIFY_RECEIPT_PATH: `${repo}-receipt.json`, VERIFY_RECEIPT_ROOT: repo }
+      const receiptIn = (action: string): number => {
+        try {
+          execFileSync("node", [RECEIPT_SCRIPT, action], { cwd: repo, stdio: "pipe", env })
+          return 0
+        } catch (error) {
+          return (error as { status: number }).status
+        }
+      }
+      writeFileSync(join(repo, "a.ts"), "export const a = 2\n")
+      writeFileSync(join(repo, "b.ts"), "export const b = 1\n")
+      expect(receiptIn("write")).toBe(0)
+      g("add", "a.ts", "b.ts")
+      g("commit", "--quiet", "--no-verify", "-m", "travail")
+      expect(receiptIn("check")).toBe(0)
+      // Un commit de l'amont qui change le code (ici, un fichier ajouté) l'invalide.
+      writeFileSync(join(repo, "c.ts"), "export const c = 1\n")
+      g("add", "c.ts")
+      g("commit", "--quiet", "--no-verify", "-m", "amont")
+      expect(receiptIn("check")).toBe(1)
+    } finally {
+      rmSync(repo, { recursive: true, force: true })
+      rmSync(`${repo}-receipt.json`, { force: true })
+    }
+  })
+
   it("ne casse pas sur un dépôt sans commit", () => {
     // Premier commit d'un projet issu du template : `git rev-parse HEAD` échoue. Sans garde,
     // `pnpm verify` mourait APRÈS avoir passé les 4 checks, et le gate refusait le commit en
