@@ -145,7 +145,7 @@ describe("sync-method — --apply", () => {
   it("should stop reporting a kept project file until the template changes it again", () => {
     // bo-my : 44 fichiers adaptés au projet, relus à chaque synchro alors que le template n'avait
     // pas bougé. Le tampon note la version du template confrontée à l'--apply.
-    sync(cible, "--apply")
+    sync(cible, "--reviewed")
     const ensuite = sync(cible).out
     expect(ensuite).toContain("modifié par le projet, template inchangé (2)")
     expect(ensuite).not.toContain("## modifié par le projet (")
@@ -155,6 +155,14 @@ describe("sync-method — --apply", () => {
     expect(apres).toContain("modifié par le projet, template inchangé (1)")
     expect(sync(cible, "--take", ".claude/skills/verify/SKILL.md").code).toBe(0)
     expect(lire(".claude/skills/verify/SKILL.md")).toBe("verify v2\n")
+  })
+
+  it("should keep listing a project file after a plain --apply: only --reviewed marks it", () => {
+    // oto-core : `--apply` en début de synchro notait comme revus des fichiers encore en attente
+    // d'arbitrage, qui auraient disparu des rapports suivants.
+    sync(cible, "--apply")
+    expect(sync(cible).out).toContain("## modifié par le projet (2)")
+    expect(tampon()).not.toHaveProperty(["bases", ".method/conventions/ui-patterns.md"])
   })
 
   it("should overwrite a modified file named by --take", () => {

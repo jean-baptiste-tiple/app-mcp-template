@@ -230,10 +230,12 @@ function commitDuTemplate(template) {
  * Écrit `nouveau`, `à jour sûr`, les `modifié par le projet` et les `merge sans part projet`
  * cités par `--take` ; jamais un autre fichier merge. Le tampon note l'empreinte de chaque fichier owned désormais égal au template ;
  * un fichier modifié laissé en place garde son empreinte précédente, pour qu'un retour du projet
- * à l'état synchronisé redevienne « à jour sûr ». `bases` note, pour chaque fichier modifié laissé
- * en place, la version du template à laquelle il a été confronté : `--apply` vaut « diffs lus ».
+ * à l'état synchronisé redevienne « à jour sûr ». `bases` note la version du template à laquelle
+ * un fichier modifié laissé en place a été confronté : seulement avec `--reviewed` (fusions et
+ * arbitrages finis), sinon un fichier encore en attente disparaîtrait des rapports suivants.
+ * Sans `--reviewed`, une base reste tant que le template n'a pas changé le fichier.
  */
-export function appliquer(template, cible, lignes, { takes, exclus, merge = [] }) {
+export function appliquer(template, cible, lignes, { takes, exclus, merge = [], reviewed = false }) {
   const ancien = lireTampon(cible)
   const files = {}
   const bases = {}
@@ -249,7 +251,7 @@ export function appliquer(template, cible, lignes, { takes, exclus, merge = [] }
     }
     if (ecrire || l.statut === STATUTS.identique) files[l.dest] = l.hash
     else if (ancien.files?.[l.dest]) files[l.dest] = ancien.files[l.dest]
-    if (!ecrire && modifie) bases[l.dest] = l.hash
+    if (!ecrire && (reviewed ? modifie : l.statut === STATUTS.revu)) bases[l.dest] = l.hash
   }
   for (const m of merge) {
     if (m.statut !== MERGE_SANS_PART || !takes.has(m.chemin)) continue
@@ -265,17 +267,18 @@ export function appliquer(template, cible, lignes, { takes, exclus, merge = [] }
 
 // ------------------------------------------------------------------ CLI
 function lireArgs(argv) {
-  const args = { cible: null, apply: false, takes: new Set(), excludes: new Set(), diffs: new Set() }
+  const args = { cible: null, apply: false, reviewed: false, takes: new Set(), excludes: new Set(), diffs: new Set() }
   const listes = { '--take': args.takes, '--exclude': args.excludes, '--diff': args.diffs }
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--apply') args.apply = true
+    else if (argv[i] === '--reviewed') args.apply = args.reviewed = true
     else if (listes[argv[i]] && argv[i + 1]) listes[argv[i]].add(argv[++i].replaceAll('\\', '/'))
     else if (argv[i].startsWith('-') || args.cible) return { erreur: `argument inattendu : ${argv[i]}` }
     else args.cible = resolve(argv[i])
   }
   if (!args.cible) return { erreur: 'dépôt cible manquant' }
   if (args.takes.size || args.excludes.size) args.apply = true
-  if (args.diffs.size && args.apply) return { erreur: '--diff n’écrit rien : il ne se combine ni avec --apply, ni avec --take, ni avec --exclude' }
+  if (args.diffs.size && args.apply) return { erreur: '--diff n’écrit rien : il ne se combine ni avec --apply, ni avec --take, ni avec --exclude, ni avec --reviewed' }
   const lesDeux = [...args.takes].filter((t) => args.excludes.has(t))
   if (lesDeux.length) return { erreur: `--take et --exclude sur le même fichier : ${lesDeux.join(', ')}` }
   return args
@@ -318,7 +321,7 @@ function resume(owned, merge) {
 function main() {
   const template = join(dirname(fileURLToPath(import.meta.url)), '..')
   const args = lireArgs(process.argv.slice(2))
-  const usage = 'Usage : node scripts/sync-method.mjs <dépôt-cible> [--apply] [--take <chemin>]... [--exclude <chemin>]... | --diff <chemin>...'
+  const usage = 'Usage : node scripts/sync-method.mjs <dépôt-cible> [--apply | --reviewed] [--take <chemin>]... [--exclude <chemin>]... | --diff <chemin>...'
   if (args.erreur) return sortir(`✖  ${args.erreur}\n${usage}`)
   if (!existsSync(join(template, MANIFESTE))) return sortir(`✖  ${MANIFESTE} absent : ce script se lance depuis le template.`)
   if (!existsSync(join(args.cible, '.method'))) return sortir(`✖  ${args.cible} n'est pas un dépôt de la méthode (pas de .method/).`)
@@ -338,7 +341,7 @@ function main() {
   imprimer(args.cible, owned, merge)
   console.log(`\nRésumé : ${resume(owned, merge)}`)
   if (args.apply) {
-    const ecrits = appliquer(template, args.cible, owned, { takes: args.takes, exclus, merge })
+    const ecrits = appliquer(template, args.cible, owned, { takes: args.takes, exclus, merge, reviewed: args.reviewed })
     const laisses = [...modifies].filter((d) => !args.takes.has(d)).length
     console.log(`Appliqué : ${ecrits.length} fichier(s) écrit(s), ${laisses} modifié(s) par le projet laissé(s) en place, tampon ${TAMPON} écrit.`)
   }

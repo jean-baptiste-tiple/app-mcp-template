@@ -212,6 +212,24 @@ function chaineDApplication({ ROOT, read, err, warn }) {
     }
   }
 
+  // Les hooks de commande doivent voir les deux outils shell : un `git commit` lancé par l'outil
+  // PowerShell passait sans gate, et un verify lancé de PowerShell gelait sa propre session
+  // (app-pmo, 2026-11-24).
+  const settingsPath = join(ROOT, '.claude/settings.json')
+  if (existsSync(settingsPath)) {
+    const entrees = JSON.parse(read(settingsPath)).hooks?.PreToolUse ?? []
+    for (const f of ['enforce-git-gate.mjs', 'enforce-bash-rules.mjs', 'coordinate-sessions.mjs']) {
+      const matchers = entrees
+        .filter((e) => (e.hooks ?? []).some((h) => String(h.command ?? '').includes(f)))
+        .map((e) => String(e.matcher ?? ''))
+      if (!matchers.length) continue
+      const voit = (outil) => matchers.some((m) => new RegExp(`(?:^|\\|)${outil}(?:$|\\|)`).test(m))
+      if (!voit('Bash') || !voit('PowerShell')) {
+        err(`.claude/settings.json : ${f} ne surveille pas Bash et PowerShell (matcher « ${matchers.join(' / ')} »).`)
+      }
+    }
+  }
+
   // Le hook git couvre les commits lancés depuis un script, invisibles au hook PreToolUse.
   const preCommit = join(ROOT, '.githooks/pre-commit')
   if (!existsSync(preCommit)) {

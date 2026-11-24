@@ -10,8 +10,14 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-11-24] — Hooks : PowerShell surveillé comme Bash
+**Quoi :** `.claude/settings.json` branche le gate, les règles shell et la coordination des sessions sur `Bash|PowerShell` ; `check:framework` refuse un de ces hooks qui ne voit pas les deux outils ; `coordinate-sessions` note aussi l'intention d'un run long lancé de PowerShell.
+**Pourquoi :** un `git commit` lancé par l'outil PowerShell passait sans gate, et un verify lancé de PowerShell gelait la session qui l'avait lancé (app-pmo-luciole).
+**Porter sur un dérivé :** fusionner le matcher dans `.claude/settings.json` (fichier merge).
+**Fichiers :** `.claude/settings.json`, `.claude/hooks/coordinate-sessions.mjs`, `scripts/check-framework-invariants.mjs`, `tests/unit/{check-framework-invariants,long-run}.test.ts`, `CLAUDE.md`
+
 ## [2026-11-24] — sync-method : une part projet revue n'est plus relistée
-**Quoi :** le tampon note (`bases`) la version du template confrontée à chaque fichier modifié laissé en place à l'`--apply` ; tant que le template ne change pas ce fichier, la synchro suivante le compte en `modifié par le projet, template inchangé` sans le lister.
+**Quoi :** `--reviewed` (en fin de synchro, fusions et arbitrages finis) note dans le tampon (`bases`) la version du template confrontée à chaque fichier modifié laissé en place ; un simple `--apply` ne la note pas, sinon un fichier encore en attente disparaissait (oto-core) ; tant que le template ne change pas ce fichier, la synchro suivante le compte en `modifié par le projet, template inchangé` sans le lister.
 **Pourquoi :** bo-my et app-pmo gardent plus de 40 fichiers adaptés : chaque synchro les relistait tous, et les vraies nouveautés du template s'y noyaient.
 **Porter sur un dérivé :** rien ; le statut apparaît à partir de la deuxième synchro.
 **Fichiers :** `scripts/sync-method.mjs`, `tests/unit/sync-method.test.ts`, `CLAUDE.md`

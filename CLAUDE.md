@@ -246,7 +246,7 @@ exclus du reçu de vérification : les éditer n'invalide pas des checks déjà 
 Plusieurs conversations travaillent souvent en même temps dans ce dossier. Les commandes longues
 se **mutualisent** : un seul run, au bon moment, pour tout le monde.
 
-**Ce que l'outillage garantit** (`scripts/long-run.mjs`, hook `.claude/hooks/coordinate-sessions.mjs`) :
+**Ce que l'outillage garantit** (`scripts/long-run.mjs`, hook `.claude/hooks/coordinate-sessions.mjs`, branché comme le gate sur les outils Bash et PowerShell, ce que `check:framework` vérifie) :
 - `verify`, `build`, `test:e2e`, `ui:shots`, `mcp:smoke` tournent **un à la fois** :
   une commande lancée pendant une autre attend sa fin au lieu de tourner en parallèle.
 - `verify` et `build` **gèlent** le checkout : avant de partir, ils attendent que les autres
@@ -293,15 +293,17 @@ le reste appartient au projet).
    (répétable) affiche le diff unifié template → dérivé d'un fichier owned ou merge, CRLF
    normalisé, sans rien écrire. Le rapport finit par le rappel `pnpm exec playwright install
    chromium` quand `@playwright/test` diffère entre template et dérivé.
-2. **Écriture** : `--apply` écrit `nouveau` et `à jour sûr`, et le tampon ; il y note la version
-   du template confrontée à chaque fichier modifié laissé en place : **`--apply` vaut « diffs
-   lus »**, un fichier non revu se fusionne avant le commit, pas à la synchro suivante. `--take <chemin>`
+2. **Écriture** : `--apply` écrit `nouveau` et `à jour sûr`, et le tampon. **`--reviewed`**, en
+   dernier, quand fusions et arbitrages sont finis : il fait l'`--apply` et note en plus la version
+   du template confrontée à chaque fichier modifié laissé en place, qui passe en `template
+   inchangé` aux synchros suivantes. Un fichier encore en attente d'arbitrage interdit `--reviewed`,
+   sinon il disparaît des rapports. `--take <chemin>`
    (répétable) écrase un fichier `modifié par le projet` ou `merge sans part projet` : **seulement
    après avoir lu son diff** (`--diff`), sinon la part du projet est perdue ; sur tout autre
    fichier `merge`, il est refusé. `--exclude <chemin>` (répétable) refuse durablement un fichier
    du template (convention retirée volontairement par le dérivé) : noté dans le tampon, il n'est
-   plus jamais écrit, aux synchros suivantes aussi. `--take` et `--exclude` impliquent `--apply` ;
-   `--diff` ne se combine avec aucun des trois.
+   plus jamais écrit, aux synchros suivantes aussi. `--take`, `--exclude` et `--reviewed` impliquent
+   `--apply` ; `--diff` ne se combine avec aucune option d'écriture.
 3. **ADR du template** : ils arrivent dans le sous-dossier `socle/` des `docs/decisions/` du
    dérivé, qui fait foi. Les copies d'origine signalées `doublon à supprimer à la main` se
    suppriment à la main. Un document qui voyage cite un ADR du template par son numéro seul

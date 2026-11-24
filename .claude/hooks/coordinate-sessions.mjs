@@ -84,7 +84,7 @@ process.stdin.on('end', () => {
     process.exit(0)
   }
 
-  if (tool === 'Bash' && session && LONG_RUN.test(String(input?.tool_input?.command ?? ''))) {
+  if ((tool === 'Bash' || tool === 'PowerShell') && session && LONG_RUN.test(String(input?.tool_input?.command ?? ''))) {
     write(join(DIR, 'intent.json'), { session, at: Date.now() })
   }
   process.exit(0)

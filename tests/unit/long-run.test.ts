@@ -104,6 +104,13 @@ describe("coordinate-sessions hook", () => {
     expect(JSON.parse(readFileSync(join(dir, "intent.json"), "utf8")).session).toBe("session-a")
   })
 
+  it("records the launching session from PowerShell too", () => {
+    // app-pmo lance son verify depuis PowerShell : sans intention notée, le gel bloquait aussi la
+    // session qui l'avait lancé (2026-11-24).
+    hook({ session_id: "session-a", tool_name: "PowerShell", tool_input: { command: "pnpm verify" } })
+    expect(JSON.parse(readFileSync(join(dir, "intent.json"), "utf8")).session).toBe("session-a")
+  })
+
   it("does not record an intent for a command that is not a long run", () => {
     hook({ session_id: "session-a", tool_name: "Bash", tool_input: { command: "pnpm lint" } })
     expect(existsSync(join(dir, "intent.json"))).toBe(false)

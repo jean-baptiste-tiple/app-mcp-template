@@ -214,3 +214,27 @@ describe("verifierInvariants — pins et Dependabot", () => {
     expect(dependabotErrorsFor({ "@modelcontextprotocol/sdk": "1.26.0" }, yml)).toHaveLength(0)
   })
 })
+
+describe("verifierInvariants — hooks branchés sur PowerShell", () => {
+  const settings = (matcher: string) =>
+    JSON.stringify({
+      hooks: {
+        PreToolUse: [
+          { matcher, hooks: [{ type: "command", command: 'node "$CLAUDE_PROJECT_DIR/.claude/hooks/enforce-git-gate.mjs"' }] },
+        ],
+      },
+    })
+  const erreursSettings = (matcher: string) =>
+    allErrorsFor({ ".claude/settings.json": settings(matcher) }).filter((m) => m.includes("settings.json"))
+
+  it("should fail when the git gate only watches Bash", () => {
+    // Un `git commit` lancé par l'outil PowerShell passait sans gate (app-pmo, 2026-11-24).
+    const errors = erreursSettings("Bash")
+    expect(errors).toHaveLength(1)
+    expect(errors[0]).toContain("PowerShell")
+  })
+
+  it("should accept a gate that watches Bash and PowerShell", () => {
+    expect(erreursSettings("Bash|PowerShell")).toHaveLength(0)
+  })
+})
