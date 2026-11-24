@@ -272,6 +272,34 @@ se **mutualisent** : un seul run, au bon moment, pour tout le monde.
 
 - La CI : `pnpm build` sur `main` (validation Vercel, erreurs spécifiques à Linux), sans duplication avec le local. Sur une pull request, elle ajoute les 4 checks : seul gate des PR Dependabot, qui ne passent jamais par `pnpm verify` (`deployment-patterns.md § Dependabot`).
 
+## Mettre à jour un projet dérivé
+
+Les projets dérivés n'ont pas l'historique du template : la méthode les atteint par
+`scripts/sync-method.mjs`, depuis le template, selon `.method/sync-manifest.json` (`owned` : le
+template fait foi ; `merge` : contenu mixte, jamais écrit ; le reste appartient au projet).
+
+1. **Rapport** : `node scripts/sync-method.mjs <dépôt-dérivé>`, rien n'est écrit. Statuts des
+   fichiers `owned` : `nouveau`, `à jour sûr` (inchangé depuis la dernière synchro, empreinte du
+   tampon `sync-state.json` écrit dans le `.method/` du dérivé), `modifié par le projet`,
+   `exclu par le projet`, `retiré du template` (noté par la synchro précédente, jamais supprimé :
+   à retirer à la main), `propre au projet` (ajouté par le dérivé sous un dossier owned, jamais
+   touché) ; pour les fichiers `merge`, sections, lignes de tableau, scripts, hooks et lignes
+   `.gitignore` que le template a et pas le dérivé. `--diff <chemin>` (répétable) affiche le diff
+   unifié template → dérivé d'un fichier owned ou merge, CRLF normalisé, sans rien écrire.
+2. **Écriture** : `--apply` écrit `nouveau` et `à jour sûr`, et le tampon. `--take <chemin>`
+   (répétable) écrase un fichier `modifié par le projet` : **seulement après avoir lu son diff**
+   (`--diff`), sinon la part du projet est perdue. `--exclude <chemin>` (répétable) refuse
+   durablement un fichier du template (convention retirée volontairement par le dérivé) : noté
+   dans le tampon, il n'est plus jamais écrit, aux synchros suivantes aussi.
+3. **ADR du template** : ils arrivent dans le sous-dossier `socle/` des `docs/decisions/` du
+   dérivé, qui fait foi. Ceux que le dérivé avait déjà directement sous `docs/decisions/` (copie
+   d'origine) se suppriment à la main après la première synchro.
+4. **Fusion manuelle** des fichiers `merge` listés, dans le dérivé.
+5. **`pnpm verify` dans le dérivé**, puis son propre `commit-push`.
+
+Un fichier ajouté au template qui doit voyager s'ajoute au manifeste : `check:framework` refuse
+un glob `owned` qui ne matche rien et une convention ni `owned` ni `merge`.
+
 ## Invariants techniques
 
 Le détail vit dans les conventions routées ; ces cinq points s'appliquent partout et ne se

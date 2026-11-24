@@ -323,12 +323,14 @@ dépasse 400 lignes, si une checklist n'est appelée par rien, si un composant d
 │   ├── hooks/                   # enforce-git-gate.mjs (gate commit/push) + enforce-bash-rules.mjs
 │   └── settings.json            # Déclaration des hooks
 ├── scripts/
-│   └── check-framework.mjs      # Cohérence tags ↔ conventions ↔ skills ↔ hooks ↔ références
+│   ├── check-framework.mjs      # Cohérence tags ↔ conventions ↔ skills ↔ hooks ↔ références
+│   └── sync-method.mjs          # Porte la méthode vers un projet dérivé (CLAUDE.md § Mettre à jour un projet dérivé)
 ├── .method/
 │   ├── templates/               # 7 templates de documents
 │   ├── checklists/              # 6 checklists quality gates
 │   ├── conventions/             # Conventions techniques routées par globs (_index.md = routing)
 │   ├── starters/                # Starters optionnels (supabase-auth, oto-platform)
+│   ├── sync-manifest.json       # Part du template dans un dérivé : owned (copiée) / merge (rapportée)
 │   └── sprint/status.md         # Sprint tracking
 ├── docs/
 │   ├── brief.md                 # Brief produit

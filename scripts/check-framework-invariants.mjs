@@ -11,6 +11,7 @@
  */
 import { existsSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
+import { verifierManifeste } from './sync-method.mjs'
 
 /**
  * @param {{ROOT: string, read: (p: string) => string, walk: (d: string, o?: string[]) => string[],
@@ -21,6 +22,7 @@ export function verifierInvariants({ ROOT, read, walk, err, warn }) {
   invariantsUi({ ROOT, read, walk, err })
   chaineDApplication({ ROOT, read, err, warn })
   invariantsDependabot({ ROOT, read, err, warn })
+  verifierManifeste(ROOT, err)
 }
 
 /** Tables créées par une migration sans que la même migration active la RLS. */

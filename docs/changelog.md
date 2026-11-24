@@ -10,6 +10,12 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-11-24] — Synchro de la méthode vers les projets dérivés
+
+**Quoi :** `scripts/sync-method.mjs` (Node, sans dépendance) compare la part du template, déclarée dans `.method/sync-manifest.json` (`owned` copiée telle quelle, `merge` rapportée, le reste au projet), à un dépôt dérivé. Rapport seul par défaut ; `--apply` écrit les fichiers `nouveau` et `à jour sûr` (inchangés depuis la dernière synchro, empreinte sha256 dans `.method/sync-state.json`), n'écrase un fichier `modifié par le projet` qu'avec `--take <chemin>`, ne touche jamais un fichier `merge`. `--exclude <chemin>` refuse durablement un fichier du template (noté dans le tampon) ; `--diff <chemin>` affiche le diff unifié template → dérivé, CRLF normalisé, sans rien écrire. Un fichier du dérivé sous un dossier `owned` sans équivalent dans le template n'est « retiré du template » que si la synchro précédente l'a noté, sinon « propre au projet » ; aucun n'est jamais supprimé. Les ADR du template arrivent sous `docs/decisions/socle/` (les copies d'origine du dérivé se suppriment à la main après la première synchro). CRLF et LF comparés à l'identique. `check:framework` refuse un glob `owned` qui ne matche rien et une convention du template ni `owned` ni `merge`. Mode d'emploi : `CLAUDE.md § Mettre à jour un projet dérivé`.
+**Pourquoi :** neuf dépôts dérivés ont été copiés sans historique git ; chaque évolution de la méthode devait y être reportée à la main, avec le risque d'écraser leur part propre (conventions, ADR, registry, CLAUDE.md).
+**Fichiers :** `.method/sync-manifest.json`, `scripts/sync-method.mjs`, `scripts/check-framework-invariants.mjs`, `tests/unit/sync-method.test.ts`, `CLAUDE.md`, `README.md`, `docs/changelog.md`.
+
 ## [2026-11-24] — Gate de commit : les autres dépôts suivent leur propre gate
 
 **Quoi :** `.claude/hooks/enforce-git-gate.mjs` laisse passer un commit ou un push visé (`cd <dir> &&`, `git -C <dir>`) dans un dépôt qui n'utilise pas cette méthode (ni `scripts/verify-receipt.mjs`, ni reçu) ; `--no-verify` et `--force` restent interdits partout, le dépôt de la session et ses worktrees restent gardés. Test qui reproduisait le blocage, écrit avant le correctif (`tests/unit/hooks.test.ts`). Garde : `CLAUDE.md § Vérifier, commiter, pousser` (« Autre dépôt » : jamais de contournement par un autre outil, un blocage légitime est un défaut du hook).

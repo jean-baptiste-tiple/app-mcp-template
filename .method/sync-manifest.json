@@ -1,0 +1,27 @@
+{
+  "$comment": "Part du template dans un projet dérivé, lue par scripts/sync-method.mjs. owned : le template fait foi, copié tel quel (dest : préfixe de destination dans le dérivé, à la place du dossier littéral du glob). merge : contenu mixte, jamais écrit, rapporté. Tout le reste appartient au projet. check:framework refuse un glob owned qui ne matche rien.",
+  "owned": [
+    ".claude/skills/{dev,design,plan,revue,verify,commit-push,wrap-up,conventions,audit}/**",
+    ".claude/agents/**",
+    ".claude/hooks/{enforce-bash-rules,enforce-git-gate,coordinate-sessions}.mjs",
+    ".githooks/pre-commit",
+    ".method/checklists/**",
+    ".method/templates/**",
+    ".method/starters/**",
+    ".method/conventions/{accessibility-patterns,api-patterns,auth-patterns,coding-standards,database-patterns,datetime-patterns,deployment-patterns,deployment-scaleway,feature-flags-patterns,feedback-patterns,forms-patterns,i18n-patterns,mcp-patterns,monitoring-patterns,nextjs-patterns,performance-patterns,security-patterns,seo-patterns,state-management,supabase-patterns,tables-patterns,testing-strategy,typescript-patterns,ui-patterns,uploads-patterns}.md",
+    "scripts/{check-framework,check-framework-invariants,verify-receipt,long-run,ui-shots,sync-method}.mjs",
+    "tests/unit/{hooks,check-framework-invariants,long-run,sync-method}.test.ts",
+    ".github/dependabot.yml",
+    { "glob": "docs/decisions/ADR-*.md", "dest": "docs/decisions/socle/" }
+  ],
+  "merge": [
+    "CLAUDE.md",
+    ".method/conventions/_index.md",
+    ".method/conventions/tech-stack.md",
+    ".method/conventions/component-registry.md",
+    ".claude/settings.json",
+    "package.json",
+    ".gitignore",
+    "README.md"
+  ]
+}
