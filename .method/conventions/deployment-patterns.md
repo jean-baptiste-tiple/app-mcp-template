@@ -79,7 +79,7 @@ NEXT_PUBLIC_SITE_URL=
 - [ ] Variables d'environnement configurées
 - [ ] Pas de `console.log` oublié
 - [ ] Pas de secrets dans le code
-- [ ] `pnpm audit:lh` vert (seuils de `performance-patterns.md § Audit Lighthouse`)
+- [ ] `pnpm test:e2e` vert (smoke, débordement, axe en clair et en sombre)
 - [ ] `pnpm audit --prod` sans vulnérabilité `high` ou `critical` (§ Dependabot : les alertes GitHub peuvent manquer)
 
 ## Dependabot
@@ -150,9 +150,6 @@ supabase db execute --file rollback.sql
 # Vérifier le health check
 curl https://monapp.com/api/health
 
-# Vérifier les Web Vitals
-# → Vercel Analytics ou Lighthouse CI
-
 # Vérifier les erreurs
 # → Sentry dashboard
 ```
@@ -167,13 +164,10 @@ local : ils portent sur ce que l'hébergeur sert réellement.
    IA compris (`seo-patterns.md § Agentic readiness`).
 2. **Preview non indexable** — `curl -sI https://<preview>.vercel.app | grep -i x-robots-tag`
    → `noindex` (`seo-patterns.md § Règles SEO`).
-3. **Lighthouse sur l'URL de prod** ≥ les seuils de
-   `performance-patterns.md § Audit Lighthouse`. L'audit local tourne sur `localhost` : il ne
-   voit ni la latence réseau, ni la compression, ni le cache.
-4. **En-têtes servis** — `curl -sI https://monapp.com/_next/static/<asset>` →
+3. **En-têtes servis** — `curl -sI https://monapp.com/_next/static/<asset>` →
    `content-encoding: br` ou `gzip`, et `cache-control: public, max-age=31536000, immutable`.
    Vercel le fait par défaut ; un reverse proxy maison ou un CDN de stockage, non.
-5. **Agent readiness** — `npx is-agentic monapp.com --json` → zéro issue de tier `essential`.
+4. **Agent readiness** — `npx is-agentic monapp.com --json` → zéro issue de tier `essential`.
    Rapports mis en cache 6 h : vérifier `scanned_at` avant de conclure qu'un correctif a porté.
 
 ## Règles de déploiement

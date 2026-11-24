@@ -44,9 +44,6 @@ npm-debug.log*
 tsconfig.tsbuildinfo
 *.tsbuildinfo
 
-# Lighthouse CI (rapports locaux)
-.lighthouseci/
-
 # Turbo
 .turbo/
 

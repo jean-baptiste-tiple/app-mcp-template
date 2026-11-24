@@ -124,9 +124,8 @@ sur `--muted` (onglets inactifs, avatar), sous AA.
 
 Après toute modification du bloc : `pnpm ui:shots / /design-system` produit les captures à 375,
 768 et 1280 px en clair et en sombre dans `.ui-shots/` ; les lire, puis parcourir les écrans
-réels avec le toggle de thème. Avant mise en production, `pnpm audit:lh` mesure le contraste
-sur les pages buildées (audit `color-contrast`) et `pnpm test:e2e` vérifie le débordement
-mobile et les violations axe.
+réels avec le toggle de thème. Avant mise en production, `pnpm test:e2e` vérifie le débordement
+mobile et les violations axe, contraste des paires réelles compris (règle `color-contrast`).
 
 ### 5. Le reste de l'identité
 
@@ -349,7 +348,8 @@ Dans `src/components/` (hors `ui/`) — détail des props dans
 - **Hiérarchie des titres sans saut** : un `h1` par page (`PageContainer`), les sections en `h2`,
   et tout titre de composant suit le niveau de son contexte (`EmptyState` en `h2` sous le titre de
   page, `headingLevel={3}` sous une section). `AlertTitle` et `CardTitle` ne sont pas des titres
-  de document. Mesuré par Lighthouse (`heading-order`) dans `pnpm audit:lh`.
+  de document. Contrôlé en review et par les tests
+  d'intégration des pages (`tests/integration/dashboard-page.test.tsx`).
 - **Tester les deux thèmes et les trois largeurs** (375, 768, 1280) avant de considérer un
   écran terminé : captures `pnpm ui:shots` lues en review (`CLAUDE.md § Design system`).
 - **Composition, responsive, texte, signatures IA** : convention `ui-patterns.md`, routée sur

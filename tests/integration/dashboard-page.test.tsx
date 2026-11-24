@@ -15,7 +15,7 @@ describe("DashboardPage", () => {
     render(<DashboardPage />)
 
     expect(screen.getByRole("heading", { level: 1, name: "Dashboard" })).toBeInTheDocument()
-    // Sous le h1 de la page : un h3 sauterait un niveau (Lighthouse heading-order).
+    // Sous le h1 de la page : un h3 sauterait un niveau (règle heading-order).
     expect(screen.getByRole("heading", { level: 2, name: "Prêt à démarrer" })).toBeInTheDocument()
   })
 })

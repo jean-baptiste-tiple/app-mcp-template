@@ -21,7 +21,7 @@
 | Vitest | `^5` | Tests unit/integ | Rapide, compatible ESM, API Jest-like. Config `vitest.config.mts` (ESM natif, sans avertissement Vite 8) |
 | Testing Library | latest ; `@testing-library/jest-dom` `^7`, `jsdom` `^31` | Tests composants | Test du comportement user, pas de l'implémentation. jest-dom 7 exige Node ≥ 22 |
 | Playwright | latest | Tests E2E, captures `pnpm ui:shots` (`scripts/ui-shots.mjs`) | Cross-browser, fiable, auto-wait. Trois projets : `chromium`, `mobile` (Pixel 7), `dark` |
-| @axe-core/playwright | ^4.14.0 | Accessibilité par règle dans le smoke e2e | Liste les éléments en violation (`serious`/`critical`), là où Lighthouse ne donne qu'un score global sur un build de prod |
+| @axe-core/playwright | ^4.14.0 | Accessibilité par règle dans le smoke e2e | Liste les éléments en violation (`serious`/`critical`) sur les pages réelles, contraste compris, en clair et en sombre |
 | @types/node | `^24` | Types Node | Aligné sur le runtime : Node 24 en CI et sur Vercel. Ne pas suivre la dernière majeure de `@types/node` sans changer le runtime |
 | pnpm | 12.4.1 (`packageManager`) | Package manager | Rapide, strict, disk-efficient. `minimumReleaseAge` (1440 min par défaut en 12) : une version publiée trop récemment est refusée (exclusion par paquet dans `pnpm-workspace.yaml`). Si corepack échoue à le télécharger : `npm i -g pnpm@12.4.1` |
 

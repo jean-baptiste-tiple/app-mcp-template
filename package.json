@@ -10,7 +10,6 @@
     "lint": "eslint . --max-warnings 0",
     "type-check": "next typegen && tsc --noEmit && tsc --noEmit -p widgets/tsconfig.json",
     "check:framework": "node scripts/check-framework.mjs",
-    "audit:lh": "node scripts/long-run.mjs audit:lh -- \"npx --yes @lhci/cli@0.15.x autorun\"",
     "verify": "node scripts/long-run.mjs verify --freeze -- \"pnpm check:framework && pnpm type-check && pnpm lint && pnpm test && node scripts/verify-receipt.mjs write\"",
     "verify:cached": "node scripts/verify-receipt.mjs check || pnpm verify",
     "test": "vitest run",

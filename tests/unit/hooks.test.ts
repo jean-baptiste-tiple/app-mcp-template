@@ -117,6 +117,14 @@ describe("enforce-git-gate", () => {
     expect(gate("git am patch.mbox")).toBe(BLOCKED)
   })
 
+  it("ne prend pas une commande git voisine pour un verbe de commit", () => {
+    // `git merge-file` fusionne trois fichiers sans créer de commit : `\b` coupait sur le tiret
+    // et le gate le bloquait comme un merge (synchro app-fnr-luciole, 2026-11-24).
+    expect(gate("git merge-file mine.md base.md theirs.md")).toBe(ALLOWED)
+    expect(gate("git merge-base main HEAD")).toBe(ALLOWED)
+    expect(gate("git commit-tree abc1234 -m x")).toBe(BLOCKED)
+  })
+
   it("refuse les formes agglomérées de --force", () => {
     // `git push -fu origin main` est la forme la plus courante d'un push forcé. `-f\b` ne coupe
     // pas entre `f` et `u` : elle franchissait l'interdit.

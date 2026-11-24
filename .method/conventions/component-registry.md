@@ -88,7 +88,7 @@ l'accessibilite — `<button aria-label="...">` autour, `aria-hidden` sur l'icon
 | ThemeProvider | `src/components/theme-provider.tsx` | children, attribute, defaultTheme | Provider next-themes (client) |
 | ThemeToggle | `src/components/theme-toggle.tsx` | — | Bouton toggle light/dark, icones Phosphor (client) |
 | PageContainer | `src/components/page-container.tsx` | heading?, description?, children | Wrapper page max-w-7xl |
-| EmptyState | `src/components/empty-state.tsx` | icon?, heading, description?, action?, headingLevel? (2 \| 3) | Etat vide (listes, tables). `headingLevel` 2 par défaut (directement sous le `h1` de la page), 3 sous un titre de section `h2` : aucun niveau de titre sauté (Lighthouse `heading-order`) |
+| EmptyState | `src/components/empty-state.tsx` | icon?, heading, description?, action?, headingLevel? (2 \| 3) | Etat vide (listes, tables). `headingLevel` 2 par défaut (directement sous le `h1` de la page), 3 sous un titre de section `h2` : aucun niveau de titre sauté (règle `heading-order`) |
 | StatCard | `src/components/stat-card.tsx` | label, value, description?, icon?, trend? | KPI card pour dashboards |
 | DataTable | `src/components/data-table.tsx` | columns, data, emptyMessage? | Table generique typee |
 | CopyButton | `src/components/copy-button.tsx` | value, label?, size?, variant? | Copie presse-papiers + feedback 2s, annonce `role="status"` (client) |

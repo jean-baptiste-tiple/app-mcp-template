@@ -247,7 +247,7 @@ Plusieurs conversations travaillent souvent en même temps dans ce dossier. Les 
 se **mutualisent** : un seul run, au bon moment, pour tout le monde.
 
 **Ce que l'outillage garantit** (`scripts/long-run.mjs`, hook `.claude/hooks/coordinate-sessions.mjs`) :
-- `verify`, `build`, `test:e2e`, `ui:shots`, `mcp:smoke`, `audit:lh` tournent **un à la fois** :
+- `verify`, `build`, `test:e2e`, `ui:shots`, `mcp:smoke` tournent **un à la fois** :
   une commande lancée pendant une autre attend sa fin au lieu de tourner en parallèle.
 - `verify` et `build` **gèlent** le checkout : avant de partir, ils attendent que les autres
   sessions aient cessé d'écrire depuis 30 s (5 min au plus) ; pendant le run, le hook refuse les

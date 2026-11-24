@@ -179,8 +179,8 @@ nextItem?.focus()
 
 | Élément | Ratio minimum | Outil de vérification |
 |---------|--------------|----------------------|
-| Texte normal | 4.5:1 | `pnpm audit:lh` (audit `color-contrast`) |
-| Grand texte (> 18px bold) | 3:1 | `pnpm audit:lh` |
+| Texte normal | 4.5:1 | `pnpm test:e2e` (axe, règle `color-contrast`, projets clair et `dark`) |
+| Grand texte (> 18px bold) | 3:1 | `pnpm test:e2e` (axe) |
 | Éléments UI (bordures, icônes) | 3:1 | contrôle manuel (hors périmètre de l'audit automatique) |
 
 **La règle porte sur les paires réellement utilisées en markup** — `text-muted-foreground` sur
@@ -206,8 +206,8 @@ relisant les tokens — seule la mesure la voit.
 ## Testing
 
 ```bash
-# Lighthouse accessibility audit
-npx lighthouse http://localhost:3000 --only-categories=accessibility
+# axe sur les pages réelles (smoke e2e, clair et sombre)
+pnpm test:e2e
 
 # axe-core dans les tests
 pnpm add -D jest-axe @axe-core/playwright

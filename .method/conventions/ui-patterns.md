@@ -253,9 +253,9 @@ Une UI se juge en la regardant, pas en lisant ses classes.
 - **Ce que la capture doit montrer** : aucun débordement à 375, sidebar à partir de 768,
   les deux thèmes lisibles, titres sur deux lignes maximum, bouton principal visible sans
   scroll sur un formulaire court.
-- **Avant mise en production** : `pnpm audit:lh` (contraste, performance) et
-  `pnpm test:e2e` (projets `chromium`, `mobile`, `dark` ; smoke de débordement et axe).
-- **Mesurer sur le bon serveur** : avant Lighthouse ou une capture sur `next start`, vérifier que
+- **Avant mise en production** : `pnpm test:e2e` (projets `chromium`, `mobile`, `dark` ; smoke
+  de débordement, axe dont le contraste des paires réelles).
+- **Mesurer sur le bon serveur** : avant une mesure ou une capture sur `next start`, vérifier que
   le PID qui écoute sur le port est celui qu'on vient de lancer (un serveur orphelin sert
   l'ancien build et fausse la mesure), et l'arrêter ensuite par PID, jamais « par port ». Vu le
   2026-11-06 : deux mesures sur un build périmé avant de s'en apercevoir.
@@ -266,6 +266,5 @@ Une UI se juge en la regardant, pas en lisant ses classes.
 |-------|---------|
 | Tokens seuls, pas de `dark:` couleur, pas d'arbitraire, `dvh`, pas de lucide, pas de tiret | `pnpm check:framework` |
 | Collapse mobile déclaré, 3 largeurs, 2 thèmes | captures `.ui-shots/` citées en review |
-| Débordement à 375, violations axe | `pnpm test:e2e` |
-| Contraste des paires réelles | `pnpm audit:lh` |
+| Débordement à 375, violations axe, contraste des paires réelles | `pnpm test:e2e` |
 | Lecture de design, réutilisation, états, libellés, signatures IA | citation de ce fichier en review |

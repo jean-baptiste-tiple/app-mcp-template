@@ -5,7 +5,7 @@
 
 ## Principes
 
-1. **Mesurer avant d'optimiser.** Ne pas deviner — utiliser Lighthouse et les Web Vitals.
+1. **Mesurer avant d'optimiser.** Ne pas deviner : sortie de build et Web Vitals (§ Mesurer).
 2. **Server Components par défaut.** Zéro JS côté client = meilleure performance.
 3. **Charger uniquement ce qui est visible.** Lazy load, code splitting, images optimisées.
 
@@ -100,42 +100,21 @@ const inter = Inter({
   ~1 Mo de JS tiers avant la moindre interaction, et ce JS n'est pas dans le bundle — il
   n'apparaît donc dans aucune analyse de bundle.
 
-## Audit Lighthouse
+## Mesurer
 
-```bash
-pnpm build && pnpm audit:lh
-```
+Pas de Lighthouse dans une app : ses pages sont derrière une authentification, et un score de
+page publique ne décrit pas l'usage réel. Lighthouse reste l'outil du socle web
+(`web-framework-template`), pas de ce template. *(Décision JB 2026-11-24.)*
 
-`lighthouserc.json` lance Lighthouse CI sur l'app buildée (`pnpm start`) et **échoue** sous les
-seuils : performance, accessibility, best-practices, seo ≥ 0.95. C'est ce qui rend les cibles
-ci-dessus opposables — sans mesure, « bundle trop gros » ou « contraste insuffisant » restent des
-opinions, et une review ne peut pas les bloquer.
-
-**Quand le lancer :** avant une mise en production, et après tout changement de layout, de hero,
-de police ou de token de couleur. **Pas** dans `pnpm verify` ni dans le gate de commit : un build
-complet suivi de l'audit se compte en minutes, le payer à chaque push pour un diff qui ne touche
-ni rendu ni asset est du gaspillage (arbitrage assumé, pas un oubli).
-
-**Une page ajoutée au site ne s'audite pas toute seule** : la liste des URLs auditées est dans
-`lighthouserc.json`. Y ajouter tout nouvel archétype de page (une page de contenu, pas la
-dix-septième page produit).
-
-**Exemption :** `/design-system` rend l'intégralité du catalogue de composants — sa note de
-performance ne décrit aucune page réelle et bloquerait sur un artefact. Elle est auditée sur
-accessibility, best-practices et SEO seulement (même exemption qu'en
-`coding-standards.md § Complexité`). L'accessibilité, elle, n'est **jamais** exemptée : un
-composant du catalogue sans nom accessible l'est aussi dans les pages qui l'utilisent.
-
-**Si `pnpm audit:lh` échoue sous Windows avec `Lighthouse failed with exit code 1` et des erreurs
-`taskkill` de chrome-launcher** (vu le 2026-11-06, LHCI 0.15 / Lighthouse 12.6 / Chrome 156) alors
-que le rapport JSON est produit : l'audit a tourné, c'est l'arrêt de Chrome qui échoue. Mesurer
-alors directement sur `next start` : `npx lighthouse@12 http://localhost:3000/ --output=json
---only-categories=performance,accessibility,best-practices,seo --chrome-flags="--headless=new"`,
-et comparer les scores aux seuils de `lighthouserc.json` à la main.
-
-**Ce que l'audit local ne couvre pas** — tout ce qui dépend de l'hébergeur : compression, cache
-`immutable`, HTTP/2+, chaînes de redirection. Ça se vérifie sur l'URL déployée
-(`deployment-patterns.md § Contrôles post-déploiement`).
+- **Poids JS par route** : la sortie de `pnpm build` (colonne First Load JS). C'est le chiffre
+  qu'un finding « bundle trop gros » doit citer.
+- **Web Vitals (LCP, INP, CLS)** : panneau Performance de Chrome DevTools sur `next start`, sur
+  la page en cause, avec son chiffre. Un ressenti « la page est lente » sans mesure reste BASSE.
+- **Accessibilité, contraste compris** : `pnpm test:e2e` (axe, clair et sombre,
+  `accessibility-patterns.md § Couleurs & Contraste`).
+- **Ce que la mesure locale ne couvre pas** — tout ce qui dépend de l'hébergeur : compression,
+  cache `immutable`, HTTP/2+, chaînes de redirection. Ça se vérifie sur l'URL déployée
+  (`deployment-patterns.md § Contrôles post-déploiement`).
 
 ## Bundle Size
 
@@ -150,11 +129,11 @@ et comparer les scores aux seuils de `lighthouserc.json` à la main.
 - **Pas de libs géantes pour un usage simple** : `date-fns` > `moment`, natif > lodash
 - **Tree shaking** : vérifier que les libs sont ESM-compatible
 
-### Tailles cibles — objectifs mesurés en CI / Lighthouse
+### Tailles cibles — objectifs mesurés
 
 > Ces seuils exigent une mesure : ils sont **hors périmètre d'une review de diff**. Ne pas
-> produire de finding « bundle trop gros » sans chiffre à l'appui. Le chiffre s'obtient avec
-> `pnpm audit:lh` (§ Audit Lighthouse).
+> produire de finding « bundle trop gros » sans chiffre à l'appui. Le chiffre s'obtient comme
+> dit en § Mesurer.
 
 | Métrique | Cible | Comment |
 |----------|-------|---------|

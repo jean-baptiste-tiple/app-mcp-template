@@ -111,12 +111,14 @@ process.stdin.on('end', async () => {
 
   // Verbes qui créent ou publient des commits. `merge`, `revert`, `cherry-pick`, `rebase` et
   // `am` produisent des commits sans passer par `commit` : les exclure laissait un chemin
-  // complet pour publier du code jamais vérifié.
-  const VERBES_COMMIT = 'commit|merge|revert|cherry-pick|rebase|am'
+  // complet pour publier du code jamais vérifié. `commit-tree` écrit un commit par la plomberie.
+  const VERBES_COMMIT = 'commit|commit-tree|merge|revert|cherry-pick|rebase|am'
   const VERBES = `${VERBES_COMMIT}|push`
   // `git` peut porter des options globales avant la sous-commande : -C <path>, -c k=v, --no-pager…
+  // Le verbe finit sur un blanc ou une ponctuation, jamais sur un tiret : `merge-file` et
+  // `merge-base` ne créent aucun commit.
   const motif = (verbes) =>
-    new RegExp(`(?:^|[;&|\\n]|\\s)git((?:\\s+-{1,2}[^\\s]+(?:\\s+[^-\\s][^\\s]*)?)*)\\s+(${verbes})\\b`)
+    new RegExp(`(?:^|[;&|\\n]|\\s)git((?:\\s+-{1,2}[^\\s]+(?:\\s+[^-\\s][^\\s]*)?)*)\\s+(${verbes})(?![\\w-])`)
 
   if (!motif(VERBES).test(bare)) process.exit(0)
 

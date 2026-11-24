@@ -25,7 +25,7 @@ const DIR = process.env.LONG_RUN_DIR ?? join(ROOT, '.claude/.long-run')
 const WRITE_TOOLS = new Set(['Edit', 'Write', 'MultiEdit', 'NotebookEdit'])
 // Les commandes qui passent par `long-run` (scripts de package.json).
 const LONG_RUN =
-  /(?:^|[\s;&|])(?:pnpm|npm|yarn)\s+(?:run\s+)?(?:verify|verify:cached|build|test:e2e|ui:shots|mcp:smoke|audit:lh)(?![\w.-])/
+  /(?:^|[\s;&|])(?:pnpm|npm|yarn)\s+(?:run\s+)?(?:verify|verify:cached|build|test:e2e|ui:shots|mcp:smoke)(?![\w.-])/
 
 const readJson = (p) => {
   try {
