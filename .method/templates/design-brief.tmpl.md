@@ -11,11 +11,18 @@
 - **Qui** : persona, contexte d'usage (bureau, terrain, mobile), fréquence.
 - **Tâche** : ce que l'utilisateur cherche à accomplir, en une phrase, avec son verbe à lui.
 - **Succès** : à quoi l'utilisateur voit que c'est fait.
+- **Signalement** : le cas exact rapporté (données, état, largeur, citation ou capture), dessiné
+  en premier ; « aucun » pour une fonctionnalité neuve.
+- **Objet de l'écran** : l'objet unique que l'utilisateur pense ; toute seconde liste ou entité
+  visible, avec sa justification (`ui-patterns.md § Principes UX`).
+- **Vocabulaire décidé** : les termes affichés qui font foi, et ceux qui ne se renomment pas
+  sans arbitrage.
 
 ## 2. Existant
 
-- **Captures avant** : chemins `.ui-shots/<route>__375__light.png`, `__1280__light.png` (ou, pour
-  une route neuve, l'écran voisin le plus proche).
+- **Captures avant** : chemins `.claude/design-shots/<sujet>/brief/<route>__375__light.png`,
+  `__1280__light.png` (ou, pour une route neuve, l'écran voisin le plus proche), copiés depuis
+  `.ui-shots/` (`ui-patterns.md § Preuve visuelle`).
 - **Ce que l'écran fait déjà** : tâche principale, action primaire, zones (dans l'ordre de lecture),
   composants utilisés.
 - **Patterns déjà présents dans l'app** pour ce besoin (commande de recherche citée) : à réutiliser.
@@ -43,11 +50,14 @@ travail matériellement différent : **arbitrage à poser** (le pilote pose la q
   où elles vivent (en ligne, menu `…`, sheet).
 - **Ce qui est retiré ou déplacé** de l'existant.
 - **Composants** : ceux du registry réutilisés ; tout composant nouveau avec ce qui casse sans lui.
-- **États** : chargement, vide (premier usage), erreur, pending, partiel : ce que chacun affiche.
+- **Parcours couverts** : le cas du signalement d'abord, puis variantes, plafond, bloqué,
+  chargement, vide (premier usage), erreur, pending, recherche vide : ce que chacun affiche
+  (`ui-patterns.md § États`).
 - **Mobile (375)** : comportement de chaque zone ; action primaire visible sans scroll si
   formulaire court.
 - **Texte exact** : titres, libellés de boutons, messages vide/erreur, dans le vocabulaire de
-  l'utilisateur.
+  l'utilisateur. Toute phrase sur un comportement du moteur cite la règle lue (chemin du
+  service ou de la policy, `ui-patterns.md § Texte visible`).
 
 ## 6. Critères d'acceptation design
 
@@ -58,6 +68,12 @@ Vérifiables sur capture, repris par le `design-critic` :
 - [ ] L'état vide affiche [titre] et [action pour en sortir].
 - [ ] [Élément déplacé ou retiré] n'apparaît plus à [ancien emplacement].
 
-## 7. Arbitrages
+## 7. Demandes au moteur
+
+Ce que l'écran demande et que le moteur ne fournit pas aujourd'hui (donnée, champ, règle,
+droit), un par ligne, avec sa question de confidentialité : qui voit quoi, ce qui sort de
+l'organisation. Vide si aucune.
+
+## 8. Arbitrages
 
 Décisions qui reviennent à l'utilisateur, avec par option la conséquence et le coût. Vide si aucune.

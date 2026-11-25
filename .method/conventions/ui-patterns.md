@@ -55,7 +55,9 @@ une boîte de plus à chaque story, plus personne ne sait à quoi sert la page.
   - plus de 7 champs sans regroupement : sections ou étapes ;
   - l'action principale hors du premier écran à 1280 ;
   - une zone nouvelle qui affiche une donnée déjà présente ailleurs sur l'écran ;
-  - une card ou une section dont le titre ne décrit plus tout son contenu.
+  - une card ou une section dont le titre ne décrit plus tout son contenu ;
+  - une seconde liste d'objets ou une seconde entité que le brief ne justifie pas
+    (`§ Principes UX`, un objet par écran).
 - **L'option la plus petite est toujours évaluée** : passer par un composant existant, ou ne
   rien ajouter de visible (raccourci, action contextuelle, valeur par défaut). Le brief l'écrit,
   même pour l'écarter.
@@ -72,12 +74,21 @@ La grille de base que le `designer` applique et que le `design-critic` vérifie
 
 - **Une tâche principale par écran, une action primaire** (`Button` variant `default`) ; le reste
   en `secondary`, `ghost` ou menu.
+- **Un objet par écran**, celui que l'utilisateur pense (un client, une facture, un accès),
+  jamais la structure du moteur (table de liaison, tâche de fond, état de synchronisation). Le
+  brief le nomme ; toute seconde liste ou entité visible y est justifiée, sinon elle devient un
+  geste sur l'objet ou une étape d'un parcours.
 - **Ordre de lecture = ordre d'usage** : ce qui sert la tâche fréquente vient en premier et pèse
-  le plus ; le rare, l'avancé et le destructif se replient (menu, accordion, sheet).
+  le plus ; le rare, l'avancé et le destructif se replient (menu, accordion, sheet). Un geste
+  rare, d'administration ou destructif n'est jamais au niveau de l'usage courant (en-tête de
+  page, rangée de l'action primaire) : il vit sur l'objet (`§ Fiches et gestes sur l'objet`).
+- **Seule l'exception se marque** : aucun badge, icône ni couleur pour l'état par défaut
+  (« Actif », « Synchronisé », « OK » sur chaque ligne) ; un marqueur visible signale un écart.
 - **Proximité** : un label avec son champ, une action à côté de l'objet qu'elle modifie, des
   éléments liés groupés et séparés des autres par de l'espace plutôt que par des boîtes.
 - **Reconnaissance plutôt que rappel** : valeurs et choix visibles, défauts pertinents
-  pré-remplis, aucun identifiant technique à mémoriser.
+  pré-remplis, aucun identifiant technique à mémoriser. À la création, rien n'est demandé qui a
+  un bon défaut et se change après.
 - **Prévenir avant de signaler** : contraintes de saisie, action désactivée avec sa raison
   visible, confirmation réservée à l'irréversible (`feedback-patterns.md`).
 - **Retour immédiat** de chaque action, à l'endroit où l'utilisateur regarde.
@@ -85,7 +96,11 @@ La grille de base que le `designer` applique et que le `design-critic` vérifie
   action pour en sortir.
 - **Coût d'interaction proportionnel à la fréquence** : la tâche fréquente en un geste, la rare
   peut en demander plusieurs.
-- **Le vocabulaire est celui de l'utilisateur**, pas celui du modèle de données ni du code.
+- **Le vocabulaire est celui de l'utilisateur**, pas celui du modèle de données ni du code :
+  aucun état interne (`pending_sync`), nom de fonction ou de table, identifiant, ni compteur sans
+  son objet (« 3 », « 12 traités »). Un terme décidé (brief, ou déjà affiché ailleurs) ne se
+  renomme pas sans arbitrage posé (`AskUserQuestion`) avec son coût : écrans, documents et tools
+  MCP qui le portent.
 
 ## Design system verrouillé
 
@@ -126,7 +141,9 @@ Mobile d'abord : un écran se conçoit à 375 px puis s'élargit.
   (`size="icon"` des boutons Shadcn = 36 px : ajouter `p-1` ou une zone de hit sur mobile).
   Espacement ≥ 8 px entre deux cibles adjacentes.
 - **Aucune affordance au hover seul** : une action révélée au survol est aussi visible au
-  focus et au tap (bouton toujours rendu sous `md`, ou menu `…`).
+  focus et au tap (bouton toujours rendu sous `md`, ou menu `…`). Révélé ou non, il occupe déjà
+  sa place : il apparaît par `opacity`, jamais par ajout au flux, et rien ne bouge au survol
+  (captures avec et sans survol superposables).
 - **Overlays** : `Dialog` pour une confirmation courte ; un formulaire ou un contenu long
   passe en `Sheet` côté `bottom` ou `right` sous `md`, en `Dialog` au-dessus.
 - **Sticky et fixed** : rien de sticky sous `md` hors la barre de navigation ; les éléments
@@ -145,12 +162,38 @@ Mobile d'abord : un écran se conçoit à 375 px puis s'élargit.
   `divide-y`, `border-t` ou de l'espace, pas par une card par item. Une grille de cards
   identiques contenant chacune un titre et deux lignes est un signal de gabarit.
 - **Hiérarchie par le poids et la couleur**, pas par la taille : `font-medium` et
-  `text-muted-foreground` avant `text-2xl`.
+  `text-muted-foreground` avant `text-2xl`. Le muted sert au texte secondaire, jamais à un
+  titre : un titre de section est en `text-foreground`, `font-semibold` ou plus, au moins à la
+  taille du corps ; pas de sur-titre pâle au-dessus (`§ Signatures IA`).
 - **Densité** : celle de `system.md § Direction`. Un dashboard dense n'enferme pas chaque
   chiffre dans une card ; une page de réglages aérée ne tasse pas ses sections.
 - **Espacement** : l'échelle de `system.md § Spacing` (multiples de 4). Rythme vertical
   constant entre sections d'une même page (`gap-6` ou `gap-8`, pas les deux mélangés).
 - **Navigation** : une source, `NAV_ITEMS` ; l'item actif porte `aria-current`.
+
+## Fiches et gestes sur l'objet
+
+Écran de gestion d'objets : une liste, puis la fiche de l'objet choisi.
+
+- **Geste rare, d'administration ou destructif** : sur l'objet, là où il apparaît (ligne, en-tête
+  de fiche), discret : icône révélée au survol et au focus clavier (`§ Responsive`), infobulle
+  qui nomme l'effet (« Retirer l'accès », pas « Gérer »), confirmation qui liste ce qui sera
+  perdu ou changé (quand confirmer : `feedback-patterns.md § Dialogs de confirmation`).
+- **Gestes d'une fiche** : un geste principal ; les autres groupés (une rangée ou un menu `…`) ;
+  les destructifs dans une zone à part, en bas de la fiche.
+- **Tiroir de détail** : `Sheet` à droite, de l'ordre de 560 px à 1280 (`sm:max-w-xl` ; le
+  `sm:max-w-sm` par défaut du composant est trop étroit). En-tête : visuel (icône, logo ou
+  avatar), nom, une ligne de contexte, état ; rien d'autre avant le premier contenu.
+- **Une information = une ligne** quand elle tient à la largeur du tiroir. Propriétaire et
+  partage par `Avatar` ou icône avec infobulle, pas par une phrase grise.
+- **Listes de capacités** (droits, fonctions, outils d'un objet) : une ligne par groupe (icône,
+  libellé, résumé, nombre aligné à droite), repliable (`Accordion`), fermée par défaut ; jamais
+  une grille de cards étroites où le texte passe à la ligne.
+- **Choix à 2 ou 3 options exclusives** : contrôle segmenté (`ToggleGroup` `type="single"`),
+  option active marquée sobrement (fond `secondary` ou `muted`, pas `primary`), libellés qui
+  disent ce qu'on choisit (« Moi seul », « Toute l'équipe », pas « Oui » ou « Mode A »), aide
+  d'une ligne, exacte. Une seule option possible pour cet objet : pas de contrôle, la valeur
+  s'écrit en texte.
 
 ## États
 
@@ -165,6 +208,8 @@ qui charge des données, plus deux souvent oubliés :
   soumission possible.
 - **Partiel** : liste paginée ou filtrée sans résultat ≠ liste vide (message différent,
   action « réinitialiser les filtres »).
+- **Plafond et bloqué** : limite atteinte (quota, nombre maximal) et action refusée (droit
+  absent, prérequis manquant) affichent la raison et ce qui débloque.
 
 ## Texte visible
 
@@ -178,6 +223,16 @@ qui charge des données, plus deux souvent oubliés :
   « Sauvegarder » dans le dialog et « Valider » dans le formulaire. Verbe d'action concret,
   jamais « Soumettre », « Valider » seul ou « OK » sur une action irréversible.
 - **Bouton principal sur une ligne** à 375 : trois mots maximum.
+- **Aucune contradiction dans une vue** : deux textes visibles ensemble ne promettent pas
+  l'inverse, un état vide ne s'affiche pas avec une liste non vide, un compteur égale le nombre
+  d'éléments qu'il annonce et l'état qu'ils montrent.
+- **Aucune promesse que le moteur ne tient pas** : un texte qui décrit un comportement (partage,
+  suppression, synchronisation, délai, visibilité) s'écrit après lecture du service ou de la
+  policy qui le porte, chemin cité dans le brief.
+- **Moins de texte** : pas d'explication de l'évidence (étapes « comment ça marche », titre
+  au-dessus d'un champ déjà labellisé, phrase qui répète le bouton) ; au plus une phrase courte
+  près du bouton qu'elle éclaire.
+- **Accords calculés** : « 1 outil », « 3 outils », « aucun outil » ; jamais « outil(s) ».
 - **Données d'exemple réalistes** (seeds, fixtures, stories, captures) : noms français
   plausibles, montants non ronds, dates variées. « Jean Dupont », « Acme », « 99,99 % » et
   « 1 234 567 » sont des signaux de gabarit.
@@ -190,6 +245,10 @@ qui charge des données, plus deux souvent oubliés :
   applicative ; `lucide-react` reste interne à `src/components/ui/` *(mécanisé)*.
 - Icône seule = `aria-label` sur le bouton et `aria-hidden` sur l'icône
   (`accessibility-patterns.md § Images`). Icône décorative à côté d'un texte = `aria-hidden`.
+- **Bouton d'action = icône + libellé.** L'icône seule est réservée aux contrôles d'interface
+  (menu, thème, fermer) et aux gestes sur l'objet révélés au survol, toujours avec infobulle.
+- **Badges d'état en grille dense** : icône seule, une forme distincte par état (jamais la même
+  icône en deux couleurs), sens en infobulle et dans le nom accessible.
 - **Pas d'emoji en guise d'icône**, pas de SVG dessiné à la main dans un composant (hors
   `AppLogo` et `icon.svg`).
 - Une seule taille d'icône par contexte : `h-4 w-4` inline, `h-5 w-5` dans un bouton,
@@ -258,7 +317,14 @@ Une UI se juge en la regardant, pas en lisant ses classes.
 - **Mesurer sur le bon serveur** : avant une mesure ou une capture sur `next start`, vérifier que
   le PID qui écoute sur le port est celui qu'on vient de lancer (un serveur orphelin sert
   l'ancien build et fausse la mesure), et l'arrêter ensuite par PID, jamais « par port ». Vu le
-  2026-11-06 : deux mesures sur un build périmé avant de s'en apercevoir.
+  2026-11-06 : deux mesures sur un build périmé avant de s'en apercevoir. Avant de juger une
+  capture, un élément propre au diff (texte, composant) y est repéré : version servie = version
+  attendue, sinon la critique porte sur un autre écran.
+- **Captures du design séparées** : `pnpm ui:shots` vide `.ui-shots/` à chaque run. Le
+  `designer` et le `design-critic` copient leurs captures, juste après chaque run, dans leur
+  dossier propre, `.claude/design-shots/<sujet>/brief/` ou `.../critique/` (non versionné), et
+  y mettent tout script de capture ad hoc (survol, tiroir ouvert) ; aucun n'écrit dans le
+  dossier de l'autre ni dans `scripts/`. Le brief et la critique citent ces chemins.
 
 ## Vérifiable
 
@@ -267,4 +333,4 @@ Une UI se juge en la regardant, pas en lisant ses classes.
 | Tokens seuls, pas de `dark:` couleur, pas d'arbitraire, `dvh`, pas de lucide, pas de tiret | `pnpm check:framework` |
 | Collapse mobile déclaré, 3 largeurs, 2 thèmes | captures `.ui-shots/` citées en review |
 | Débordement à 375, violations axe, contraste des paires réelles | `pnpm test:e2e` |
-| Lecture de design, réutilisation, états, libellés, signatures IA | citation de ce fichier en review |
+| Lecture de design, réutilisation, états, libellés, signatures IA, objet et gestes | citation de ce fichier en review |

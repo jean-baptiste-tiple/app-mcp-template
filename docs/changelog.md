@@ -10,6 +10,11 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-11-25] — Design : 23 retours de JB rendus contrôlables (écran de gestion d'objets)
+**Quoi :** `ui-patterns.md` : un objet par écran (celui que l'utilisateur pense), pas de jargon moteur, vocabulaire décidé stable, aucune contradiction ni promesse que le moteur ne tient pas, seule l'exception marquée, geste rare ou destructif sur l'objet (révélé au survol sans prendre de place), boutons icône + libellé, badges icône seule en grille dense, nouvelle § Fiches et gestes sur l'objet (tiroir, une information par ligne, capacités en accordéon, choix en contrôle segmenté, pas de champ qui a un bon défaut), version servie vérifiée avant toute capture, captures du design dans des dossiers séparés. Points cochables dans `design-review.md` ; méthode dans `designer.md` (objet unique, cas du signalement d'abord, règles moteur lues, demandes au moteur listées) et `design-critic.md` (version servie, dérives maquette → réel, cohérence des données bloquante, alternative plus simple obligatoire) ; gabarit de brief complété (§ 7 Demandes au moteur).
+**Pourquoi :** refonte d'un écran de connecteurs dans un projet dérivé : JB a dû refaire ces retours à la main.
+**Fichiers :** `.method/conventions/ui-patterns.md`, `.method/checklists/design-review.md`, `.claude/agents/{designer,design-critic}.md`, `.method/templates/design-brief.tmpl.md`
+
 ## [2026-11-24] — Le reçu survit au commit du même arbre
 **Quoi :** l'empreinte du reçu porte sur le contenu de l'arbre (chemin → blob), plus sur HEAD + diff : un commit sans changement de code ne l'invalide plus, et un `git rebase origin/main # checks-ok` passe sans rejouer les checks. Skill `commit-push` : marche à suivre quand le push est refusé.
 **Pourquoi :** sur bo-my, app-fnr, app-pmo et mon-espace, un commit de synchro de schéma arrivait sur `main` entre le commit et le push : il fallait rejouer 10 à 37 min de checks sur un code identique pour avoir le droit de rebaser.
