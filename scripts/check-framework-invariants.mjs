@@ -33,7 +33,10 @@ export function verifierInvariants({ ROOT, read, walk, err, warn }) {
  */
 function caracteresDeControle({ ROOT, read, walk, err }) {
   const racines = ['.method', '.claude'].map((d) => join(ROOT, d)).filter((d) => existsSync(d))
-  const fichiers = [...racines.flatMap((d) => walk(d)), join(ROOT, 'CLAUDE.md')]
+  // `.claude/worktrees/` porte l'arbre d'autres branches (autres sessions) : pas ce dépôt.
+  const fichiers = [...racines.flatMap((d) => walk(d)), join(ROOT, 'CLAUDE.md')].filter(
+    (f) => !f.replaceAll('\\', '/').includes('/.claude/worktrees/')
+  )
   for (const f of fichiers.filter((f) => f.endsWith('.md') && existsSync(f))) {
     read(f).split('\n').forEach((ligne, i) => {
       if (/[\x00-\x08\x0B\x0C\x0E-\x1F]/.test(ligne)) {

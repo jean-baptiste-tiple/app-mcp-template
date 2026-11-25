@@ -32,6 +32,8 @@ const read = (p) => readFileSync(p, 'utf8').replace(/\r\n/g, '\n')
 const walk = (dir, out = []) => {
   for (const e of readdirSync(dir)) {
     if (['node_modules', '.git', '.next', 'dist', 'coverage'].includes(e)) continue
+    // Les worktrees d'autres sessions portent d'autres branches : pas l'arbre de ce dépôt.
+    if (e === 'worktrees' && dir.replaceAll('\\', '/').endsWith('/.claude')) continue
     const p = join(dir, e)
     if (statSync(p).isDirectory()) walk(p, out)
     // Séparateurs POSIX : toutes les comparaisons du checker (exclusions, registry ↔ src/,

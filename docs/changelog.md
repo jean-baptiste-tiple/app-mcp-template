@@ -10,6 +10,11 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-11-25] — check:framework ignore `.claude/worktrees/`
+**Quoi :** le contrôle des caractères de contrôle et le parcours de `check-framework.mjs` sautent `.claude/worktrees/`.
+**Pourquoi :** un worktree d'une autre session porte une autre branche ; un défaut qui y était déjà commité bloquait le verify du checkout principal de treso-luciole.
+**Fichiers :** `scripts/check-framework.mjs`, `scripts/check-framework-invariants.mjs`, `tests/unit/check-framework-invariants.test.ts`
+
 ## [2026-11-25] — Design : 23 retours de JB rendus contrôlables (écran de gestion d'objets)
 **Quoi :** `ui-patterns.md` : un objet par écran (celui que l'utilisateur pense), pas de jargon moteur, vocabulaire décidé stable, aucune contradiction ni promesse que le moteur ne tient pas, seule l'exception marquée, geste rare ou destructif sur l'objet (révélé au survol sans prendre de place), boutons icône + libellé, badges icône seule en grille dense, nouvelle § Fiches et gestes sur l'objet (tiroir, une information par ligne, capacités en accordéon, choix en contrôle segmenté, pas de champ qui a un bon défaut), version servie vérifiée avant toute capture, captures du design dans des dossiers séparés. Points cochables dans `design-review.md` ; méthode dans `designer.md` (objet unique, cas du signalement d'abord, règles moteur lues, demandes au moteur listées) et `design-critic.md` (version servie, dérives maquette → réel, cohérence des données bloquante, alternative plus simple obligatoire) ; gabarit de brief complété (§ 7 Demandes au moteur).
 **Pourquoi :** refonte d'un écran de connecteurs dans un projet dérivé : JB a dû refaire ces retours à la main.

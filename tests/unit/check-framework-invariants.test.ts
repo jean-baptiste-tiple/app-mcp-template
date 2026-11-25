@@ -251,6 +251,12 @@ describe("verifierInvariants — caractères de contrôle dans la méthode", () 
     expect(errors[0]).toContain(".method/conventions/database-patterns.md:1")
   })
 
+  it("should ignore the worktrees of other branches under .claude/worktrees", () => {
+    // Un worktree d'une autre session porte l'arbre d'une autre branche : son défaut n'est pas
+    // celui de ce dépôt, et le refuser bloquait le verify du checkout (treso-luciole, 2026-11-25).
+    expect(controles({ ".claude/worktrees/autre/docs/a.md": "C:\u0007pps\n" })).toHaveLength(0)
+  })
+
   it("should accept tabs and CRLF", () => {
     expect(controles({ "CLAUDE.md": "a\tb\r\nc\n", ".claude/skills/dev/SKILL.md": "ok\n" })).toHaveLength(0)
   })
