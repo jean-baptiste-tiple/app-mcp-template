@@ -10,6 +10,11 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-11-25] — Messages entre sessions : ce dépôt seulement
+**Quoi :** `CLAUDE.md § Plusieurs sessions sur le même checkout`, point 0 : on ne prévient que les sessions qui travaillent dans ce checkout (vues par `long-run status` ou nommées d'après le dépôt) ; jamais de diffusion, jamais de message vers un autre dépôt ni de consigne « un verify à la fois sur la machine ».
+**Pourquoi :** les annonces de gel d'un dépôt arrivaient dans les sessions de tous les autres (décision JB).
+**Fichiers :** `CLAUDE.md`
+
 ## [2026-11-25] — check:framework ignore `.claude/worktrees/`
 **Quoi :** le contrôle des caractères de contrôle et le parcours de `check-framework.mjs` sautent `.claude/worktrees/`.
 **Pourquoi :** un worktree d'une autre session porte une autre branche ; un défaut qui y était déjà commité bloquait le verify du checkout principal de treso-luciole.
