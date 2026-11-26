@@ -11,7 +11,7 @@
     "type-check": "next typegen && tsc --noEmit && tsc --noEmit -p widgets/tsconfig.json",
     "check:framework": "node scripts/check-framework.mjs",
     "verify": "node scripts/long-run.mjs verify --freeze -- \"pnpm check:framework && pnpm type-check && pnpm lint && pnpm test && node scripts/verify-receipt.mjs write\"",
-    "verify:cached": "node scripts/verify-receipt.mjs check || pnpm verify",
+    "verify:cached": "node scripts/verify-receipt.mjs check --commit || (node scripts/verify-receipt.mjs docs-only && pnpm check:framework && node scripts/verify-receipt.mjs write check:framework docs) || pnpm verify",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "node scripts/long-run.mjs test:e2e -- \"playwright test\"",

@@ -24,7 +24,9 @@ les checks sur l'arbre courant, `verify:cached` le constate et ne rejoue rien.
 **Une seule commande, et surtout : ne pas rejouer ce qui vient de passer.** `verify:cached`
 compare l'état exact du code au reçu laissé par le dernier `pnpm verify`. Identique → il
 affiche « checks déjà passés » et rend la main immédiatement. Différent → il enchaîne les 4
-checks puis réécrit le reçu.
+checks puis réécrit le reçu. Seule de la documentation de méthode a changé → il ne lance que
+`check:framework` et écrit un reçu doc, valable pour ce commit de doc et le rebase qui le suit
+(`CLAUDE.md § Vérifier, commiter, pousser`).
 
 | # | Commande | Si échec |
 |---|----------|----------|

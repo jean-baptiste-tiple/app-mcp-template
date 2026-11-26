@@ -20,8 +20,9 @@
  *
  * Échappement : ` # checks-ok` **en fin de commande**, posé par le skill commit-push une fois
  * `pnpm verify` passé. Le marqueur seul ne suffit pas : le reçu doit couvrir l'état exact du
- * code ET déclarer les 4 checks. C'est un garde-fou contre l'oubli, pas une barrière de
- * sécurité — quelqu'un de déterminé écrira le reçu à la main.
+ * code ET déclarer les 4 checks (ou `check:framework` seul pour un reçu doc, accepté sur un
+ * commit qui ne touche que de la documentation). C'est un garde-fou contre l'oubli, pas une
+ * barrière de sécurité — quelqu'un de déterminé écrira le reçu à la main.
  */
 
 import { execFileSync } from 'node:child_process'
@@ -77,6 +78,8 @@ function racineVisee(command, cwd) {
 
 /** Les 4 checks que `pnpm verify` enchaîne. Un reçu qui n'en déclare pas la totalité est refusé. */
 const CHECKS_REQUIS = ['check:framework', 'type-check', 'lint', 'test']
+/** Reçu doc (`scope: "docs"`, écrit par `verify:cached` sur un arbre de doc seule). */
+const CHECKS_DOC = ['check:framework']
 
 const BLOCK_MESSAGE = `BLOQUÉ: écriture git directe interdite.
 
@@ -188,7 +191,9 @@ process.stdin.on('end', async () => {
     process.platform === 'win32' ? resolve(a).toLowerCase() === resolve(b).toLowerCase() : resolve(a) === resolve(b)
   if (vise !== undefined && !meme(vise, racineSession) && existsSync(join(vise, 'scripts/verify-receipt.mjs'))) {
     try {
-      execFileSync('node', [join(vise, 'scripts/verify-receipt.mjs'), 'check'], { cwd: vise, stdio: 'pipe' })
+      // `--commit` : un reçu doc n'y vaut que sur un commit de doc seule. Un script antérieur
+      // ignore l'argument, et n'écrit pas de reçu doc.
+      execFileSync('node', [join(vise, 'scripts/verify-receipt.mjs'), 'check', '--commit'], { cwd: vise, stdio: 'pipe' })
       process.exit(0)
     } catch (e) {
       deny(
@@ -201,7 +206,7 @@ process.stdin.on('end', async () => {
 
   let receipt
   try {
-    receipt = await import('../../scripts/verify-receipt.mjs').then((m) => m.checkReceipt(vise))
+    receipt = await import('../../scripts/verify-receipt.mjs').then((m) => m.checkReceipt(vise, { commit: true }))
   } catch {
     process.exit(0) // outillage absent ou illisible : ne pas bloquer sur le framework lui-même
   }
@@ -219,7 +224,9 @@ process.stdin.on('end', async () => {
   // « aucun-check-na-tourne » ouvrait le gate. Le reçu prouvait l'identité de l'arbre, pas que
   // quoi que ce soit avait été vérifié.
   const declares = Array.isArray(receipt.receipt?.checks) ? receipt.receipt.checks : []
-  const manquants = CHECKS_REQUIS.filter((c) => !declares.includes(c))
+  // Reçu doc : `checkReceipt` a déjà vérifié que le commit ne touche que de la documentation.
+  const requis = receipt.receipt?.scope === 'docs' ? CHECKS_DOC : CHECKS_REQUIS
+  const manquants = requis.filter((c) => !declares.includes(c))
   if (manquants.length) {
     deny(
       `BLOQUÉ: le reçu ne déclare pas tous les checks — manquant(s) : ${manquants.join(', ')}.\n\n` +

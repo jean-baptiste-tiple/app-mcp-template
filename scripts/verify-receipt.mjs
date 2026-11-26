@@ -13,8 +13,9 @@
  * s'en sert pour que le marqueur ` # checks-ok` ne puisse plus être posé par réflexe sur un
  * arbre jamais vérifié.
  *
- *   node scripts/verify-receipt.mjs write [check1,check2,...]   → écrit le reçu
- *   node scripts/verify-receipt.mjs check                        → exit 0 si valide, 1 sinon
+ *   node scripts/verify-receipt.mjs write [check1,check2,...] [docs] → écrit le reçu (`docs` : reçu doc)
+ *   node scripts/verify-receipt.mjs check [--commit]             → exit 0 si valide, 1 sinon
+ *   node scripts/verify-receipt.mjs docs-only                    → exit 0 si seule la doc diffère de HEAD
  */
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
@@ -80,11 +81,11 @@ const git = (args, options = {}, root = ROOT) =>
   )
 
 /**
- * Empreinte de tout ce qui est susceptible de faire échouer un check : le contenu de l'arbre
- * (blob de chaque chemin suivi ou non suivi, modifications indexées ou non comprises), hors
- * documents écrits après les checks. Indépendante de HEAD : un commit du même arbre la garde.
+ * Chemins qui diffèrent de HEAD (indexés ou non, non suivis, suppressions), hors `EXCLUS`.
+ * Une seule énumération, partagée par l'empreinte et par `docsOnly` : deux calculs de la liste
+ * finiraient par diverger, et un reçu doc couvrirait alors un chemin que l'empreinte voit.
  */
-export function worktreeHash(root = ROOT) {
+function cheminsChanges(root) {
   const g = (args, options) => git(args, options, root)
   // Hors dépôt git, aucune empreinte n'a de sens. Le cas arrive quand le template est récupéré
   // en ZIP ou via degit, sans `git init` : `ls-files` levait alors une exception APRÈS que les
@@ -139,6 +140,33 @@ export function worktreeHash(root = ROOT) {
   ]
 
   const uniques = [...new Set([...paths, ...supprimes])].filter((f) => !estExclu(f)).sort()
+  return { g, head, lines, uniques, supprimes }
+}
+
+// Documentation de méthode : seul `check:framework` la lit (routing, citations, références de
+// skills). Type-check, lint et tests n'en dépendent pas. Tout le reste — code, `.mjs`, `.json`,
+// hooks, `package.json`, `.claude/settings.json`, un README hors racine — n'en est pas.
+const DOC = [/^(?:\.method|docs|\.claude\/skills|\.claude\/agents)\/.+\.md$/, /^(?:CLAUDE|README)\.md$/]
+const estDoc = (path) => DOC.some((r) => r.test(path))
+
+/** Vrai si au moins un chemin diffère de HEAD et que tous sont de la documentation. */
+export function docsOnly(root = ROOT) {
+  const { uniques } = cheminsChanges(root)
+  return uniques.length > 0 && uniques.every(estDoc)
+}
+
+// Pour un commit : rien ne diffère de HEAD compte aussi. Après le commit de doc, un rebase ou un
+// merge ne rejoue que des commits déjà passés par le gate ; exiger un verify complet pour
+// rebaser sur un `main` qui avait bougé annulait le gain du reçu doc (décision JB, 2026-11-26).
+const docsOuRien = (root) => cheminsChanges(root).uniques.every(estDoc)
+
+/**
+ * Empreinte de tout ce qui est susceptible de faire échouer un check : le contenu de l'arbre
+ * (blob de chaque chemin suivi ou non suivi, modifications indexées ou non comprises), hors
+ * documents écrits après les checks. Indépendante de HEAD : un commit du même arbre la garde.
+ */
+export function worktreeHash(root = ROOT) {
+  const { g, head, lines, uniques, supprimes } = cheminsChanges(root)
 
   // Un processus git par fichier : lent (~40 ms chacun), mais isole un chemin que git ne sait
   // pas hacher (symlink cassé, socket, permission) et le signale dans l'empreinte plutôt que de
@@ -200,8 +228,13 @@ function readReceipt(path = RECEIPT) {
   }
 }
 
-/** @returns {{valid: boolean, reason: string, receipt: object|null}} */
-export function checkReceipt(root = ROOT) {
+/**
+ * `commit` : le contrôle est fait pour un commit. Un reçu doc (`scope: "docs"`) n'est alors
+ * valide que si ce qui diffère de HEAD est encore de la doc seule, ou rien : l'empreinte ne dépend
+ * pas de HEAD, et après un `git reset --soft` le même arbre porte du code jamais vérifié.
+ * @returns {{valid: boolean, reason: string, receipt: object|null}}
+ */
+export function checkReceipt(root = ROOT, { commit = false } = {}) {
   const receipt = readReceipt(receiptPath(root))
   if (!receipt) return { valid: false, reason: "aucun reçu — les checks n'ont pas été lancés", receipt: null }
 
@@ -229,6 +262,13 @@ export function checkReceipt(root = ROOT) {
   if (current !== receipt.hash) {
     return { valid: false, reason: 'le code a changé depuis les derniers checks', receipt }
   }
+  if (commit && receipt.scope === 'docs' && !docsOuRien(root)) {
+    return {
+      valid: false,
+      reason: 'reçu doc seule (check:framework), mais le commit touche autre chose que la documentation — lancer `pnpm verify`',
+      receipt,
+    }
+  }
   return { valid: true, reason: `checks déjà passés il y a ${Math.max(1, Math.round(age / 60000))} min sur ce code`, receipt }
 }
 
@@ -242,14 +282,18 @@ if (!executeDirectement) {
 } else runCli()
 
 function runCli() {
-const [, , command, checksArg] = process.argv
+const [, , command, checksArg, scopeArg] = process.argv
 
 if (command === 'write') {
   const checks = (checksArg ?? 'check:framework,type-check,lint,test').split(',').map((c) => c.trim())
   try {
+    // Un reçu doc ne s'écrit que sur un arbre de doc seule : sinon il attesterait du code que
+    // seul `check:framework` a vu.
+    if (scopeArg === 'docs' && !docsOnly()) throw new Error("l'arbre ne diffère pas de HEAD que par de la documentation")
+    const scope = scopeArg === 'docs' ? { scope: 'docs' } : {}
     writeFileSync(
       RECEIPT,
-      JSON.stringify({ hash: worktreeHash(), checks, at: new Date().toISOString() }, null, 2) + '\n'
+      JSON.stringify({ hash: worktreeHash(), checks, ...scope, at: new Date().toISOString() }, null, 2) + '\n'
     )
   } catch (error) {
     // Échouer proprement plutôt que sur une stack Node : ce point du script est atteint APRÈS
@@ -259,8 +303,18 @@ if (command === 'write') {
     process.exit(1)
   }
   console.log(`Reçu écrit — ${checks.join(', ')}`)
+} else if (command === 'docs-only') {
+  let ok
+  try {
+    ok = docsOnly()
+  } catch (error) {
+    console.error(error.message)
+    process.exit(1)
+  }
+  console.log(ok ? 'Documentation seule : check:framework suffit.' : 'Pas de la documentation seule (ou aucun changement).')
+  process.exit(ok ? 0 : 1)
 } else if (command === 'check') {
-  const { valid, reason, receipt } = checkReceipt()
+  const { valid, reason, receipt } = checkReceipt(ROOT, { commit: checksArg === '--commit' })
   if (valid) {
     console.log(`✔  ${reason} : ${receipt.checks.join(', ')}. Inutile de les rejouer.`)
     process.exit(0)
@@ -270,7 +324,7 @@ if (command === 'write') {
 } else if (command === 'clear') {
   if (existsSync(RECEIPT)) unlinkSync(RECEIPT)
 } else {
-  console.error('usage: verify-receipt.mjs write|check|clear')
+  console.error('usage: verify-receipt.mjs write|check|docs-only|clear')
   process.exit(2)
 }
 }

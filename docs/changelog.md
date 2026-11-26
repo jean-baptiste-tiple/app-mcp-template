@@ -10,6 +10,12 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-11-26] — Reçu doc : une modification de doc seule ne demande que check:framework
+**Quoi :** `node scripts/verify-receipt.mjs docs-only` (exit 0 si tout ce qui diffère de HEAD, hors exclusions du reçu, est un `.md` sous `.method/`, `docs/`, `.claude/skills/`, `.claude/agents/`, ou `CLAUDE.md` / `README.md` à la racine). `pnpm verify:cached` : reçu valide → rien ; doc seule → `check:framework` puis reçu `scope: "docs"` ; sinon `pnpm verify`. Le gate (et `.githooks/pre-commit`, par `check --commit`) n'accepte un reçu doc que si ce qui diffère de HEAD est encore de la doc seule, ou rien (rebase, merge après le commit de doc). La mutualisation de `long-run` ne compte plus un reçu doc comme couvrant un `verify`. Règle dans `CLAUDE.md § Vérifier, commiter, pousser`, une ligne dans les skills `commit-push` et `verify`.
+**Pourquoi :** décision JB : rejouer type-check, lint et tests sur un code inchangé ne prouvait rien et coûtait jusqu'à plusieurs dizaines de minutes dans les dérivés.
+**Synchro des dérivés :** `package.json` est un fichier merge : reprendre à la main la ligne `verify:cached` du template.
+**Fichiers :** `scripts/verify-receipt.mjs`, `scripts/long-run.mjs`, `.claude/hooks/enforce-git-gate.mjs`, `.githooks/pre-commit`, `package.json`, `tests/unit/{hooks,long-run}.test.ts`, `CLAUDE.md`, `.claude/skills/{commit-push,verify}/SKILL.md`
+
 ## [2026-11-25] — ui-patterns : exception « moins de texte » pour l'état vide de première utilisation
 **Quoi :** `ui-patterns.md § Texte visible`, puce « Moins de texte » : l'état vide de première utilisation peut montrer trois étapes au plus et une phrase de définition ; un écran rempli n'en montre jamais.
 **Pourquoi :** décision de JB sur l'écran Connecteurs d'un projet dérivé, valable partout.

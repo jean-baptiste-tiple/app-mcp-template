@@ -27,7 +27,7 @@ fi
 RACINE=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 [ -f "$RACINE/scripts/verify-receipt.mjs" ] || exit 0
 
-if ! node "$RACINE/scripts/verify-receipt.mjs" check >/dev/null 2>&1; then
+if ! node "$RACINE/scripts/verify-receipt.mjs" check --commit >/dev/null 2>&1; then
   cat >&2 <<'MSG'
 
 BLOQUÉ (pre-commit) : aucun reçu de vérification ne couvre l'état actuel du code.

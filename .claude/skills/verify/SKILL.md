@@ -40,7 +40,8 @@ reçu ; sans lui, `commit-push` rejouera l'intégralité de la suite quelques in
 sur du code identique, et le hook refusera le commit.
 
 Pour vérifier sans risquer de rejouer inutilement : `pnpm verify:cached` — il ne relance les
-checks que si le code a bougé depuis le dernier passage.
+checks que si le code a bougé depuis le dernier passage, et seulement `check:framework` si seule
+de la documentation de méthode a changé (reçu doc, `CLAUDE.md § Vérifier, commiter, pousser`).
 
 Chaque check doit passer avant de lancer le suivant. Sur un test cassé, distinguer :
 **cassé par le code livré** (à corriger) vs **flaky préexistant** (à documenter et signaler,

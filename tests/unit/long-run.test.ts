@@ -153,3 +153,27 @@ describe("long-run", () => {
     expect(existsSync(join(dir, "lock.json"))).toBe(false)
   })
 })
+
+describe("long-run mutualisation", () => {
+  // Un `verify` qui a attendu celui d'une autre session ne rejoue rien si le reçu couvre l'arbre.
+  // Un reçu doc (check:framework seul) ne couvre pas un verify complet : sinon le verify demandé
+  // par le gate pour un commit de code ne tournait jamais (décision JB, 2026-11-26).
+  const recu = join(tmpdir(), `long-run-receipt-${process.pid}.json`)
+  const avant = process.env.VERIFY_RECEIPT_PATH
+  afterEach(() => {
+    rmSync(recu, { force: true })
+    if (avant === undefined) delete process.env.VERIFY_RECEIPT_PATH
+    else process.env.VERIFY_RECEIPT_PATH = avant
+  })
+
+  it("counts a full receipt as covering the tree, never a docs receipt", { timeout: 60_000 }, async () => {
+    process.env.VERIFY_RECEIPT_PATH = recu
+    const { worktreeHash } = await import("../../scripts/verify-receipt.mjs")
+    const { receiptCovers } = await import("../../scripts/long-run.mjs")
+    const base = { hash: worktreeHash(), at: new Date().toISOString() }
+    writeFileSync(recu, JSON.stringify({ ...base, checks: ["check:framework", "type-check", "lint", "test"] }))
+    expect(await receiptCovers()).toBe(true)
+    writeFileSync(recu, JSON.stringify({ ...base, checks: ["check:framework"], scope: "docs" }))
+    expect(await receiptCovers()).toBe(false)
+  })
+})
