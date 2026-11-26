@@ -47,6 +47,12 @@ const receiptPath = (root = ROOT) =>
     : join(root, '.claude/.verify-receipt.json')
 const RECEIPT = receiptPath()
 const MAX_AGE_MS = 60 * 60 * 1000 // 1 h : au-delà, l'environnement a pu bouger (deps, node)
+// Checks qu'un reçu doit déclarer pour être valide. Le contrôle vit ici, pas seulement dans le
+// gate : pour un autre dépôt, le gate se fie au `check --commit` du script de ce dépôt, qui ne
+// relisait pas ce champ (un reçu « test » seul y ouvrait un commit de code, 2026-11-26).
+export const CHECKS_REQUIS = ['check:framework', 'type-check', 'lint', 'test']
+/** Reçu doc (`scope: "docs"`, écrit par `verify:cached` sur un arbre de doc seule). */
+export const CHECKS_DOC = ['check:framework']
 
 // Documents de méthode écrits APRÈS les checks, par la finalisation puis par `commit-push` :
 // changelog, sprint status, stories, ADR, registry. Aucun n'influence le type-check, le lint ni
@@ -261,6 +267,15 @@ export function checkReceipt(root = ROOT, { commit = false } = {}) {
   }
   if (current !== receipt.hash) {
     return { valid: false, reason: 'le code a changé depuis les derniers checks', receipt }
+  }
+  const declares = Array.isArray(receipt.checks) ? receipt.checks : []
+  const manquants = (receipt.scope === 'docs' ? CHECKS_DOC : CHECKS_REQUIS).filter((c) => !declares.includes(c))
+  if (manquants.length) {
+    return {
+      valid: false,
+      reason: `le reçu ne déclare pas tous les checks (manquant : ${manquants.join(', ')}) — lancer \`pnpm verify\``,
+      receipt,
+    }
   }
   if (commit && receipt.scope === 'docs' && !docsOuRien(root)) {
     return {

@@ -387,6 +387,40 @@ describe("verify-receipt", () => {
     }
   })
 
+  it("refuse dans un autre dépôt un reçu qui ne déclare pas les checks requis", { timeout: GIT_TIMEOUT }, () => {
+    // Le gate se fie au `check --commit` du script du dépôt visé, et ce `check` ne relisait pas
+    // les checks déclarés : un reçu « test » seul y ouvrait un commit de code (synchro 80c2c2d,
+    // app-pmo-luciole, 2026-11-26). Le contrôle vit désormais dans `checkReceipt`.
+    const repo = join(tmpdir(), `derived-checks-${process.pid}`)
+    rmSync(repo, { recursive: true, force: true })
+    const g = (...args: string[]) => execFileSync("git", args, { cwd: repo, stdio: "pipe" })
+    execFileSync("git", ["init", "--quiet", repo], { stdio: "pipe" })
+    try {
+      g("config", "user.email", "test@test")
+      g("config", "user.name", "test")
+      mkdirSync(join(repo, "scripts"))
+      writeFileSync(join(repo, "scripts/verify-receipt.mjs"), readFileSync(RECEIPT_SCRIPT))
+      writeFileSync(join(repo, ".gitignore"), ".claude/.verify-receipt.json\n")
+      writeFileSync(join(repo, "a.ts"), "export const a = 1\n")
+      g("add", ".")
+      g("commit", "--quiet", "--no-verify", "-m", "init")
+      mkdirSync(join(repo, ".claude"))
+      writeFileSync(join(repo, "a.ts"), "export const a = 2\n")
+      // Sans VERIFY_RECEIPT_ROOT, le script copié hache SA racine : le dépôt jetable. Le reçu est
+      // celui que le hook transmet au script (VERIFY_RECEIPT_PATH de `runHook`).
+      const env: NodeJS.ProcessEnv = { ...RECEIPT_ENV }
+      delete env.VERIFY_RECEIPT_ROOT
+      const ecrireRecu = (...args: string[]) =>
+        execFileSync("node", ["scripts/verify-receipt.mjs", "write", ...args], { cwd: repo, stdio: "pipe", env })
+      ecrireRecu("test")
+      expect(gate(`cd ${repo} && git commit -m "x" ${MARKER}`)).toBe(BLOCKED)
+      ecrireRecu()
+      expect(gate(`cd ${repo} && git commit -m "x" ${MARKER}`)).toBe(ALLOWED)
+    } finally {
+      rmSync(repo, { recursive: true, force: true })
+    }
+  })
+
   it("laisse passer un commit dans un dépôt qui n'utilise pas cette méthode", { timeout: 30_000 }, () => {
     // Une session ouverte ici travaille aussi dans d'autres dépôts (C:\apps\…) qui ont leur
     // propre gate. Le hook leur appliquait celui-ci, sans reçu possible : tout commit y était

@@ -10,6 +10,11 @@
 **Fichiers :** Liste des fichiers créés/modifiés
 -->
 
+## [2026-11-26] — Gate : checks déclarés contrôlés aussi pour un autre dépôt
+**Quoi :** Le contrôle des checks déclarés par le reçu (4 checks, ou `check:framework` pour un reçu doc) passe du gate à `checkReceipt` : `verify-receipt.mjs check` refuse un reçu incomplet.
+**Pourquoi :** Pour un autre dépôt, le gate se fie au `check --commit` du script de ce dépôt, qui ne relisait pas ce champ : un reçu « test » seul y ouvrait un commit de code (relevé pendant la synchro 80c2c2d, app-pmo-luciole). Les dérivés le reçoivent à la prochaine synchro ; ceux qui ont leur propre `verify-receipt.mjs` doivent y porter le contrôle.
+**Fichiers :** `scripts/verify-receipt.mjs`, `.claude/hooks/enforce-git-gate.mjs`, `tests/unit/hooks.test.ts`
+
 ## [2026-11-26] — Reçu doc : une modification de doc seule ne demande que check:framework
 **Quoi :** `node scripts/verify-receipt.mjs docs-only` (exit 0 si tout ce qui diffère de HEAD, hors exclusions du reçu, est un `.md` sous `.method/`, `docs/`, `.claude/skills/`, `.claude/agents/`, ou `CLAUDE.md` / `README.md` à la racine). `pnpm verify:cached` : reçu valide → rien ; doc seule → `check:framework` puis reçu `scope: "docs"` ; sinon `pnpm verify`. Le gate (et `.githooks/pre-commit`, par `check --commit`) n'accepte un reçu doc que si ce qui diffère de HEAD est encore de la doc seule, ou rien (rebase, merge après le commit de doc). La mutualisation de `long-run` ne compte plus un reçu doc comme couvrant un `verify`. Règle dans `CLAUDE.md § Vérifier, commiter, pousser`, une ligne dans les skills `commit-push` et `verify`.
 **Pourquoi :** décision JB : rejouer type-check, lint et tests sur un code inchangé ne prouvait rien et coûtait jusqu'à plusieurs dizaines de minutes dans les dérivés.

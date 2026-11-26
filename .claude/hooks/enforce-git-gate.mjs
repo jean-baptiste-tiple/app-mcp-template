@@ -76,11 +76,6 @@ function racineVisee(command, cwd) {
   }
 }
 
-/** Les 4 checks que `pnpm verify` enchaîne. Un reçu qui n'en déclare pas la totalité est refusé. */
-const CHECKS_REQUIS = ['check:framework', 'type-check', 'lint', 'test']
-/** Reçu doc (`scope: "docs"`, écrit par `verify:cached` sur un arbre de doc seule). */
-const CHECKS_DOC = ['check:framework']
-
 const BLOCK_MESSAGE = `BLOQUÉ: écriture git directe interdite.
 
 Passer par le skill \`commit-push\` (.claude/skills/commit-push/SKILL.md) :
@@ -220,20 +215,7 @@ process.stdin.on('end', async () => {
     )
   }
 
-  // Le champ `checks` du reçu était écrit puis jamais relu : un reçu déclarant
-  // « aucun-check-na-tourne » ouvrait le gate. Le reçu prouvait l'identité de l'arbre, pas que
-  // quoi que ce soit avait été vérifié.
-  const declares = Array.isArray(receipt.receipt?.checks) ? receipt.receipt.checks : []
-  // Reçu doc : `checkReceipt` a déjà vérifié que le commit ne touche que de la documentation.
-  const requis = receipt.receipt?.scope === 'docs' ? CHECKS_DOC : CHECKS_REQUIS
-  const manquants = requis.filter((c) => !declares.includes(c))
-  if (manquants.length) {
-    deny(
-      `BLOQUÉ: le reçu ne déclare pas tous les checks — manquant(s) : ${manquants.join(', ')}.\n\n` +
-        `Reçu trouvé : ${declares.join(', ') || '(aucun)'}\n` +
-        `Lancer \`pnpm verify\`, qui les enchaîne tous les quatre et écrit le reçu.`
-    )
-  }
-
+  // Les checks déclarés par le reçu sont contrôlés par `checkReceipt` (verify-receipt.mjs), pour
+  // ce dépôt comme pour un autre dépôt jugé par son propre script.
   process.exit(0)
 })
