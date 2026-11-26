@@ -231,7 +231,9 @@ qui charge des données, plus deux souvent oubliés :
   policy qui le porte, chemin cité dans le brief.
 - **Moins de texte** : pas d'explication de l'évidence (étapes « comment ça marche », titre
   au-dessus d'un champ déjà labellisé, phrase qui répète le bouton) ; au plus une phrase courte
-  près du bouton qu'elle éclaire.
+  près du bouton qu'elle éclaire. Seule exception : l'état vide de première utilisation d'un
+  écran peut montrer trois étapes au plus et une phrase de définition, parce qu'il n'y a encore
+  rien d'évident à lire ; un écran rempli n'en montre jamais.
 - **Accords calculés** : « 1 outil », « 3 outils », « aucun outil » ; jamais « outil(s) ».
 - **Données d'exemple réalistes** (seeds, fixtures, stories, captures) : noms français
   plausibles, montants non ronds, dates variées. « Jean Dupont », « Acme », « 99,99 % » et
