@@ -287,6 +287,9 @@ Les projets dérivés n'ont pas l'historique du template : la méthode les attei
 template (`owned` : le template fait foi ; `merge` : contenu mixte, jamais écrit sans `--take` ;
 le reste appartient au projet).
 
+0. **Liste des dérivés** : tout dépôt qui a un dossier `.method/`, jamais la présence de
+   son tampon `sync-state.json`, absent d'un dérivé encore jamais synchronisé (casalino-app oublié
+   par la synchro du 2026-11-26).
 1. **Rapport** : `node scripts/sync-method.mjs <dépôt-dérivé>`, rien n'est écrit. Statuts des
    fichiers `owned` : `nouveau`, `à jour sûr` (inchangé depuis la dernière synchro, empreinte du
    tampon `sync-state.json` écrit dans le `.method/` du dérivé), `modifié par le projet`,
